@@ -55,8 +55,8 @@ const ConfettiBurst = () => (
         key={i}
         className="confetti-particle-burst"
         style={{
-          '--spread-x': `${(Math.random() - 0.5) * 1200}px`,
-          '--spread-y': `${(Math.random() - 0.5) * 1200}px`,
+          '--spread-x': `${(Math.random() - 0.5) * 1000}px`,
+          '--spread-y': `${(Math.random() - 0.5) * 1000}px`,
           backgroundColor: ['#FFD1DC', '#AEC6CF', '#C1E1C1', '#FFD700', '#FF1493'][Math.floor(Math.random() * 5)],
         }}
       />
@@ -152,7 +152,7 @@ const StratifiedBookFlow = ({ sessions = [], bookTitle = "Book Title", totalPage
           <h3 className="font-['Londrina_Solid'] text-4xl uppercase leading-none tracking-tight text-black">{String(bookTitle)}</h3>
           <p className="font-['Londrina_Solid'] text-[10px] opacity-40 uppercase tracking-[0.2em] font-bold mt-1 text-black">Visual Page Progress</p>
         </div>
-        <div className="bg-[#f9f8f4] border-2 border-dashed border-black/10 rounded-[35px] p-8 flex items-center justify-center relative min-h-[350px]">
+        <div className="bg-[#f9f8f4] border-2 border-dashed border-black/10 rounded-[35px] p-8 flex items-center justify-center min-h-[350px]">
           <div className="relative w-full max-w-[340px] flex shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] rounded-xl border-[4px] border-black bg-white overflow-hidden text-black text-left">
             <div className="w-1/2 p-4 border-r-2 border-black/20 relative shadow-inner">
                {[...Array(Math.max(0, leftPageRows))].map((_, i) => renderRowPill(i))}
@@ -213,8 +213,8 @@ const BookGridItem = ({ book, onSelect, currentUserId }) => (
 
 const BattleCard = ({ book, onClick, label, isNew, isSelectionWinner }) => {
   if (!book) return (
-    <div className="w-full aspect-[1/1.25] bg-gray-100 border-[4px] border-dashed border-black/20 rounded-[35px] flex items-center justify-center text-black text-center p-10">
-      <span className="font-['Londrina_Solid'] text-xl opacity-20 uppercase tracking-widest text-black">Awaiting Subject</span>
+    <div className="w-full aspect-[1.5/1] bg-gray-100 border-[4px] border-dashed border-black/20 rounded-[35px] flex items-center justify-center text-black text-center p-6">
+      <span className="font-['Londrina_Solid'] text-lg opacity-20 uppercase tracking-widest text-black">Awaiting Subject</span>
     </div>
   );
   return (
@@ -224,27 +224,27 @@ const BattleCard = ({ book, onClick, label, isNew, isSelectionWinner }) => {
       )}
       <button 
         onClick={onClick} 
-        className={`relative w-full bg-white border-[4px] border-black rounded-[35px] text-left flex flex-col p-6 transition-all active:scale-95 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] z-10 ${isNew ? 'animate-in slide-in-from-right duration-500' : ''} ${isSelectionWinner ? 'scale-105 border-transparent' : ''}`}
+        className={`relative w-full bg-white border-[4px] border-black rounded-[35px] text-left flex flex-col p-5 transition-all active:scale-95 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] z-10 ${isNew ? 'animate-in slide-in-from-right duration-500' : ''} ${isSelectionWinner ? 'scale-105 border-transparent' : ''}`}
       >
-        <div className="flex flex-col gap-1 text-black mb-4 text-left">
+        <div className="flex flex-col gap-0.5 text-black mb-3 text-left">
           <span className="text-[10px] uppercase font-bold opacity-30 tracking-widest">{String(label)}</span>
-          <h3 className="font-['Londrina_Solid'] text-4xl uppercase leading-none mt-1">{String(book.title)}</h3>
-          <p className="font-['Londrina_Solid'] text-xl opacity-40 uppercase truncate">{String(book.author)}</p>
+          <h3 className="font-['Londrina_Solid'] text-2xl uppercase leading-tight line-clamp-1">{String(book.title)}</h3>
+          <p className="font-['Londrina_Solid'] text-lg opacity-40 uppercase truncate leading-none">{String(book.author)}</p>
         </div>
         
         {book.introduction && (
-          <div className="mb-6 p-4 bg-slate-50 border-2 border-black/5 rounded-2xl italic text-sm leading-relaxed opacity-70 text-left text-black">
+          <div className="mb-4 p-3 bg-slate-50 border-2 border-black/5 rounded-2xl italic text-xs leading-snug opacity-70 text-left text-black line-clamp-2">
             "{String(book.introduction)}"
           </div>
         )}
 
         <div className="mt-auto flex items-center justify-between w-full">
           <div className="flex items-center gap-2">
-            <div className="w-5 h-5 rounded-full border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]" style={{ backgroundColor: palette[book.vibe] || '#000' }} />
-            <span className="font-['Londrina_Solid'] text-lg uppercase opacity-50 text-black">{String(book.vibe)}</span>
+            <div className="w-4 h-4 rounded-full border-2 border-black shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)]" style={{ backgroundColor: palette[book.vibe] || '#000' }} />
+            <span className="font-['Londrina_Solid'] text-base uppercase opacity-50 text-black">{String(book.vibe)}</span>
           </div>
           {book.suggestedBy && (
-            <span className="text-[8px] uppercase font-black opacity-30 tracking-tighter text-black">Via {String(book.suggestedBy)}</span>
+            <span className="text-[7px] uppercase font-black opacity-30 tracking-tighter text-black">Via {String(book.suggestedBy)}</span>
           )}
         </div>
       </button>
@@ -593,9 +593,9 @@ export default function App() {
         }
       ` }} />
 
-      {error && <div className="fixed top-0 inset-x-0 bg-red-500 text-white p-2 text-center text-xs z-[1000]">{String(error)}</div>}
+      {error && <div className="fixed top-0 inset-x-0 bg-red-500 text-white p-2 text-center text-xs z-[1000] font-black uppercase tracking-widest animate-pulse">{String(error)}</div>}
       
-      {/* Celebration Overlay */}
+      {/* Dynamic Celebration Overlay */}
       {celebrating && !finalWinner && <ConfettiBurst />}
       {finalWinner && <ConfettiRain />}
 
@@ -689,7 +689,7 @@ export default function App() {
                     <div className="space-y-4">
                       {!finalWinner ? (
                         <>
-                          <div className="text-center text-black mb-8"><h2 className="font-['Londrina_Solid'] text-5xl uppercase">The Gauntlet</h2></div>
+                          <div className="text-center text-black mb-8"><h2 className="font-['Londrina_Solid'] text-5xl uppercase text-black">The Gauntlet</h2></div>
                           
                           <div className="flex flex-col space-y-0">
                             {currentChamp && (
@@ -703,6 +703,7 @@ export default function App() {
                               </div>
                             )}
                             
+                            {/* VS INDICATOR - Clean central alignment with breathing room */}
                             <div className="flex justify-center py-4 z-20 relative pointer-events-none text-black text-center">
                               <div className="w-16 h-16 rounded-full bg-black border-[6px] border-[#FDFCF0] text-white flex items-center justify-center font-['Londrina_Solid'] text-3xl italic shadow-xl">VS</div>
                             </div>

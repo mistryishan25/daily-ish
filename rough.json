@@ -1,20 +1,43 @@
-[{
-    "book" : "The House in the Cerulean Sea",
-    "author" : "TJ Klune",
-    "year" : 2020,
-    "suggested_by" : "chatGPT",
-    "total_pages" : 400,
-    "genre" : ["Fantasy", "LGBTQ+", "Contemporary"],
-    "sessions" : {
-        "session_1" : {
-            "date" : "2024-07-01",
-            "pages_start" : 100,
-            "page_end" : 125,
-            "start_time" : "10:00 AM",
-            "end_time" : "11:30 AM",
-            "cries" : 3,
-            "primary_vibe" : ["heartwarming", "whimsical"]
-
+{
+    "experiment_id": "GUID_12345",
+    "metadata": {
+        "title": "The House in the Cerulean Sea",
+        "author": "TJ Klune",
+        "suggested_by": "chatGPT",
+        "genres": [
+            "Fantasy",
+            "LGBTQ+",
+            "Contemporary"
+        ]
+    },
+    "metrics": {
+        "total_pages": 400,
+        "current_page": 150,
+        "total_cries": 4,
+        "status": "READING"
+    },
+    "sessions": [
+        {
+            "researcher_alias": "NeonPioneer",
+            "timestamp_start": "2024-07-01T10:00:00Z",
+            "timestamp_end": "2024-07-01T11:30:00Z",
+            "pages_read": 25,
+            "cries_delta": 3,
+            "vibes": [
+                "heartwarming",
+                "whimsical"
+            ]
+        },
+        {
+            "researcher_alias": "LeadInvestigator",
+            "timestamp_start": "2024-07-03T14:00:00Z",
+            "timestamp_end": "2024-07-03T15:15:00Z",
+            "pages_read": 24,
+            "cries_delta": 1,
+            "vibes": [
+                "hopeful",
+                "magical"
+            ]
         }
-    }
-}]
+    ]
+}
