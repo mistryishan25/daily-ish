@@ -13,18 +13,18 @@ import {
   addDoc, 
   updateDoc, 
   onSnapshot, 
-  serverTimestamp,
-  increment,
-  arrayUnion,
-  deleteDoc
+  serverTimestamp, 
+  increment, 
+  arrayUnion, 
+  deleteDoc 
 } from 'firebase/firestore';
 
 // ==========================================
-// 1. LOCAL ICON COMPONENTS (Replacing Lucide to prevent build errors)
+// 1. LOCAL ICON COMPONENTS (Preventing build errors)
 // ==========================================
 
-const HeartIcon = ({ size = 24, className = "", ...props }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+const HeartIcon = ({ size = 24, className = "" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
 );
 
 const Trash2 = ({ size = 24, className = "" }) => (
@@ -45,6 +45,14 @@ const SettingsIcon = ({ size = 24, className = "" }) => (
 
 const FingerprintIcon = ({ size = 24, className = "" }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M2 12a10 10 0 0 1 20 0"/><path d="M7 12a5 5 0 0 1 10 0"/><path d="M12 12v.01"/><path d="M12 7v.01"/><path d="M12 17v.01"/><path d="M17 12c0-2.8-2.2-5-5-5s-5 2.2-5 5-2.2 5-5 5"/><path d="M22 12c0-5.5-4.5-10-10-10S2 6.5 2 12"/><path d="M7 12c0 2.8 2.2 5 5 5s5-2.2 5-5 2.2-5 5-5"/></svg>
+);
+
+const SproutIcon = ({ size = 24, className = "" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M7 20h10"/><path d="M10 20c5.5-2.5 8-6.4 8-10"/><path d="M9.5 9.4c1.1.8 2.4 2.2 2.5 4.6"/><path d="M2 11c.1 0 .2.1.2.1C4.6 13 6 17 6 17c1.3-4.3 6-4.5 6-4.5.8 0 1.5.3 2 1 2.5-3.3 5.8-3.3 5.8-3.3A5.9 5.9 0 0 0 22 4s-4.4 0-6.1 1.7c-2 2-2.3 4.2-2 5.6C11 11.3 8 13.5 6.5 17c-1.3-4.3-4.5-6-4.5-6z"/></svg>
+);
+
+const SparklesIcon = ({ size = 24, className = "" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m12 3 1.912 5.813a2 2 0 0 0 1.275 1.275L21 12l-5.813 1.912a2 2 0 0 0-1.275 1.275L12 21l-1.912-5.813a2 2 0 0 0-1.275-1.275L3 12l5.813-1.912a2 2 0 0 0 1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>
 );
 
 // ==========================================
@@ -80,53 +88,41 @@ const mlmStripes = ['#98E8C1', '#FFFFFF', '#7BADE2'];
 // 3. UI COMPONENTS
 // ==========================================
 
-const MLMHeart = ({ size = 125, id = "heart", opacity = 1, style = {}, className = "" }) => (
-  <svg width={size} height={size} viewBox="0 0 125 125" style={{ opacity, ...style }} className={className}>
+const MLMHeart = ({ size = 125, id = "heart", opacity = 1, isPlaceholder = false, style = {}, className = "" }) => (
+  <svg width={size} height={size} viewBox="0 0 125 125" style={{ opacity: isPlaceholder ? 0.15 : opacity, ...style }} className={className}>
     <defs>
       <clipPath id={`${id}-clip`}>
         <path d="M60 105 C60 105 15 80 15 45 15 20 50 20 60 35 70 20 105 20 105 45 105 80 60 105 60 105 Z" />
       </clipPath>
     </defs>
     <g transform="translate(2, 2)">
-      {/* Sharp industrial shadow */}
       <path d="M60 105 C60 105 15 80 15 45 15 20 50 20 60 35 70 20 105 20 105 45 105 80 60 105 60 105 Z" fill="black" transform="translate(6, 6)" />
-      
-      {/* Symmetrical Waves Core */}
-      <g clipPath={`url(#${id}-clip)`}>
-        <rect x="0" y="0" width="120" height="120" fill={mlmStripes[0]} />
-        <path d="M-20 40 Q20 25 60 40 T140 40 L140 80 Q100 65 60 80 T-20 80 Z" fill={mlmStripes[1]} transform="rotate(-15, 60, 60)" />
-        <path d="M-20 80 Q20 65 60 80 T140 80 L140 160 L-20 160 Z" fill={mlmStripes[2]} transform="rotate(-15, 60, 60)" />
-      </g>
-      
-      {/* Industrial Border */}
+      {isPlaceholder ? (
+         <path d="M60 105 C60 105 15 80 15 45 15 20 50 20 60 35 70 20 105 20 105 45 105 80 60 105 60 105 Z" fill="black" />
+      ) : (
+        <g clipPath={`url(#${id}-clip)`}>
+          <rect x="0" y="0" width="120" height="120" fill={mlmStripes[0]} />
+          <path d="M-20 40 Q20 25 60 40 T140 40 L140 80 Q100 65 60 80 T-20 80 Z" fill={mlmStripes[1]} transform="rotate(-15, 60, 60)" />
+          <path d="M-20 80 Q20 65 60 80 T140 80 L140 160 L-20 160 Z" fill={mlmStripes[2]} transform="rotate(-15, 60, 60)" />
+        </g>
+      )}
       <path d="M60 105 C60 105 15 80 15 45 15 20 50 20 60 35 70 20 105 20 105 45 105 80 60 105 60 105 Z" fill="none" stroke="black" strokeWidth="6" strokeLinejoin="round" />
-      
-      {/* Shine */}
-      <path d="M35 45 Q40 30 55 35" stroke="white" strokeWidth="4" opacity="0.4" fill="none" strokeLinecap="round" />
+      {!isPlaceholder && <path d="M35 45 Q40 30 55 35" stroke="white" strokeWidth="4" opacity="0.4" fill="none" strokeLinecap="round" />}
     </g>
   </svg>
 );
 
 const SedimentaryRecord = ({ sessions = [], bookTitle = "Book Title" }) => (
   <div className="w-full animate-in fade-in zoom-in duration-300">
-    <div className="bg-white border-[5px] border-black rounded-[45px] shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] p-8 flex flex-col">
+    <div className="bg-white border-[5px] border-black rounded-[45px] shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] p-8 flex flex-col text-black">
       <div className="mb-6 text-left">
-        <h3 className="font-['Londrina_Solid'] text-4xl uppercase leading-none tracking-tight text-black">{String(bookTitle)}</h3>
-        <p className="font-['Londrina_Solid'] text-[10px] opacity-40 uppercase tracking-[0.2em] font-bold mt-1 text-black">Emotional Stratigraphy</p>
+        <h3 className="font-['Londrina_Solid'] text-4xl uppercase leading-none tracking-tight">{String(bookTitle)}</h3>
+        <p className="font-['Londrina_Solid'] text-[10px] opacity-40 uppercase tracking-[0.2em] font-bold mt-1">Emotional Stratigraphy</p>
       </div>
       <div className="bg-[#f9f8f4] border-2 border-dashed border-black/10 rounded-[35px] p-10 flex items-center justify-center min-h-[350px]">
         <div className="flex flex-col-reverse w-16 border-[5px] border-black rounded-full overflow-hidden bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] h-[280px]">
           {(sessions || []).map((session, i) => (
-            <div 
-              key={i} 
-              style={{ 
-                height: `${Math.min(Number(session.minutes) || 10, 100)}%`, 
-                backgroundColor: palette[session.emotion] || '#000',
-                opacity: 0.4 + (Number(session.intensity || 3) * 0.12),
-                borderTop: '2px solid rgba(0,0,0,0.1)' 
-              }} 
-              className="w-full transition-all" 
-            />
+            <div key={i} style={{ height: `${Math.min(Number(session.minutes) || 10, 100)}%`, backgroundColor: palette[session.emotion] || '#000', opacity: 0.4 + (Number(session.intensity || 3) * 0.12), borderTop: '2px solid rgba(0,0,0,0.1)' }} className="w-full transition-all" />
           ))}
         </div>
       </div>
@@ -144,7 +140,6 @@ const StratifiedBookFlow = ({ sessions = [], bookTitle = "Book Title", totalPage
     currentTotal += Number(s.pagesRead) || (Number(s.minutes) * 0.8);
     return { ...s, start, end: currentTotal };
   });
-
   const renderRowPill = (rowIdx) => {
     const rowStart = rowIdx * pagesPerRow;
     const rowEnd = rowStart + pagesPerRow;
@@ -158,22 +153,17 @@ const StratifiedBookFlow = ({ sessions = [], bookTitle = "Book Title", totalPage
       </div>
     );
   };
-
   return (
     <div className="w-full animate-in slide-in-from-right duration-300">
       <div className="bg-white border-[5px] border-black rounded-[45px] shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] p-8 flex flex-col text-black">
         <div className="mb-6 text-black text-left">
-          <h3 className="font-['Londrina_Solid'] text-4xl uppercase leading-none tracking-tight text-black">{String(bookTitle)}</h3>
-          <p className="font-['Londrina_Solid'] text-[10px] opacity-40 uppercase tracking-[0.2em] font-bold mt-1 text-black">Visual Page Progress</p>
+          <h3 className="font-['Londrina_Solid'] text-4xl uppercase leading-none tracking-tight">{String(bookTitle)}</h3>
+          <p className="font-['Londrina_Solid'] text-[10px] opacity-40 uppercase tracking-[0.2em] font-bold mt-1">Visual Page Progress</p>
         </div>
         <div className="bg-[#f9f8f4] border-2 border-dashed border-black/10 rounded-[35px] p-8 flex items-center justify-center min-h-[350px]">
           <div className="relative w-full max-w-[340px] flex shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] rounded-xl border-[4px] border-black bg-white overflow-hidden text-black text-left">
-            <div className="w-1/2 p-4 border-r-2 border-black/20 relative shadow-inner">
-               {[...Array(Math.max(0, leftPageRows))].map((_, i) => renderRowPill(i))}
-            </div>
-            <div className="w-1/2 p-4 relative shadow-inner">
-               {[...Array(Math.max(0, totalRows - leftPageRows))].map((_, i) => renderRowPill(i + leftPageRows))}
-            </div>
+            <div className="w-1/2 p-4 border-r-2 border-black/20 relative shadow-inner">{[...Array(Math.max(0, leftPageRows))].map((_, i) => renderRowPill(i))}</div>
+            <div className="w-1/2 p-4 relative shadow-inner">{[...Array(Math.max(0, totalRows - leftPageRows))].map((_, i) => renderRowPill(i + leftPageRows))}</div>
           </div>
         </div>
       </div>
@@ -194,9 +184,7 @@ const BookGridItem = ({ book, onSelect, currentUserId }) => (
     <div className="flex flex-col gap-1 z-10 text-black text-left">
       <div className="flex justify-between items-center">
         <div className="font-['Londrina_Solid'] uppercase text-[8px] tracking-widest text-black/30">{String(book.status)}</div>
-        <div className={`px-1.5 py-0.5 rounded text-[7px] font-black uppercase ${book.ownerId === currentUserId ? 'bg-black text-white' : 'bg-slate-100 text-black'}`}>
-          {book.ownerId === currentUserId ? 'My Lab' : 'Peer'}
-        </div>
+        <div className={`px-1.5 py-0.5 rounded text-[7px] font-black uppercase ${book.ownerId === currentUserId ? 'bg-black text-white' : 'bg-slate-100 text-black'}`}>{book.ownerId === currentUserId ? 'My Lab' : 'Peer'}</div>
       </div>
     </div>
     <div className="z-10 text-black text-left">
@@ -222,13 +210,8 @@ const BattleCard = ({ book, onClick, label, isNew, isSelectionWinner }) => {
   );
   return (
     <div className="relative w-full">
-      {isSelectionWinner && (
-        <div className="absolute -inset-3 bg-gradient-to-r from-blue-500 via-pink-500 to-yellow-500 rounded-[45px] animate-laser-glow blur-[2px] z-0" />
-      )}
-      <button 
-        onClick={onClick} 
-        className={`relative w-full bg-white border-[4px] border-black rounded-[35px] text-left flex flex-col p-5 transition-all active:scale-95 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] z-10 ${isNew ? 'animate-in slide-in-from-right duration-500' : ''} ${isSelectionWinner ? 'scale-105 border-transparent' : ''}`}
-      >
+      {isSelectionWinner && <div className="absolute -inset-3 bg-gradient-to-r from-blue-500 via-pink-500 to-yellow-500 rounded-[45px] animate-laser-glow blur-[2px] z-0" />}
+      <button onClick={onClick} className={`relative w-full bg-white border-[4px] border-black rounded-[35px] text-left flex flex-col p-5 transition-all active:scale-95 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] z-10 ${isNew ? 'animate-in slide-in-from-right duration-500' : ''} ${isSelectionWinner ? 'scale-105 border-transparent' : ''}`}>
         <div className="flex flex-col gap-0.5 text-black mb-3 text-left">
           <span className="text-[10px] uppercase font-bold opacity-30 tracking-widest text-left">{String(label)}</span>
           <h3 className="font-['Londrina_Solid'] text-2xl uppercase leading-tight line-clamp-1 text-left">{String(book.title)}</h3>
@@ -240,60 +223,7 @@ const BattleCard = ({ book, onClick, label, isNew, isSelectionWinner }) => {
 };
 
 // ==========================================
-// 4. DRAWERS
-// ==========================================
-
-const AddBookDrawer = ({ onSave, onCancel }) => {
-  const [nb, setNb] = useState({ title: '', author: '', totalPages: '', genre: [], vibe: 'Wonder', suggestedBy: '', cries: 0, introduction: '' });
-  return (
-    <div className="fixed inset-0 bg-black/60 z-[100] p-6 flex items-end justify-center text-black text-left">
-      <div className="bg-[#FDFCF0] border-[5px] border-black rounded-[40px] p-8 w-full max-w-sm shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] text-black overflow-y-auto max-h-[95vh] text-left">
-        <h2 className="font-['Londrina_Solid'] text-4xl uppercase mb-6 text-black text-left font-bold">Subject Registration</h2>
-        <form onSubmit={(e) => { e.preventDefault(); onSave(nb); }} className="space-y-4 text-left text-black text-left">
-          <div className="bg-white border-4 border-black p-3 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between text-black text-left">
-            <label className="text-[10px] uppercase font-black opacity-40 text-black text-left text-black font-bold">Cries Hypothesis</label>
-            <div className="flex items-center justify-between text-black text-center font-bold">
-              <button type="button" onClick={() => setNb(p => ({...p, cries: Math.max(0, p.cries - 1)}))} className="w-8 h-8 border-2 border-black rounded-full text-black font-bold">-</button>
-              <span className="font-['Londrina_Solid'] text-3xl text-black font-bold">{nb.cries}</span>
-              <button type="button" onClick={() => setNb(p => ({...p, cries: p.cries + 1}))} className="w-8 h-8 border-2 border-black rounded-full text-black font-bold">+</button>
-            </div>
-          </div>
-          <div className="bg-white border-4 border-black p-3 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-black text-left"><label className="text-[10px] uppercase font-black opacity-40 text-black text-left text-black">Title</label><input required className="w-full bg-transparent font-['Londrina_Solid'] text-2xl focus:outline-none text-black font-bold" value={nb.title} onChange={e => setNb({...nb, title: e.target.value})} /></div>
-          <div className="bg-white border-4 border-black p-3 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-black text-left"><label className="text-[10px] uppercase font-black opacity-40 text-black text-left text-black">Hypothesis (Intro)</label><textarea required className="w-full bg-transparent text-sm h-20 resize-none text-black font-bold" value={nb.introduction} onChange={e => setNb({...nb, introduction: e.target.value})} /></div>
-          <button type="submit" className="w-full bg-black text-white p-5 rounded-3xl font-['Londrina_Solid'] text-2xl uppercase font-bold text-center text-white text-center">Inject Archive</button>
-          <button type="button" onClick={onCancel} className="w-full opacity-30 uppercase font-black text-xs mt-2 text-black text-center">Abort</button>
-        </form>
-      </div>
-    </div>
-  );
-};
-
-const ReadingDrawer = ({ activeBook, onSave, onCancel }) => {
-  const startPage = Number(activeBook?.currentPage) || 1;
-  const totalPages = Number(activeBook?.totalPages) || 400;
-  const [session, setSession] = useState({ endPage: '', startTime: '09:00', endTime: '10:00', emotion: 'Wonder', intensity: 3, sessionCries: 0, conclusion: '' });
-  const isFinished = Number(session.endPage) >= totalPages;
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!session.endPage || !activeBook) return;
-    onSave({ ...session, startPage, endPage: Number(session.endPage), isFinished });
-  };
-  return (
-    <div className="fixed inset-0 bg-black/60 z-[100] p-6 flex items-end justify-center">
-      <div className="bg-[#FDFCF0] border-[5px] border-black rounded-[40px] p-8 w-full max-w-sm shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] text-black overflow-y-auto max-h-[95vh] text-left">
-        <header className="flex justify-between mb-8 text-left text-black"><div><h2 className="font-['Londrina_Solid'] text-4xl uppercase leading-none text-left text-black font-bold">Log Session</h2><p className="font-['Londrina_Solid'] text-lg opacity-40 uppercase truncate text-black text-left">{String(activeBook?.title)}</p></div><button onClick={onCancel} className="text-2xl text-black text-center font-bold">✕</button></header>
-        <form onSubmit={handleSubmit} className="space-y-5 text-left text-black">
-          <div className="grid grid-cols-2 gap-4 text-left"><div className="bg-white border-4 border-black p-3 rounded-2xl text-left text-black"><label className="text-[10px] font-black opacity-30 uppercase block text-left">End Page</label><input required type="number" className="w-full bg-transparent font-['Londrina_Solid'] text-2xl focus:outline-none text-black font-bold" value={session.endPage} onChange={e=>setSession({...session, endPage: e.target.value})} /></div><div className="bg-white border-4 border-black p-3 rounded-2xl text-left text-black"><label className="text-[10px] font-black opacity-30 uppercase block text-left text-black">Cries</label><div className="flex justify-between items-center text-black font-bold text-center"><button type="button" onClick={()=>setSession(p=>({...p, sessionCries: Math.max(0, p.sessionCries-1)}))} className="text-xl text-left font-bold">-</button><span className="font-['Londrina_Solid'] text-2xl text-black font-bold">{session.sessionCries}</span><button type="button" onClick={()=>setSession(p=>({...p, sessionCries: p.sessionCries+1}))} className="text-xl text-left font-bold">+</button></div></div></div>
-          <div className="bg-white border-4 border-black p-4 rounded-2xl text-left text-black"><label className="text-[10px] font-black opacity-30 uppercase block mb-1 text-left text-black">Emotion Intensity (1-5)</label><input type="range" min="1" max="5" className="w-full accent-black" value={session.intensity} onChange={e=>setSession({...session, intensity: e.target.value})} /></div>
-          <button type="submit" className="w-full bg-black text-white p-5 rounded-3xl font-['Londrina_Solid'] text-2xl uppercase font-bold text-center text-white">Save Observation</button>
-        </form>
-      </div>
-    </div>
-  );
-};
-
-// ==========================================
-// 5. MAIN APP CONTROLLER
+// 4. MAIN APP CONTROLLER
 // ==========================================
 
 export default function App() {
@@ -307,12 +237,22 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('review');
   const [isLogging, setIsLogging] = useState(false);
   const [isAddingBook, setIsAddingBook] = useState(false);
+  const [isAddingPerson, setIsAddingPerson] = useState(false);
   const [focusedSubjectId, setFocusedSubjectId] = useState(null);
 
-  const [activeSpecimens, setActiveSpecimens] = useState([{ id: 1, codename: "Alpha" }, { id: 2, codename: "Beta" }, { id: 3, codename: "Gamma" }, { id: 4, codename: "Delta" }, { id: 5, codename: "Epsilon" }, { id: 6, codename: "Zeta" }, { id: 7, codename: "Eta" }, { id: 8, codename: "Theta" }]);
+  // Re-declared to resolve scope issues
+  const [activeSpecimens, setActiveSpecimens] = useState([
+    { id: 1, codename: "Alpha", active: true }, { id: 2, codename: "Beta", active: true },
+    { id: 3, codename: "Gamma", active: true }, { id: 4, codename: "Delta", active: true },
+    { id: 5, codename: null }, { id: 6, codename: null },
+    { id: 7, codename: null }, { id: 8, codename: null }
+  ]);
   const [fallingSpecimen, setFallingSpecimen] = useState(null);
   const [sedimentPile, setSedimentPile] = useState([]);
 
+  const emptySlots = useMemo(() => activeSpecimens.filter(s => !s.codename).length, [activeSpecimens]);
+
+  // Battle Logic States
   const [celebrating, setCelebrating] = useState(false);
   const [roundWinnerId, setRoundWinnerId] = useState(null); 
   const [battleIdx, setBattleIdx] = useState(0);
@@ -339,16 +279,29 @@ export default function App() {
 
   const readingList = useMemo(() => books.filter(b => b.status === 'READING'), [books]);
   const tbrPool = useMemo(() => books.filter(b => b.status === 'TBR'), [books]);
-  const peopleMetCount = useMemo(() => datingSubjects.length + sedimentPile.length, [datingSubjects, sedimentPile]);
+  const peopleMetCount = useMemo(() => {
+    const list = Array.isArray(datingSubjects) ? datingSubjects : [];
+    const pile = Array.isArray(sedimentPile) ? sedimentPile : [];
+    return list.length + pile.length;
+  }, [datingSubjects, sedimentPile]);
 
+  // Physics Drop Logic
   const triggerSpecimenExpiration = (specimen) => {
-    if (fallingSpecimen) return;
-    setActiveSpecimens(prev => prev.filter(s => s.id !== specimen.id));
+    if (fallingSpecimen || !specimen.codename) return;
+    setActiveSpecimens(prev => prev.map(s => s.id === specimen.id ? { ...s, codename: null } : s));
     setFallingSpecimen({ ...specimen, rot: (Math.random() - 0.5) * 40, x: (Math.random() - 0.5) * 60 });
     setTimeout(() => {
       setSedimentPile(prev => [...prev, { ...specimen, rot: (Math.random() - 0.5) * 25, x: (Math.random() - 0.5) * 40 }]);
       setFallingSpecimen(null);
     }, 1200);
+  };
+
+  const handleAddPerson = (personData) => {
+    const emptySlot = activeSpecimens.find(s => !s.codename);
+    if (emptySlot) {
+      setActiveSpecimens(prev => prev.map(s => s.id === emptySlot.id ? { ...s, codename: personData.codename, active: true } : s));
+    }
+    setIsAddingPerson(false);
   };
 
   const handleAddBook = async (bookData) => {
@@ -415,151 +368,187 @@ export default function App() {
         .animate-laser-glow { animation: laser-sync 0.6s linear infinite; border-width: 6px !important; }
       ` }} />
 
-      {celebrating && !finalWinner && <div className="fixed inset-0 z-[100] flex items-center justify-center animate-in fade-in"><div className="w-12 h-12 bg-yellow-400 rounded-full animate-ping" /></div>}
+      {celebrating && !finalWinner && <div className="fixed inset-0 z-[100] flex items-center justify-center animate-in fade-in text-black"><div className="w-12 h-12 bg-yellow-400 rounded-full animate-ping text-black" /></div>}
 
       <div className="p-6 pb-28 text-black">
+        {/* DASHBOARD */}
         {appState === 'garden' && (
           <div className="max-w-md mx-auto pt-10 animate-in fade-in duration-500 text-left">
             <header className="mb-10 text-left">
-              <div className="inline-block bg-white border-[3px] border-black px-3 py-1 rounded-full mb-3 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] text-black">
-                <p className="font-['Londrina_Solid'] text-xs uppercase tracking-widest text-black">Researcher Verified: {String(user?.uid?.substring(0, 8))}</p>
+              <div className="inline-block bg-white border-[3px] border-black px-3 py-1 rounded-full mb-3 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] text-black font-black">
+                <p className="font-['Londrina_Solid'] text-xs uppercase tracking-widest text-black">Verified Researcher: {String(user?.uid?.substring(0, 8))}</p>
               </div>
-              <h1 className="font-['Londrina_Solid'] text-7xl uppercase leading-none text-black text-left">Pattern HQ</h1>
+              <h1 className="font-['Londrina_Solid'] text-7xl uppercase leading-none text-black font-black text-left">Pattern HQ</h1>
             </header>
             <div className="grid grid-cols-2 gap-5 text-black">
-                <button onClick={() => setAppState('manage')} className="bg-[#AEC6CF] h-[155px] border-[5px] border-black rounded-[35px] p-5 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] text-left flex flex-col justify-between active:translate-y-1 transition-all">
-                  <span className="font-['Londrina_Solid'] text-2xl uppercase text-black text-left font-bold">Reading</span>
+                <button onClick={() => setAppState('manage')} className="bg-[#AEC6CF] h-[155px] border-[5px] border-black rounded-[45px] p-5 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] text-left flex flex-col justify-between active:translate-y-1 transition-all text-black">
+                  <span className="font-['Londrina_Solid'] text-2xl uppercase text-black font-bold text-left">Reading</span>
                   <div className="text-4xl font-['Londrina_Solid'] text-black">{Number(books.length)}</div>
                 </button>
-                <button onClick={() => setAppState('dating')} className="bg-[#FFD1DC] h-[155px] border-[5px] border-black rounded-[35px] p-5 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] text-left flex flex-col justify-between active:translate-y-1 transition-all">
-                  <span className="font-['Londrina_Solid'] text-2xl uppercase text-black text-left font-bold">Dating</span>
+                <button onClick={() => setAppState('dating_hub')} className="bg-[#FFD1DC] h-[155px] border-[5px] border-black rounded-[45px] p-5 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] text-left flex flex-col justify-between active:translate-y-1 transition-all text-black">
+                  <span className="font-['Londrina_Solid'] text-2xl uppercase text-black font-bold text-left">Dating</span>
                   <div className="text-4xl font-['Londrina_Solid'] text-black text-right">{Number(peopleMetCount)}</div>
                 </button>
             </div>
           </div>
         )}
 
+        {/* STAGE 1: DATING BENTO HUB (2X2 GRID) */}
+        {appState === 'dating_hub' && (
+          <div className="fixed inset-0 bg-[#FDFCF0] z-50 flex flex-col animate-in slide-in-from-bottom duration-500 overflow-hidden text-black text-left">
+            <header className="bg-[#1a1c2c] border-b-[6px] border-black px-10 py-8 flex justify-between items-center text-white relative shadow-xl">
+               <button onClick={() => setAppState('garden')} className="font-['Londrina_Solid'] text-xl uppercase opacity-40 hover:opacity-100 transition-opacity font-bold">EXIT LAB</button>
+               <h2 className="font-['Londrina_Solid'] text-4xl uppercase leading-none tracking-tight text-white">The Love Jar</h2>
+               <button className="w-10 h-10 flex items-center justify-center border-4 border-white/20 rounded-xl bg-white/5 text-white"><SettingsIcon size={20} className="text-white" /></button>
+            </header>
+            
+            <div className="flex-1 relative overflow-y-auto glass-body flex flex-col bg-white/5 p-8 pb-40 text-black">
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto w-full mb-10">
+                  
+                  {/* MODULE 1: DAILY BLOOM */}
+                  <button onClick={() => setAppState('dating_bloom')} className="bg-[#FFD1DC] border-[5px] border-black rounded-[45px] p-8 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] text-left flex flex-col justify-between h-[220px] active:scale-95 transition-all group">
+                     <span className="font-['Londrina_Solid'] text-3xl uppercase text-black font-bold">Daily Bloom</span>
+                     <div className="flex flex-col text-black">
+                        <p className="font-['Londrina_Solid'] text-xl text-black">Flowers: {String(8 - emptySlots)}</p>
+                        <p className="font-['Londrina_Solid'] text-xl text-black opacity-40">Available: {String(emptySlots)}</p>
+                     </div>
+                  </button>
+
+                  {/* MODULE 2: ACTIVE GARDEN */}
+                  <button onClick={() => setAppState('dating_garden')} className="bg-[#C1E1C1] border-[5px] border-black rounded-[45px] p-8 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] text-left flex flex-col justify-between h-[220px] active:scale-95 transition-all group">
+                     <span className="font-['Londrina_Solid'] text-3xl uppercase text-black font-bold">Active Bed</span>
+                     <div className="flex flex-col text-black">
+                        <p className="font-['Londrina_Solid'] text-xl text-black">Active: {String(activeSpecimens.filter(s => s.codename).length)}</p>
+                        <p className="font-['Londrina_Solid'] text-xl text-black opacity-40">Tracking live</p>
+                     </div>
+                  </button>
+
+                  {/* MODULE 3: THE LABORATORY */}
+                  <button onClick={() => setAppState('dating_lab')} className="bg-[#AEC6CF] border-[5px] border-black rounded-[45px] p-8 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] text-left flex flex-col justify-between h-[220px] active:scale-95 transition-all group">
+                     <span className="font-['Londrina_Solid'] text-3xl uppercase text-black font-bold">The Lab</span>
+                     <div className="flex flex-col text-black">
+                        <p className="font-['Londrina_Solid'] text-xl text-black">Iteration: 2.1</p>
+                        <p className="font-['Londrina_Solid'] text-xl text-black opacity-40 tracking-tight">Last test: Profile V2</p>
+                     </div>
+                  </button>
+
+                  {/* MODULE 4: THE PLAYBOOK */}
+                  <button onClick={() => setAppState('dating_playbook')} className="bg-[#FFFACD] border-[5px] border-black rounded-[45px] p-8 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] text-left flex flex-col justify-between h-[220px] active:scale-95 transition-all group rotate-[-1deg]">
+                     <span className="font-['Londrina_Solid'] text-3xl uppercase text-black font-bold">Playbook</span>
+                     <div className="flex flex-col text-black">
+                        <p className="font-['Londrina_Solid'] text-xl text-black">Ideas: 12</p>
+                        <p className="font-['Londrina_Solid'] text-xl text-black opacity-40">Tactics awaiting trial</p>
+                     </div>
+                  </button>
+               </div>
+
+               {/* RECRUIT BUTTON (Text Only) */}
+               <button 
+                  onClick={() => setIsAddingPerson(true)}
+                  className="w-full max-w-2xl mx-auto bg-black text-white border-[5px] border-black rounded-[45px] p-8 shadow-[10px_10px_0px_0px_rgba(100,100,100,0.5)] active:translate-y-2 transition-all flex items-center justify-center group"
+               >
+                  <span className="font-['Londrina_Solid'] text-4xl uppercase font-black text-center text-white">Recruit New Subject</span>
+               </button>
+            </div>
+          </div>
+        )}
+
+        {/* STAGE 2: DETAIL VIEW (BLOOM) */}
+        {appState === 'dating_bloom' && (
+          <div className="fixed inset-0 bg-[#FDFCF0] z-50 flex flex-col animate-in slide-in-from-right duration-500 overflow-hidden text-black text-left">
+            <header className="bg-[#1a1c2c] border-b-[6px] border-black px-10 py-8 flex justify-between items-center text-white relative shadow-xl">
+               <button onClick={() => setAppState('dating_hub')} className="font-['Londrina_Solid'] text-xl uppercase opacity-40 hover:opacity-100 transition-opacity font-bold text-white">BACK</button>
+               <h2 className="font-['Londrina_Solid'] text-4xl uppercase leading-none tracking-tight text-white">Daily Bloom</h2>
+               <div className="w-10" />
+            </header>
+            <div className="flex-1 relative overflow-y-auto glass-body flex flex-col bg-white/5 p-8">
+               <div className="grid grid-cols-2 gap-y-16 gap-x-10 mb-24 justify-items-center">
+                  {activeSpecimens.map((s, i) => (
+                    <button key={s.id} onClick={() => triggerSpecimenExpiration(s)} className="flex flex-col items-center animate-float group" style={{ animationDelay: `${i * 0.4}s` }}>
+                       <MLMHeart id={`detail-${s.id}`} isPlaceholder={!s.codename} />
+                       <span className="font-['Londrina_Solid'] text-xs uppercase mt-5 opacity-60 text-black font-bold group-active:scale-110 transition-transform text-center text-black">
+                         {s.codename ? `Terminate ${String(s.codename)}` : 'Dormant Slot'}
+                       </span>
+                    </button>
+                  ))}
+               </div>
+               {fallingSpecimen && (
+                  <div className="animate-physics-drop absolute bottom-32 left-1/2 -translate-x-1/2" style={{ '--final-rot': `${fallingSpecimen.rot}deg`, zIndex: 100 }}>
+                     <MLMHeart id={`fall-${fallingSpecimen.id}`} />
+                  </div>
+               )}
+            </div>
+          </div>
+        )}
+
+        {/* MODAL: RECRUIT NEW PERSON */}
+        {isAddingPerson && (
+           <div className="fixed inset-0 bg-black/60 z-[200] p-6 flex items-end justify-center">
+              <div className="bg-[#FDFCF0] border-[5px] border-black rounded-[40px] p-8 w-full max-w-sm shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] animate-in slide-in-from-bottom overflow-y-auto text-black text-left">
+                 <header className="flex justify-between items-start mb-6 text-left text-black">
+                    <div className="text-left text-black"><h2 className="font-['Londrina_Solid'] text-4xl uppercase leading-none font-black text-black">Subject Recruitment</h2><p className="opacity-40 uppercase font-['Londrina_Solid'] text-lg font-bold text-black">Injecting transforms slots</p></div>
+                    <button onClick={() => setIsAddingPerson(false)} className="text-3xl opacity-20 font-bold text-black text-center">✕</button>
+                 </header>
+                 <form onSubmit={(e) => { e.preventDefault(); handleAddPerson({ codename: e.target.codename.value }); }} className="space-y-5 text-left text-black">
+                    <div className="bg-white border-4 border-black p-4 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-black text-left text-black">
+                       <label className="text-[10px] uppercase font-black opacity-40 block mb-1 text-black">Subject Codename</label>
+                       <input required name="codename" type="text" placeholder="..." className="w-full bg-transparent font-['Londrina_Solid'] text-2xl focus:outline-none text-black font-black" />
+                    </div>
+                    <button type="submit" className="w-full bg-black text-white p-5 rounded-3xl font-['Londrina_Solid'] text-2xl uppercase shadow-[6px_6px_0px_0px_rgba(100,100,100,1)] active:translate-y-1 transition-all text-center">Inject Subject Data</button>
+                 </form>
+              </div>
+           </div>
+        )}
+
+        {/* PRESERVED: READING LAB VIEW & MODALS */}
         {appState === 'manage' && (
           <div className="fixed inset-0 bg-[#FDFCF0] z-40 p-8 flex flex-col animate-in slide-in-from-bottom duration-500 overflow-y-auto text-black text-left">
             <header className="flex justify-between items-start mb-10 text-black">
-              <div className="text-left text-black"><h2 className="font-['Londrina_Solid'] text-5xl uppercase leading-none text-left">Reading Lab</h2><p className="font-['Londrina_Solid'] text-xl opacity-30 uppercase tracking-tight text-left">Active Observations</p></div>
-              <button onClick={() => setAppState('library')} className="w-14 h-14 bg-white border-[4px] border-black rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 transition-all text-black font-bold">📚</button>
+              <div className="text-left text-black"><h2 className="font-['Londrina_Solid'] text-5xl uppercase leading-none text-left">Reading Lab</h2><p className="font-['Londrina_Solid'] text-xl opacity-30 uppercase tracking-tight text-left text-black">Active Observations</p></div>
+              <button onClick={() => setAppState('library')} className="w-14 h-14 bg-white border-[4px] border-black rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 transition-all text-black font-bold text-center">📚</button>
             </header>
             <div className="flex-1 space-y-4 text-black text-left">
               {readingList.map(book => (
-                <div key={book.id} className="relative group text-left text-black">
-                  <button onClick={() => setFocusedSubjectId(book.id)} className={`w-full bg-white border-4 border-black p-5 rounded-[30px] flex items-center justify-between text-left transition-all ${focusedSubjectId === book.id ? 'shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] border-blue-500 scale-[1.02]' : 'opacity-50 grayscale shadow-none'}`}>
-                    <div className="text-left text-black"><p className="font-['Londrina_Solid'] text-2xl uppercase leading-none text-left">{String(book.title)}</p><p className="text-[10px] font-black opacity-30 mt-1 uppercase text-left">Page {book.currentPage}/{book.totalPages}</p></div>
-                    {focusedSubjectId === book.id ? (
-                      <div onClick={(e) => { e.stopPropagation(); updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'books', book.id), { status: 'DNF' }); }} className="bg-yellow-400 text-black px-5 py-2.5 rounded-2xl border-[3px] border-black font-black text-xl uppercase text-center active:scale-95 transition-all">DNF</div>
-                    ) : <div className="w-4 h-4 rounded-full border-2 border-black" style={{ backgroundColor: palette[book.vibe] || '#000' }} />}
-                  </button>
-                </div>
+                <button key={book.id} onClick={() => setFocusedSubjectId(book.id)} className={`w-full bg-white border-4 border-black p-5 rounded-[30px] flex items-center justify-between text-left transition-all ${focusedSubjectId === book.id ? 'shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] border-blue-500 scale-[1.02]' : 'opacity-50 grayscale shadow-none'}`}>
+                  <div className="text-left text-black"><p className="font-['Londrina_Solid'] text-2xl uppercase leading-none text-left">{String(book.title)}</p><p className="text-[10px] font-black opacity-30 mt-1 uppercase text-left text-black">Page {Number(book.currentPage)}/{Number(book.totalPages)}</p></div>
+                  {focusedSubjectId === book.id ? <div onClick={(e) => { e.stopPropagation(); updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'books', book.id), { status: 'DNF' }); }} className="bg-yellow-400 text-black px-5 py-2.5 rounded-2xl border-[3px] border-black font-black text-xl uppercase text-center active:scale-95 transition-all">DNF</div> : <div className="w-4 h-4 rounded-full border-2 border-black shadow-sm text-black" style={{ backgroundColor: palette[book.vibe] || '#000' }} />}
+                </button>
               ))}
             </div>
-            <button onClick={() => setIsLogging(true)} disabled={!focusedSubjectId} className="w-full bg-black text-white p-6 rounded-[30px] font-['Londrina_Solid'] text-3xl uppercase mt-6 disabled:opacity-20 font-bold text-center text-white">Log Observation</button>
-            <button onClick={() => setAppState('garden')} className="w-full font-['Londrina_Solid'] text-xl opacity-30 uppercase text-center mt-6 text-black text-center">Exit Lab</button>
+            <button onClick={() => setIsLogging(true)} disabled={!focusedSubjectId} className="w-full bg-black text-white p-6 rounded-[30px] font-['Londrina_Solid'] text-3xl uppercase mt-6 disabled:opacity-20 font-bold text-center text-white text-center">Log Observation</button>
+            <button onClick={() => setAppState('garden')} className="w-full font-['Londrina_Solid'] text-xl opacity-30 uppercase text-center mt-6 text-black font-black">Back to Garden</button>
           </div>
         )}
 
-        {appState === 'library' && (
-          <div className="max-w-md mx-auto animate-in fade-in text-black">
-            <header className="flex justify-between items-center mb-10 pt-4 text-black text-left">
-              <button onClick={() => setAppState('manage')} className="text-3xl opacity-30 font-bold">✕</button>
-              <div className="inline-flex bg-white border-[4px] border-black p-1 rounded-[25px] shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] text-black">
-                {['grid', 'battle'].map(m => (<button key={m} onClick={() => { setLibraryMode(m); setFinalWinner(null); setCurrentChamp(null); }} className={`px-6 py-2 rounded-[20px] font-['Londrina_Solid'] uppercase text-lg transition-all ${libraryMode === m ? 'bg-black text-white' : 'opacity-40 text-black'}`}>{String(m)}</button>))}
+        {isLogging && focusedSubjectId && <ReadingDrawer activeBook={books.find(b => b.id === focusedSubjectId)} onCancel={() => setIsLogging(false)} onSave={handleSaveSession} />}
+        {isAddingBook && <AddBookDrawer onSave={handleAddBook} onCancel={() => setIsAddingBook(false)} />}
+        
+        {/* Placeholder screens logic */}
+        {['dating_garden', 'dating_lab', 'dating_playbook'].includes(appState) && (
+           <div className="fixed inset-0 bg-[#FDFCF0] z-50 flex flex-col animate-in zoom-in duration-300 text-black text-left">
+              <header className="bg-[#1a1c2c] border-b-[6px] border-black px-10 py-8 flex justify-between items-center text-white relative shadow-xl font-black">
+                 <button onClick={() => setAppState('dating_hub')} className="font-['Londrina_Solid'] text-xl uppercase opacity-40 hover:opacity-100 transition-opacity font-bold text-white">BACK</button>
+                 <h2 className="font-['Londrina_Solid'] text-4xl uppercase leading-none tracking-tight text-white">{String(appState.split('_')[1].toUpperCase())}</h2>
+                 <div className="w-10" />
+              </header>
+              <div className="flex-1 flex flex-col items-center justify-center p-10 text-center opacity-30 text-black">
+                 <SparklesIcon size={100} className="mb-6 text-black" />
+                 <h3 className="font-['Londrina_Solid'] text-4xl uppercase text-black">Station Syncing</h3>
+                 <p className="font-['Londrina_Solid'] text-xl uppercase mt-2 text-black">Refining local research variables...</p>
               </div>
-              <div className="w-8" />
-            </header>
-            <div className="grid grid-cols-2 gap-x-5 gap-y-10 text-black">
-              {libraryMode === 'grid' ? (
-                <>
-                  <button onClick={() => setIsAddingBook(true)} className="relative w-full aspect-[1/1.25] border-[4px] border-dashed border-black/20 rounded-[24px] p-3 flex flex-col items-center justify-center bg-white/50 hover:border-black/40 text-black font-bold text-center"><div className="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center text-2xl font-black text-center text-white">+</div></button>
-                  {books.map(b => <BookGridItem key={b.id} book={b} onSelect={(book) => { setSelectedBook(book); setActiveTab('review'); }} currentUserId={user?.uid} />)}
-                </>
-              ) : (
-                <div className="col-span-2 text-black">
-                  {!finalWinner ? (
-                    <div className="space-y-2 text-black">
-                       <div className="text-center mb-4"><h2 className="font-['Londrina_Solid'] text-5xl uppercase text-black text-center">The Gauntlet</h2></div>
-                       <div className="flex flex-col space-y-0 text-black text-center">
-                          {currentChamp && <div className="pb-7"><BattleCard book={currentChamp} label="The Champ" onClick={() => handleBattleChoice(currentChamp)} isSelectionWinner={roundWinnerId === currentChamp.id} /></div>}
-                          <div className="flex justify-center py-2 z-20 relative pointer-events-none text-black text-center"><div className="w-16 h-16 rounded-full bg-black border-[6px] border-[#FDFCF0] text-white flex items-center justify-center font-['Londrina_Solid'] text-3xl italic shadow-xl text-center">VS</div></div>
-                          {tbrPool[battleIdx] && <div className="pt-7"><BattleCard book={tbrPool[battleIdx]} label="The Challenger" isNew={true} onClick={() => handleBattleChoice(tbrPool[battleIdx])} isSelectionWinner={roundWinnerId === tbrPool[battleIdx].id} /></div>}
-                       </div>
-                    </div>
-                  ) : (
-                    <div className="text-center animate-in zoom-in py-10 text-black text-center">
-                      <div className="inline-block bg-green-200 border-2 border-black px-4 py-1 rounded-xl mb-4 font-black uppercase text-[10px] text-black">Subject Selected</div>
-                      <h2 className="font-['Londrina_Solid'] text-6xl uppercase leading-none mb-8 text-black text-center">{finalWinner.title}</h2>
-                      <button onClick={() => handleStartReading(finalWinner)} className="w-full bg-black text-white p-6 rounded-3xl font-['Londrina_Solid'] text-3xl uppercase shadow-[8px_8px_0px_0px_rgba(0,0,0,0.2)] active:translate-y-1 font-bold text-center text-white">Begin Experiment</button>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
+           </div>
         )}
 
-        {appState === 'dating' && (
-          <div className="fixed inset-0 bg-[#FDFCF0] z-50 flex flex-col animate-in slide-in-from-bottom duration-500 overflow-hidden text-black text-left">
-            <div className="flex-1 flex flex-col w-full mt-0 relative overflow-hidden text-black">
-               <div className="relative z-30">
-                 <header className="bg-[#1a1c2c] border-b-[6px] border-black px-10 py-8 flex justify-between items-center text-white relative shadow-xl">
-                   <button onClick={() => setAppState('garden')} className="font-['Londrina_Solid'] text-xl uppercase opacity-40 hover:opacity-100 transition-opacity font-bold">EXIT LAB</button>
-                   <h2 className="font-['Londrina_Solid'] text-4xl uppercase leading-none tracking-tight text-white">The Love Jar</h2>
-                   <button className="w-10 h-10 flex items-center justify-center border-4 border-white/20 rounded-xl bg-white/5 text-white"><SettingsIcon size={20} className="text-white" /></button>
-                 </header>
-               </div>
-               <div className="flex-1 relative overflow-hidden glass-body border-0 flex flex-col bg-white/5">
-                  <div className="absolute inset-0 jar-shine z-10 opacity-30" />
-                  <div className="absolute inset-0 backdrop-blur-[60px] bg-pink-50/5 z-0" />
-                  <div className="absolute top-[37%] left-0 right-0 border-t-[4px] border-dashed border-black/5 z-10 flex items-center justify-between px-10 pointer-events-none text-black">
-                     <span className="text-[10px] font-black uppercase opacity-20 -mt-8 text-black">Selection Zone</span>
-                     <span className="text-[10px] font-black uppercase opacity-20 -mt-8 text-black font-bold tracking-widest text-left text-black">37% Stop</span>
-                  </div>
-                  <div className="flex-1 overflow-y-auto px-8 pt-10 pb-56 relative z-20">
-                     <div className="grid grid-cols-2 gap-y-16 gap-x-10 mb-24 justify-items-center">
-                        {activeSpecimens.map((s, i) => (
-                          <button key={s.id} onClick={() => triggerSpecimenExpiration(s)} className="flex flex-col items-center animate-float group" style={{ animationDelay: `${i * 0.4}s` }}>
-                             <MLMHeart id={`active-${s.id}`} size={125} />
-                             <span className="font-['Londrina_Solid'] text-sm uppercase mt-5 opacity-60 text-black font-bold group-active:scale-110 transition-transform text-center text-black">Expire</span>
-                          </button>
-                        ))}
-                     </div>
-                     <div className="mt-40 relative px-4 text-black text-center">
-                        <h3 className="w-full text-center font-['Londrina_Solid'] text-2xl uppercase opacity-20 mb-8 text-black">Laboratory Sediment</h3>
-                        <div className="relative flex flex-wrap justify-center min-h-[350px] items-end pb-12 text-black">
-                          {fallingSpecimen && (
-                             <div className="animate-physics-drop absolute bottom-12" style={{ '--final-rot': `${fallingSpecimen.rot}deg`, left: `calc(50% + ${fallingSpecimen.x}px)`, zIndex: 100 }}>
-                                <MLMHeart id={`falling-${fallingSpecimen.id}`} size={125} />
-                             </div>
-                          )}
-                          <div className="flex flex-wrap justify-center items-end text-center text-black">
-                             {sedimentPile.map((drop, i) => (
-                                <div key={i} className="pebble-jitter relative" style={{ transform: `rotate(${drop.rot}deg)`, left: `${drop.x}px`, margin: '-15px', zIndex: i }}>
-                                   <MLMHeart id={`sediment-${drop.id}`} size={125} opacity={1} />
-                                </div>
-                             ))}
-                          </div>
-                        </div>
-                     </div>
-                  </div>
-                  <div className="absolute bottom-8 left-0 right-0 px-10 z-30 opacity-20 pointer-events-none text-black font-bold uppercase"><button className="w-full bg-black text-white p-6 rounded-[35px] font-['Londrina_Solid'] text-3xl font-bold uppercase text-center text-white">Specimens Logged: {peopleMetCount}</button></div>
-               </div>
-            </div>
-          </div>
-        )}
-
+        {/* ANALYSIS MODAL (Post-Reading) */}
         {selectedBook && (
-          <div className="fixed inset-0 bg-[#FDFCF0] z-50 p-6 flex flex-col animate-in slide-in-from-bottom overflow-y-auto text-black text-left">
-            <button onClick={() => setSelectedBook(null)} className="absolute top-6 right-6 text-4xl opacity-30 text-black font-bold text-center text-black">✕</button>
-            <div className="flex justify-center gap-4 mb-10 mt-12 relative z-10 text-center text-black text-center text-black">{['review', 'capsule', 'pages'].map(t => (<button key={t} onClick={() => setActiveTab(t)} className={`flex-1 py-4 border-[4px] border-black rounded-[28px] font-['Londrina_Solid'] uppercase text-xl transition-all ${activeTab === t ? 'bg-black text-white shadow-none translate-y-1' : 'bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-black font-bold'}`}>{String(t)}</button>))}</div>
+          <div className="fixed inset-0 bg-[#FDFCF0] z-50 p-6 flex flex-col animate-in slide-in-from-bottom duration-500 overflow-y-auto text-black text-left">
+            <button onClick={() => setSelectedBook(null)} className="absolute top-6 right-6 text-4xl opacity-30 text-black font-bold text-center text-black font-bold">✕</button>
+            <div className="flex justify-center gap-4 mb-10 mt-12 relative z-10 text-center text-black font-black">{['review', 'capsule', 'pages'].map(t => (<button key={t} onClick={() => setActiveTab(t)} className={`flex-1 py-4 border-[4px] border-black rounded-[28px] font-['Londrina_Solid'] uppercase text-xl transition-all ${activeTab === t ? 'bg-black text-white shadow-none translate-y-1' : 'bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-black font-bold'}`}>{String(t)}</button>))}</div>
             <div className="flex flex-col items-center flex-1 pb-10 text-black text-left">
               {activeTab === 'review' && (
                 <div className="w-full space-y-8 animate-in fade-in text-black">
-                  <header className="text-left text-black"><h2 className="font-['Londrina_Solid'] text-5xl uppercase leading-none mb-2 text-black text-left text-black">{String(selectedBook.title)}</h2><p className="font-['Londrina_Solid'] text-xl opacity-40 uppercase text-black text-left text-black">{String(selectedBook.author)}</p></header>
-                  <div className="bg-white border-[5px] border-black p-8 rounded-[45px] shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] text-left text-black font-black text-black text-left"><h4 className="font-['Londrina_Solid'] text-2xl uppercase mb-3 text-green-600 tracking-tight text-left text-green-600">Peer Conclusion</h4><p className="text-xl italic font-medium leading-relaxed text-black text-left font-bold text-black">"{String(selectedBook.review || "Subject still under active investigation.")}"</p></div>
+                  <header className="text-left text-black text-left text-black text-left"><h2 className="font-['Londrina_Solid'] text-5xl uppercase leading-none mb-2 text-black">{String(selectedBook.title)}</h2><p className="font-['Londrina_Solid'] text-xl opacity-40 uppercase text-black">{String(selectedBook.author)}</p></header>
+                  <div className="bg-white border-[5px] border-black p-8 rounded-[45px] shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] text-left text-black font-black text-black"><h4 className="font-['Londrina_Solid'] text-2xl uppercase mb-3 text-green-600 tracking-tight text-left">Peer Conclusion</h4><p className="text-xl italic font-medium leading-relaxed text-black text-left font-bold text-black text-left">"{String(selectedBook.review || "Subject still under active investigation.")}"</p></div>
                 </div>
               )}
               {activeTab === 'capsule' && <SedimentaryRecord sessions={selectedBook.sessions || []} bookTitle={selectedBook.title} />}
@@ -567,10 +556,32 @@ export default function App() {
             </div>
           </div>
         )}
-
-        {isLogging && focusedSubjectId && <ReadingDrawer activeBook={books.find(b => b.id === focusedSubjectId)} onCancel={() => setIsLogging(false)} onSave={handleSaveSession} />}
-        {isAddingBook && <AddBookDrawer onSave={handleAddBook} onCancel={() => setIsAddingBook(false)} />}
       </div>
     </div>
   );
 }
+
+const AddBookDrawer = ({ onSave, onCancel }) => {
+  const [nb, setNb] = useState({ title: '', author: '', totalPages: '', genre: [], vibe: 'Wonder', suggestedBy: '', cries: 0, introduction: '' });
+  return (
+    <div className="fixed inset-0 bg-black/60 z-[100] p-6 flex items-end justify-center text-black text-left">
+      <div className="bg-[#FDFCF0] border-[5px] border-black rounded-[40px] p-8 w-full max-w-sm shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] text-black overflow-y-auto max-h-[95vh] text-left text-black">
+        <h2 className="font-['Londrina_Solid'] text-4xl uppercase mb-6 text-black text-left font-bold">Subject Registration</h2>
+        <form onSubmit={(e) => { e.preventDefault(); onSave(nb); }} className="space-y-4 text-left text-black">
+          <div className="bg-white border-4 border-black p-3 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between text-black text-left">
+            <label className="text-[10px] uppercase font-black opacity-40 text-black text-left text-black font-bold">Cries Hypothesis</label>
+            <div className="flex items-center justify-between text-black text-center font-bold">
+              <button type="button" onClick={() => setNb(p => ({...p, cries: Math.max(0, p.cries - 1)}))} className="w-8 h-8 border-2 border-black rounded-full text-black font-bold">-</button>
+              <span className="font-['Londrina_Solid'] text-3xl text-black font-bold">{nb.cries}</span>
+              <button type="button" onClick={() => setNb(p => ({...p, cries: p.cries + 1}))} className="w-8 h-8 border-2 border-black rounded-full text-black font-bold">+</button>
+            </div>
+          </div>
+          <div className="bg-white border-4 border-black p-3 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-black text-left text-black"><label className="text-[10px] uppercase font-black opacity-40 text-black text-left text-black">Title</label><input required className="w-full bg-transparent font-['Londrina_Solid'] text-2xl focus:outline-none text-black font-bold" value={nb.title} onChange={e => setNb({...nb, title: e.target.value})} /></div>
+          <div className="bg-white border-4 border-black p-3 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-black text-left text-black"><label className="text-[10px] uppercase font-black opacity-40 text-black text-left text-black">Hypothesis (Intro)</label><textarea required className="w-full bg-transparent text-sm h-20 resize-none text-black font-bold" value={nb.introduction} onChange={e => setNb({...nb, introduction: e.target.value})} /></div>
+          <button type="submit" className="w-full bg-black text-white p-5 rounded-3xl font-['Londrina_Solid'] text-2xl uppercase font-bold text-center text-white text-center">Inject Archive</button>
+          <button type="button" onClick={onCancel} className="w-full opacity-30 uppercase font-black text-xs mt-2 text-black text-center">Abort</button>
+        </form>
+      </div>
+    </div>
+  );
+};
