@@ -1,0 +1,20 @@
+[{
+    "book" : "The House in the Cerulean Sea",
+    "author" : "TJ Klune",
+    "year" : 2020,
+    "suggested_by" : "chatGPT",
+    "total_pages" : 400,
+    "genre" : ["Fantasy", "LGBTQ+", "Contemporary"],
+    "sessions" : {
+        "session_1" : {
+            "date" : "2024-07-01",
+            "pages_start" : 100,
+            "page_end" : 125,
+            "start_time" : "10:00 AM",
+            "end_time" : "11:30 AM",
+            "cries" : 3,
+            "primary_vibe" : ["heartwarming", "whimsical"]
+
+        }
+    }
+}]
