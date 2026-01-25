@@ -18,12 +18,45 @@ import {
   arrayUnion,
   deleteDoc
 } from 'firebase/firestore';
-import { 
-  Heart as HeartIcon, Trash2, BookOpen, UserPlus, Settings, X, Fingerprint, Sparkles
-} from 'lucide-react';
 
 // ==========================================
-// 1. INFRASTRUCTURE LAYER
+// 1. LOCAL ICON COMPONENTS (Replacing Lucide)
+// ==========================================
+
+const HeartIcon = ({ size = 24, className = "", ...props }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+);
+
+const Trash2 = ({ size = 24, className = "" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+);
+
+const BookOpen = ({ size = 24, className = "" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+);
+
+const UserPlus = ({ size = 24, className = "" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg>
+);
+
+const Settings = ({ size = 24, className = "" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+);
+
+const XIcon = ({ size = 24, className = "" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
+);
+
+const Fingerprint = ({ size = 24, className = "" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M2 12a10 10 0 0 1 20 0"/><path d="M7 12a5 5 0 0 1 10 0"/><path d="M12 12v.01"/><path d="M12 7v.01"/><path d="M12 17v.01"/><path d="M17 12c0-2.8-2.2-5-5-5s-5 2.2-5 5-2.2 5-5 5"/><path d="M22 12c0-5.5-4.5-10-10-10S2 6.5 2 12"/><path d="M7 12c0 2.8 2.2 5 5 5s5-2.2 5-5 2.2-5 5-5"/></svg>
+);
+
+const Sparkles = ({ size = 24, className = "" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m12 3 1.912 5.813a2 2 0 0 0 1.275 1.275L21 12l-5.813 1.912a2 2 0 0 0-1.275 1.275L12 21l-1.912-5.813a2 2 0 0 0-1.275-1.275L3 12l5.813-1.912a2 2 0 0 0 1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>
+);
+
+// ==========================================
+// 2. CONFIGURATION LAYER
 // ==========================================
 
 const firebaseConfig = {
@@ -52,7 +85,7 @@ const genres = ["Fantasy", "Sci-Fi", "Literary", "Non-Fiction", "Romance", "Thri
 const mlmStripes = ['#98E8C1', '#FFFFFF', '#7BADE2'];
 
 // ==========================================
-// 2. VISUAL COMPONENTS
+// 3. UI COMPONENTS
 // ==========================================
 
 const MLMHeart = ({ size = 125, id = "heart", opacity = 1, style = {}, className = "" }) => (
@@ -63,13 +96,20 @@ const MLMHeart = ({ size = 125, id = "heart", opacity = 1, style = {}, className
       </clipPath>
     </defs>
     <g transform="translate(2, 2)">
+      {/* Sharp industrial shadow */}
       <path d="M60 105 C60 105 15 80 15 45 15 20 50 20 60 35 70 20 105 20 105 45 105 80 60 105 60 105 Z" fill="black" transform="translate(6, 6)" />
+      
+      {/* Symmetrical Waves Core */}
       <g clipPath={`url(#${id}-clip)`}>
         <rect x="0" y="0" width="120" height="120" fill={mlmStripes[0]} />
         <path d="M-20 40 Q20 25 60 40 T140 40 L140 80 Q100 65 60 80 T-20 80 Z" fill={mlmStripes[1]} transform="rotate(-15, 60, 60)" />
         <path d="M-20 80 Q20 65 60 80 T140 80 L140 160 L-20 160 Z" fill={mlmStripes[2]} transform="rotate(-15, 60, 60)" />
       </g>
+      
+      {/* Industrial Border */}
       <path d="M60 105 C60 105 15 80 15 45 15 20 50 20 60 35 70 20 105 20 105 45 105 80 60 105 60 105 Z" fill="none" stroke="black" strokeWidth="6" strokeLinejoin="round" />
+      
+      {/* Shine */}
       <path d="M35 45 Q40 30 55 35" stroke="white" strokeWidth="4" opacity="0.4" fill="none" strokeLinecap="round" />
     </g>
   </svg>
@@ -195,18 +235,13 @@ const StratifiedBookFlow = ({ sessions = [], bookTitle = "Book Title", totalPage
   );
 };
 
-// ==========================================
-// 3. UI COMPONENTS
-// ==========================================
-
 const BookGridItem = ({ book, onSelect, currentUserId }) => (
   <button 
     onClick={() => (book.status === 'FINISHED' || book.status === 'READING' || book.status === 'DNF') && onSelect(book)}
     className={`relative w-full aspect-[1/1.25] border-black border-[4px] rounded-[24px] p-3 text-left flex flex-col justify-between transition-all active:scale-95 bg-white overflow-hidden
       ${book.status === 'FINISHED' ? 'shadow-[8px_8px_0px_0px_#22c55e]' : ''}
       ${book.status === 'READING' ? 'border-blue-500 shadow-[8px_8px_0px_0px_#3b82f6]' : ''}
-      ${book.status === 'DNF' ? 'shadow-[8px_8px_0px_0px_#ef4444] opacity-70 grayscale' : ''}
-      ${book.status === 'TBR' ? 'border-2 border-black/10 opacity-40 grayscale shadow-none' : 'shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]'}
+      ${book.status === 'DNF' ? 'shadow-[8px_8px_0px_0px_#ef4444] opacity-70 grayscale' : 'shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]'}
     `}
   >
     {book.status === 'DNF' && <div className="absolute inset-0 dnf-stripes z-0 pointer-events-none" />}
@@ -279,51 +314,25 @@ const BattleCard = ({ book, onClick, label, isNew, isSelectionWinner }) => {
   );
 };
 
-// ==========================================
-// 4. DRAWERS
-// ==========================================
-
 const AddBookDrawer = ({ onSave, onCancel }) => {
-  const [newBook, setNewBook] = useState({ title: '', author: '', totalPages: '', genre: [], vibe: 'Wonder', suggestedBy: '', cries: 0, introduction: '' });
-  const toggleGenre = (g) => { setNewBook(prev => ({ ...prev, genre: prev.genre.includes(g) ? prev.genre.filter(item => item !== g) : [...prev.genre, g] })); };
-  
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!newBook.title || !newBook.totalPages) return;
-    onSave({ ...newBook, status: 'TBR', currentPage: 1, sessions: [] });
-  };
-
+  const [nb, setNb] = useState({ title: '', author: '', totalPages: '', genre: [], vibe: 'Wonder', suggestedBy: '', cries: 0, introduction: '' });
   return (
-    <div className="fixed inset-0 bg-black/60 z-[100] p-6 flex items-end justify-center">
-      <div className="bg-[#FDFCF0] border-[5px] border-black rounded-[40px] p-8 w-full max-w-sm shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] animate-in slide-in-from-bottom overflow-y-auto max-h-[95vh] text-black">
-        <header className="flex justify-between items-start mb-6 text-left">
-          <div className="text-left text-black"><h2 className="font-['Londrina_Solid'] text-4xl uppercase leading-none">New Subject</h2><p className="opacity-40 uppercase font-['Londrina_Solid'] text-lg tracking-tight">Experiment Registration</p></div>
-          <button onClick={onCancel} className="text-3xl opacity-20 hover:opacity-100 transition-opacity font-bold">✕</button>
-        </header>
-        <form onSubmit={handleSubmit} className="space-y-4 text-left">
-          <div className="bg-white border-4 border-black p-3 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between">
-            <label className="text-[10px] uppercase font-black opacity-40 block mb-1 text-left">Cries Hypothesis</label>
-            <div className="flex items-center justify-between">
-              <button type="button" onClick={() => setNewBook(p => ({...p, cries: Math.max(0, Number(p.cries) - 1)}))} className="w-8 h-8 border-2 border-black rounded-full font-black text-xl hover:bg-slate-100 text-black">-</button>
-              <span className="font-['Londrina_Solid'] text-3xl text-black">{Number(newBook.cries)}</span>
-              <button type="button" onClick={() => setNewBook(p => ({...p, cries: Number(p.cries) + 1}))} className="w-8 h-8 border-2 border-black rounded-full font-black text-xl hover:bg-slate-100 text-black">+</button>
+    <div className="fixed inset-0 bg-black/60 z-[100] p-6 flex items-end justify-center text-black text-left">
+      <div className="bg-[#FDFCF0] border-[5px] border-black rounded-[40px] p-8 w-full max-w-sm shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] text-black overflow-y-auto max-h-[95vh] text-left">
+        <h2 className="font-['Londrina_Solid'] text-4xl uppercase mb-6 text-black text-left font-bold">Subject Registration</h2>
+        <form onSubmit={(e) => { e.preventDefault(); onSave(nb); }} className="space-y-4 text-left text-black text-left">
+          <div className="bg-white border-4 border-black p-3 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between text-black text-left">
+            <label className="text-[10px] uppercase font-black opacity-40 text-black text-left text-black font-bold">Cries Hypothesis</label>
+            <div className="flex items-center justify-between text-black text-center font-bold">
+              <button type="button" onClick={() => setNb(p => ({...p, cries: Math.max(0, p.cries - 1)}))} className="w-8 h-8 border-2 border-black rounded-full text-black font-bold">-</button>
+              <span className="font-['Londrina_Solid'] text-3xl text-black font-bold">{nb.cries}</span>
+              <button type="button" onClick={() => setNb(p => ({...p, cries: p.cries + 1}))} className="w-8 h-8 border-2 border-black rounded-full text-black font-bold">+</button>
             </div>
           </div>
-          <div className="space-y-3">
-            <div className="bg-white border-4 border-black p-3 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-left">
-              <label className="text-[10px] uppercase font-black opacity-40 block text-left">Subject Title</label>
-              <input required type="text" placeholder="..." className="w-full bg-transparent font-['Londrina_Solid'] text-2xl focus:outline-none text-black" value={newBook.title} onChange={e => setNewBook({...newBook, title: e.target.value})} />
-            </div>
-          </div>
-          <div className="bg-white border-4 border-black p-3 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-left">
-            <label className="text-[10px] uppercase font-black opacity-40 block text-left text-black">Subject Hypothesis (Intro)</label>
-            <textarea placeholder="..." className="w-full bg-transparent font-sans text-sm focus:outline-none mt-1 min-h-[60px] resize-none leading-tight text-black" value={newBook.introduction} onChange={e => setNewBook({...newBook, introduction: e.target.value})} />
-          </div>
-          <div className="bg-white border-4 border-black p-3 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-left">
-            <label className="text-[10px] uppercase font-black opacity-40 block text-black text-left font-bold">Total Pages</label>
-            <input required type="number" placeholder="..." className="w-full bg-transparent font-['Londrina_Solid'] text-2xl focus:outline-none text-black font-bold" value={newBook.totalPages} onChange={e => setNewBook({...newBook, totalPages: e.target.value})} />
-          </div>
-          <button type="submit" className="w-full bg-black text-white p-5 rounded-3xl font-['Londrina_Solid'] text-2xl uppercase mt-4 shadow-[6px_6px_0px_0px_rgba(100,100,100,1)] active:translate-y-1 transition-all text-center">Inject Registry</button>
+          <div className="bg-white border-4 border-black p-3 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-black text-left"><label className="text-[10px] uppercase font-black opacity-40 text-black text-left text-black">Title</label><input required className="w-full bg-transparent font-['Londrina_Solid'] text-2xl focus:outline-none text-black font-bold" value={nb.title} onChange={e => setNb({...nb, title: e.target.value})} /></div>
+          <div className="bg-white border-4 border-black p-3 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-black text-left"><label className="text-[10px] uppercase font-black opacity-40 text-black text-left text-black">Hypothesis (Intro)</label><textarea required className="w-full bg-transparent text-sm h-20 resize-none text-black font-bold" value={nb.introduction} onChange={e => setNb({...nb, introduction: e.target.value})} /></div>
+          <button type="submit" className="w-full bg-black text-white p-5 rounded-3xl font-['Londrina_Solid'] text-2xl uppercase font-bold text-center text-white text-center">Inject Archive</button>
+          <button type="button" onClick={onCancel} className="w-full opacity-30 uppercase font-black text-xs mt-2 text-black text-center">Abort</button>
         </form>
       </div>
     </div>
@@ -356,18 +365,18 @@ const ReadingDrawer = ({ activeBook, onSave, onCancel }) => {
     <div className="fixed inset-0 bg-black/60 z-[100] p-6 flex items-end justify-center">
       <div className="bg-[#FDFCF0] border-[5px] border-black rounded-[40px] p-8 w-full max-w-sm shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] animate-in slide-in-from-bottom duration-300 overflow-y-auto max-h-[95vh] text-black">
         <header className="flex justify-between items-start mb-6 text-left">
-          <div className="text-black text-left"><h2 className="font-['Londrina_Solid'] text-4xl uppercase leading-none text-left">Log Observation</h2><p className="opacity-40 uppercase font-['Londrina_Solid'] text-lg truncate max-w-[240px] text-black text-left">{String(activeBook?.title)}</p></div>
+          <div className="text-black text-left"><h2 className="font-['Londrina_Solid'] text-4xl uppercase leading-none text-left text-black font-bold">Log Session</h2><p className="font-['Londrina_Solid'] text-lg opacity-40 uppercase truncate text-black text-left">{String(activeBook?.title)}</p></div>
           <button onClick={onCancel} className="text-3xl opacity-20 text-center font-bold">✕</button>
         </header>
         <form onSubmit={handleSubmit} className="space-y-4 pb-4 text-left">
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-slate-100 border-4 border-black/10 p-2 rounded-2xl opacity-60 text-left"><label className="text-[8px] font-black block text-left">Start Page</label><div className="font-['Londrina_Solid'] text-2xl">{Number(startPage)}</div></div>
-            <div className={`bg-white border-4 p-2 rounded-2xl text-left transition-all ${isFinished ? 'border-green-500 shadow-[4px_4px_0px_0px_rgba(34,197,94,1)]' : 'border-black text-black'}`}><label className="text-[8px] font-black block text-left text-black">End Page</label><input required type="number" placeholder={`Max ${totalPages}`} className="w-full bg-transparent font-['Londrina_Solid'] text-2xl focus:outline-none text-black" value={session.endPage} onChange={e => setSession({...session, endPage: e.target.value})} /></div>
+            <div className={`bg-white border-4 p-2 rounded-2xl text-left transition-all ${isFinished ? 'border-green-500 shadow-[4px_4px_0px_0px_rgba(34,197,94,1)]' : 'border-black text-black'}`}><label className="text-[8px] font-black block text-left text-black">End Page</label><input required type="number" placeholder={`Max ${totalPages}`} className="w-full bg-transparent font-['Londrina_Solid'] text-2xl focus:outline-none text-black font-bold" value={session.endPage} onChange={e => setSession({...session, endPage: e.target.value})} /></div>
           </div>
           <div className="bg-white border-4 border-black p-3 rounded-2xl text-black">
-            <label className="text-[10px] font-black opacity-40 uppercase block mb-1 text-left">Emotion Intensity (1-5)</label>
+            <label className="text-[10px] font-black opacity-40 uppercase block mb-1 text-left">Intensity (1-5)</label>
             <input type="range" min="1" max="5" step="1" className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-black" value={session.intensity} onChange={e => setSession({...session, intensity: Number(e.target.value)})} />
-            <div className="flex justify-between text-[8px] font-black mt-1 uppercase opacity-40 text-black text-center"><span>Subtle</span><span>Extreme</span></div>
+            <div className="flex justify-between text-[8px] font-black mt-1 uppercase opacity-40 text-black text-center text-center"><span>Subtle</span><span>Extreme</span></div>
           </div>
           <button type="submit" disabled={!activeBook || !session.endPage || minutes <= 0} className={`w-full text-white p-5 rounded-3xl font-['Londrina_Solid'] text-2xl uppercase transition-all ${isFinished ? 'bg-green-600 shadow-[8px_8px_0px_0px_rgba(34,197,94,0.3)]' : 'bg-black shadow-[8px_8px_0px_0px_rgba(0,0,0,0.3)]'}`}>Save Experiment Data</button>
         </form>
@@ -377,7 +386,7 @@ const ReadingDrawer = ({ activeBook, onSave, onCancel }) => {
 };
 
 // ==========================================
-// 5. MAIN APP CONTROLLER
+// 4. MAIN APP CONTROLLER
 // ==========================================
 
 export default function App() {
@@ -548,7 +557,7 @@ export default function App() {
               {readingList.map(book => (
                 <div key={book.id} className="relative group text-left text-black">
                   <button onClick={() => setFocusedSubjectId(book.id)} className={`w-full bg-white border-4 border-black p-5 rounded-[30px] flex items-center justify-between text-left transition-all ${focusedSubjectId === book.id ? 'shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] border-blue-500 scale-[1.02]' : 'opacity-50 grayscale shadow-none'}`}>
-                    <div className="text-left text-black"><p className="font-['Londrina_Solid'] text-2xl uppercase leading-none">{String(book.title)}</p><p className="text-[10px] font-black opacity-30 mt-1 uppercase">Page {book.currentPage}/{book.totalPages}</p></div>
+                    <div className="text-left text-black"><p className="font-['Londrina_Solid'] text-2xl uppercase leading-none">{String(book.title)}</p><p className="text-[10px] font-black opacity-30 mt-1 uppercase text-left">Page {book.currentPage}/{book.totalPages}</p></div>
                     {focusedSubjectId === book.id ? (
                       <div onClick={(e) => { e.stopPropagation(); updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'books', book.id), { status: 'DNF' }); }} className="bg-yellow-400 text-black px-5 py-2.5 rounded-2xl border-[3px] border-black font-black text-xl uppercase text-center active:scale-95 transition-all">DNF</div>
                     ) : <div className="w-4 h-4 rounded-full border-2 border-black" style={{ backgroundColor: palette[book.vibe] || '#000' }} />}
@@ -564,7 +573,7 @@ export default function App() {
         {/* TBR / LIBRARY */}
         {appState === 'library' && (
           <div className="max-w-md mx-auto animate-in fade-in text-black">
-            <header className="flex justify-between items-center mb-10 pt-4 text-black">
+            <header className="flex justify-between items-center mb-10 pt-4 text-black text-left">
               <button onClick={() => setAppState('manage')} className="text-3xl opacity-30 font-bold">✕</button>
               <div className="inline-flex bg-white border-[4px] border-black p-1 rounded-[25px] shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] text-black">
                 {['grid', 'battle'].map(m => (<button key={m} onClick={() => { setLibraryMode(m); setFinalWinner(null); setCurrentChamp(null); }} className={`px-6 py-2 rounded-[20px] font-['Londrina_Solid'] uppercase text-lg transition-all ${libraryMode === m ? 'bg-black text-white' : 'opacity-40 text-black'}`}>{String(m)}</button>))}
@@ -609,7 +618,7 @@ export default function App() {
                  <header className="bg-[#1a1c2c] border-[6px] border-black rounded-t-[40px] px-10 py-8 flex justify-between items-center text-white relative shadow-xl">
                    <button onClick={() => setAppState('garden')} className="font-['Londrina_Solid'] text-xl uppercase opacity-40 hover:opacity-100 transition-opacity">HQ</button>
                    <h2 className="font-['Londrina_Solid'] text-4xl uppercase leading-none tracking-tight">The Love Jar</h2>
-                   <button className="w-10 h-10 flex items-center justify-center border-4 border-white/20 rounded-xl bg-white/5"><Settings className="w-5 h-5 text-white" /></button>
+                   <button className="w-10 h-10 flex items-center justify-center border-4 border-white/20 rounded-xl bg-white/5"><Settings size={20} className="text-white" /></button>
                  </header>
                  <div className="bg-black/20 h-4 border-x-[6px] border-black shadow-inner" /> 
                </div>
@@ -618,7 +627,7 @@ export default function App() {
                   <div className="absolute inset-0 backdrop-blur-[60px] bg-pink-50/5 z-0" />
                   <div className="absolute top-[37%] left-0 right-0 border-t-[4px] border-dashed border-black/5 z-10 flex items-center justify-between px-10 pointer-events-none text-black">
                      <span className="text-[10px] font-black uppercase opacity-20 -mt-8 text-black">Selection Zone</span>
-                     <span className="text-[10px] font-black uppercase opacity-20 -mt-8 text-black font-bold tracking-widest">37% Stop</span>
+                     <span className="text-[10px] font-black uppercase opacity-20 -mt-8 text-black font-bold tracking-widest text-left">37% Stop</span>
                   </div>
                   <div className="flex-1 overflow-y-auto px-8 pt-10 pb-56 relative z-20">
                      <div className="grid grid-cols-2 gap-y-16 gap-x-10 mb-24 justify-items-center">
