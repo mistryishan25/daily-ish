@@ -52,8 +52,8 @@ const Legend = () => (
   <div className="mt-8 flex flex-wrap justify-center gap-x-4 gap-y-2 text-black">
     {Object.entries(palette).map(([name, color]) => (
       <div key={name} className="flex items-center gap-2">
-        <div className="w-3.5 h-3.5 rounded-full border-2 border-black" style={{ backgroundColor: color }} />
-        <span className="text-[10px] uppercase font-black font-mono opacity-70">{String(name)}</span>
+        <div className="w-3.5 h-3.5 rounded-full border-2 border-black shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)]" style={{ backgroundColor: color }} />
+        <span className="text-[10px] uppercase font-black font-mono tracking-tighter opacity-70">{String(name)}</span>
       </div>
     ))}
   </div>
@@ -62,11 +62,11 @@ const Legend = () => (
 const SedimentaryRecord = ({ sessions = [], bookTitle = "Book Title" }) => (
   <div className="w-full animate-in fade-in zoom-in duration-300">
     <div className="bg-white border-[5px] border-black rounded-[45px] shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] p-8 flex flex-col">
-      <div className="mb-6">
+      <div className="mb-6 text-black text-left">
         <h3 className="font-['Londrina_Solid'] text-4xl uppercase leading-none tracking-tight text-black">{String(bookTitle)}</h3>
         <p className="font-['Londrina_Solid'] text-[10px] opacity-40 uppercase tracking-[0.2em] font-bold mt-1 text-black">Emotional Stratigraphy</p>
       </div>
-      <div className="bg-[#f9f8f4] border-2 border-dashed border-black/10 rounded-[35px] p-10 flex items-center justify-center min-h-[350px]">
+      <div className="bg-[#f9f8f4] border-2 border-dashed border-black/10 rounded-[35px] p-10 flex items-center justify-center relative min-h-[350px]">
         <div className="flex flex-col-reverse w-16 border-[5px] border-black rounded-full overflow-hidden bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] h-[280px]">
           {(sessions || []).map((session, i) => (
             <div 
@@ -114,18 +114,20 @@ const StratifiedBookFlow = ({ sessions = [], bookTitle = "Book Title", totalPage
 
   return (
     <div className="w-full animate-in slide-in-from-right duration-300">
-      <div className="bg-white border-[5px] border-black rounded-[45px] shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] p-8 flex flex-col">
-        <div className="mb-6">
+      <div className="bg-white border-[5px] border-black rounded-[45px] shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] p-8 flex flex-col text-black">
+        <div className="mb-6 text-black text-left">
           <h3 className="font-['Londrina_Solid'] text-4xl uppercase leading-none tracking-tight text-black">{String(bookTitle)}</h3>
           <p className="font-['Londrina_Solid'] text-[10px] opacity-40 uppercase tracking-[0.2em] font-bold mt-1 text-black">Visual Page Progress</p>
         </div>
-        <div className="bg-[#f9f8f4] border-2 border-dashed border-black/10 rounded-[35px] p-8 flex items-center justify-center min-h-[350px]">
-          <div className="relative w-full max-w-[340px] flex shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] rounded-xl border-[4px] border-black bg-white overflow-hidden">
-            <div className="w-1/2 p-4 border-r-2 border-black/20 relative shadow-inner text-black">
+        <div className="bg-[#f9f8f4] border-2 border-dashed border-black/10 rounded-[35px] p-8 flex items-center justify-center relative min-h-[350px]">
+          <div className="relative w-full max-w-[340px] flex shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] rounded-xl border-[4px] border-black bg-white overflow-hidden text-black">
+            <div className="w-1/2 p-4 border-r-2 border-black/20 relative shadow-inner">
                {[...Array(Math.max(0, leftPageRows))].map((_, i) => renderRowPill(i))}
+               <div className="absolute inset-y-0 right-0 w-4 bg-gradient-to-r from-transparent to-black/[0.03]" />
             </div>
-            <div className="w-1/2 p-4 relative shadow-inner text-black">
+            <div className="w-1/2 p-4 relative shadow-inner">
                {[...Array(Math.max(0, totalRows - leftPageRows))].map((_, i) => renderRowPill(i + leftPageRows))}
+               <div className="absolute inset-y-0 left-0 w-4 bg-gradient-to-l from-transparent to-black/[0.03]" />
             </div>
           </div>
         </div>
@@ -134,6 +136,10 @@ const StratifiedBookFlow = ({ sessions = [], bookTitle = "Book Title", totalPage
     </div>
   );
 };
+
+// ==========================================
+// 3. UI COMPONENTS
+// ==========================================
 
 const BookGridItem = ({ book, onSelect, currentUserId }) => (
   <button 
@@ -146,7 +152,7 @@ const BookGridItem = ({ book, onSelect, currentUserId }) => (
     `}
   >
     {book.status === 'DNF' && <div className="absolute inset-0 dnf-stripes z-0 pointer-events-none" />}
-    <div className="flex flex-col gap-1 z-10 text-black">
+    <div className="flex flex-col gap-1 z-10 text-black text-left">
       <div className="flex justify-between items-center">
         <div className="font-['Londrina_Solid'] uppercase text-[8px] tracking-widest text-black/30">{String(book.status)}</div>
         <div className={`px-1.5 py-0.5 rounded text-[7px] font-black uppercase ${book.ownerId === currentUserId ? 'bg-black text-white' : 'bg-slate-100 text-black'}`}>
@@ -157,7 +163,7 @@ const BookGridItem = ({ book, onSelect, currentUserId }) => (
         {Array.isArray(book.genre) ? String(book.genre[0] || 'GENRE') : String(book.genre || 'GENRE')}
       </div>
     </div>
-    <div className="z-10 text-black">
+    <div className="z-10 text-black text-left">
       <h3 className="font-['Londrina_Solid'] text-lg uppercase leading-none mb-1 line-clamp-2">{String(book.title)}</h3>
       <p className="font-['Londrina_Solid'] text-[10px] opacity-40 uppercase truncate">{String(book.author)}</p>
     </div>
@@ -168,24 +174,9 @@ const BookGridItem = ({ book, onSelect, currentUserId }) => (
   </button>
 );
 
-const BattleCard = ({ book, onClick, label, isNew }) => {
-  if (!book) return <div className="w-full aspect-[1/1.25] max-h-[400px] bg-gray-100 border-[4px] border-dashed border-black/20 rounded-[35px] flex items-center justify-center text-black text-center p-10"><span className="font-['Londrina_Solid'] text-xl opacity-20 uppercase tracking-widest text-black">Awaiting Subject</span></div>;
-  return (
-    <button onClick={onClick} className={`w-full bg-white border-[4px] border-black rounded-[35px] text-left flex flex-col p-6 transition-all active:scale-95 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] ${isNew ? 'animate-in slide-in-from-right' : ''}`}>
-      <div className="flex flex-col gap-1 text-black mb-4">
-        <span className="text-[10px] uppercase font-bold opacity-30 tracking-widest">{String(label)}</span>
-        <h3 className="font-['Londrina_Solid'] text-4xl uppercase leading-none mt-1 text-black">{String(book.title)}</h3>
-        <p className="font-['Londrina_Solid'] text-xl opacity-40 uppercase truncate text-black">{String(book.author)}</p>
-      </div>
-      <div className="mt-auto flex items-center justify-between w-full text-black">
-        <div className="flex items-center gap-2">
-          <div className="w-5 h-5 rounded-full border-2 border-black" style={{ backgroundColor: palette[book.vibe] || '#000' }} />
-          <span className="font-['Londrina_Solid'] text-lg uppercase opacity-50 text-black">{String(book.vibe)}</span>
-        </div>
-      </div>
-    </button>
-  );
-};
+// ==========================================
+// 4. DRAWERS (Registry & Observations)
+// ==========================================
 
 const AddBookDrawer = ({ onSave, onCancel }) => {
   const [newBook, setNewBook] = useState({ title: '', author: '', totalPages: '', genre: [], vibe: 'Wonder', suggestedBy: '', cries: 0, introduction: '' });
@@ -200,25 +191,55 @@ const AddBookDrawer = ({ onSave, onCancel }) => {
   return (
     <div className="fixed inset-0 bg-black/60 z-[100] p-6 flex items-end justify-center">
       <div className="bg-[#FDFCF0] border-[5px] border-black rounded-[40px] p-8 w-full max-w-sm shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] animate-in slide-in-from-bottom overflow-y-auto max-h-[95vh] text-black">
-        <header className="flex justify-between items-start mb-6">
-          <div className="text-left text-black"><h2 className="font-['Londrina_Solid'] text-4xl uppercase leading-none">New Subject</h2><p className="opacity-40 uppercase font-['Londrina_Solid'] text-lg tracking-tight">Registration</p></div>
-          <button onClick={onCancel} className="text-3xl opacity-20 text-black">✕</button>
+        <header className="flex justify-between items-start mb-6 text-left">
+          <div className="text-left text-black">
+            <h2 className="font-['Londrina_Solid'] text-4xl uppercase leading-none">New Subject</h2>
+            <p className="opacity-40 uppercase font-['Londrina_Solid'] text-lg tracking-tight">Experiment Registration</p>
+          </div>
+          <button onClick={onCancel} className="text-3xl opacity-20 hover:opacity-100 transition-opacity">✕</button>
         </header>
         <form onSubmit={handleSubmit} className="space-y-4 text-left">
-          <div className="bg-white border-4 border-black p-3 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between text-black">
+          <div className="bg-white border-4 border-black p-3 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between">
             <label className="text-[10px] uppercase font-black opacity-40 block mb-1">Cries Hypothesis</label>
             <div className="flex items-center justify-between">
-              <button type="button" onClick={() => setNewBook(p => ({...p, cries: Math.max(0, Number(p.cries) - 1)}))} className="w-8 h-8 border-2 border-black rounded-full text-black">-</button>
+              <button type="button" onClick={() => setNewBook(p => ({...p, cries: Math.max(0, Number(p.cries) - 1)}))} className="w-8 h-8 border-2 border-black rounded-full font-black text-xl hover:bg-slate-100">-</button>
               <span className="font-['Londrina_Solid'] text-3xl">{Number(newBook.cries)}</span>
-              <button type="button" onClick={() => setNewBook(p => ({...p, cries: Number(p.cries) + 1}))} className="w-8 h-8 border-2 border-black rounded-full text-black">+</button>
+              <button type="button" onClick={() => setNewBook(p => ({...p, cries: Number(p.cries) + 1}))} className="w-8 h-8 border-2 border-black rounded-full font-black text-xl hover:bg-slate-100">+</button>
             </div>
           </div>
           <div className="space-y-3">
-            <div className="bg-white border-4 border-black p-3 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"><label className="text-[10px] uppercase font-black opacity-40 block">Title</label><input required type="text" className="w-full bg-transparent font-['Londrina_Solid'] text-2xl focus:outline-none text-black" value={newBook.title} onChange={e => setNewBook({...newBook, title: e.target.value})} /></div>
-            <div className="bg-white border-4 border-black p-3 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"><label className="text-[10px] uppercase font-black opacity-40 block">Author</label><input required type="text" className="w-full bg-transparent font-['Londrina_Solid'] text-2xl focus:outline-none text-black" value={newBook.author} onChange={e => setNewBook({...newBook, author: e.target.value})} /></div>
-            <div className="bg-white border-4 border-black p-3 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"><label className="text-[10px] uppercase font-black opacity-40 block">Total Pages</label><input required type="number" className="w-full bg-transparent font-['Londrina_Solid'] text-2xl focus:outline-none text-black" value={newBook.totalPages} onChange={e => setNewBook({...newBook, totalPages: e.target.value})} /></div>
+            <div className="bg-white border-4 border-black p-3 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-left text-black">
+              <label className="text-[10px] uppercase font-black opacity-40 block">Subject Title</label>
+              <input required type="text" placeholder="..." className="w-full bg-transparent font-['Londrina_Solid'] text-2xl focus:outline-none" value={newBook.title} onChange={e => setNewBook({...newBook, title: e.target.value})} />
+            </div>
+            <div className="bg-white border-4 border-black p-3 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-left text-black">
+              <label className="text-[10px] uppercase font-black opacity-40 block">Lead Author</label>
+              <input required type="text" placeholder="..." className="w-full bg-transparent font-['Londrina_Solid'] text-2xl focus:outline-none" value={newBook.author} onChange={e => setNewBook({...newBook, author: e.target.value})} />
+            </div>
           </div>
-          <button type="submit" className="w-full bg-black text-white p-5 rounded-3xl font-['Londrina_Solid'] text-2xl uppercase mt-4">Registry Success</button>
+          <div className="bg-white border-4 border-black p-3 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-left text-black">
+            <label className="text-[10px] uppercase font-black opacity-40 block">Subject Hypothesis (Intro)</label>
+            <textarea placeholder="..." className="w-full bg-transparent font-sans text-sm focus:outline-none mt-1 min-h-[60px] resize-none leading-tight" value={newBook.introduction} onChange={e => setNewBook({...newBook, introduction: e.target.value})} />
+          </div>
+          <div className="bg-white border-4 border-black p-3 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-left text-black">
+            <label className="text-[10px] uppercase font-black opacity-40 block">Suggested By</label>
+            <input type="text" placeholder="..." className="w-full bg-transparent font-['Londrina_Solid'] text-2xl focus:outline-none" value={newBook.suggestedBy} onChange={e => setNewBook({...newBook, suggestedBy: e.target.value})} />
+          </div>
+          <div className="bg-white border-4 border-black p-3 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-left text-black">
+            <label className="text-[10px] uppercase font-black opacity-40 block">Total Pages</label>
+            <input required type="number" placeholder="..." className="w-full bg-transparent font-['Londrina_Solid'] text-2xl focus:outline-none" value={newBook.totalPages} onChange={e => setNewBook({...newBook, totalPages: e.target.value})} />
+          </div>
+          <div className="text-left text-black">
+            <label className="text-[10px] uppercase font-black mb-2 block">Genres</label>
+            <div className="flex flex-wrap gap-1.5">
+              {genres.map(g => (
+                <button key={g} type="button" onClick={() => toggleGenre(g)} className={`px-2 py-1 border-2 border-black rounded-lg text-[10px] font-black uppercase transition-all ${newBook.genre.includes(g) ? 'bg-blue-500 text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] scale-105' : 'bg-white opacity-40'}`}>
+                  {String(g)}
+                </button>
+              ))}
+            </div>
+          </div>
+          <button type="submit" className="w-full bg-black text-white p-5 rounded-3xl font-['Londrina_Solid'] text-2xl uppercase shadow-[6px_6px_0px_0px_rgba(100,100,100,1)] active:translate-y-1 mt-4 transition-all text-center">Registry Success</button>
         </form>
       </div>
     </div>
@@ -249,30 +270,36 @@ const ReadingDrawer = ({ activeBook, onSave, onCancel }) => {
 
   return (
     <div className="fixed inset-0 bg-black/60 z-[100] p-6 flex items-end justify-center">
-      <div className="bg-[#FDFCF0] border-[5px] border-black rounded-[40px] p-8 w-full max-w-sm shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] animate-in slide-in-from-bottom overflow-y-auto max-h-[95vh] text-black">
-        <header className="flex justify-between items-start mb-6 text-black">
+      <div className="bg-[#FDFCF0] border-[5px] border-black rounded-[40px] p-8 w-full max-w-sm shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] animate-in slide-in-from-bottom duration-300 overflow-y-auto max-h-[95vh] text-black">
+        <header className="flex justify-between items-start mb-6 text-left">
           <div className="text-left text-black"><h2 className="font-['Londrina_Solid'] text-4xl uppercase leading-none">Log Session</h2><p className="opacity-40 uppercase font-['Londrina_Solid'] text-lg truncate max-w-[240px]">{String(activeBook?.title)}</p></div>
-          <button onClick={onCancel} className="text-3xl opacity-20 text-black">✕</button>
+          <button onClick={onCancel} className="text-3xl opacity-20">✕</button>
         </header>
-        <form onSubmit={handleSubmit} className="space-y-4 pb-4">
-          <div className="grid grid-cols-2 gap-4 text-black text-left">
-            <div className="bg-slate-100 border-4 border-black/10 p-2 rounded-2xl opacity-60"><label className="text-[8px] font-black block">Start Page</label><div className="font-['Londrina_Solid'] text-2xl">{Number(startPage)}</div></div>
-            <div className="bg-white border-4 border-black p-2 rounded-2xl"><label className="text-[8px] font-black block">End Page</label><input required type="number" className="w-full bg-transparent font-['Londrina_Solid'] text-2xl focus:outline-none text-black" value={session.endPage} onChange={e => setSession({...session, endPage: e.target.value})} /></div>
+        <form onSubmit={handleSubmit} className="space-y-4 pb-4 text-left">
+          <div className="grid grid-cols-2 gap-4 text-black">
+            <div className="bg-slate-100 border-4 border-black/10 p-2 rounded-2xl opacity-60 text-left"><label className="text-[8px] font-black block">Start Page</label><div className="font-['Londrina_Solid'] text-2xl">{Number(startPage)}</div></div>
+            <div className={`bg-white border-4 p-2 rounded-2xl text-left transition-all ${isFinished ? 'border-green-500 shadow-[4px_4px_0px_0px_rgba(34,197,94,1)]' : 'border-black'}`}><label className="text-[8px] font-black block text-left">End Page</label><input required type="number" placeholder={`Max ${totalPages}`} className="w-full bg-transparent font-['Londrina_Solid'] text-2xl focus:outline-none" value={session.endPage} onChange={e => setSession({...session, endPage: e.target.value})} /></div>
           </div>
-          <div className="grid grid-cols-2 gap-4 text-black text-left">
-            <div className="bg-white border-4 border-black p-2 rounded-2xl"><label className="text-[8px] font-black block">Start Time</label><input type="time" required className="w-full bg-transparent font-['Londrina_Solid'] text-xl focus:outline-none text-black" value={session.startTime} onChange={e => setSession({...session, startTime: e.target.value})} /></div>
-            <div className="bg-white border-4 border-black p-2 rounded-2xl"><label className="text-[8px] font-black block">End Time</label><input type="time" required className="w-full bg-transparent font-['Londrina_Solid'] text-xl focus:outline-none text-black" value={session.endTime} onChange={e => setSession({...session, endTime: e.target.value})} /></div>
+          <div className="grid grid-cols-2 gap-4 text-left text-black">
+            <div className="bg-white border-4 border-black p-2 rounded-2xl text-left"><label className="text-[8px] font-black block">Start Time</label><input type="time" required className="w-full bg-transparent font-['Londrina_Solid'] text-xl focus:outline-none" value={session.startTime} onChange={e => setSession({...session, startTime: e.target.value})} /></div>
+            <div className="bg-white border-4 border-black p-2 rounded-2xl text-left"><label className="text-[8px] font-black block">End Time</label><input type="time" required className="w-full bg-transparent font-['Londrina_Solid'] text-xl focus:outline-none" value={session.endTime} onChange={e => setSession({...session, endTime: e.target.value})} /></div>
           </div>
-          <div className="flex items-center justify-between bg-white border-4 border-black p-3 rounded-2xl text-black">
-             <label className="text-[10px] font-black opacity-40 uppercase">Cries?</label>
+          <div className="flex items-center justify-between bg-white border-4 border-black p-3 rounded-2xl text-left">
+             <label className="text-[10px] font-black opacity-40 uppercase">Cries this session?</label>
              <div className="flex items-center gap-3">
-                <button type="button" onClick={() => setSession(p => ({...p, sessionCries: Math.max(0, Number(p.sessionCries) - 1)}))} className="w-6 h-6 border-2 border-black rounded-full">-</button>
+                <button type="button" onClick={() => setSession(p => ({...p, sessionCries: Math.max(0, Number(p.sessionCries) - 1)}))} className="w-6 h-6 border-2 border-black rounded-full font-black">-</button>
                 <span className="font-['Londrina_Solid'] text-xl">{Number(session.sessionCries)}</span>
-                <button type="button" onClick={() => setSession(p => ({...p, sessionCries: Number(p.sessionCries) + 1}))} className="w-6 h-6 border-2 border-black rounded-full">+</button>
+                <button type="button" onClick={() => setSession(p => ({...p, sessionCries: Number(p.sessionCries) + 1}))} className="w-6 h-6 border-2 border-black rounded-full font-black">+</button>
              </div>
           </div>
-          <div className="text-left text-black"><label className="text-[10px] font-black mb-2 block uppercase opacity-40">Primary Vibe</label><div className="flex flex-wrap gap-1">{Object.keys(palette).map(emo => (<button key={emo} type="button" onClick={() => setSession({...session, emotion: emo})} className={`px-2 py-1 border-2 border-black rounded-lg text-[8px] font-black uppercase transition-all ${session.emotion === emo ? 'bg-black text-white' : 'bg-white opacity-40'}`}>{String(emo)}</button>))}</div></div>
-          <button type="submit" className="w-full bg-black text-white p-5 rounded-3xl font-['Londrina_Solid'] text-2xl uppercase">{isFinished ? 'Finish Experiment!' : `Save (${Number(minutes)}m)`}</button>
+          <div className="bg-white border-4 border-black p-3 rounded-2xl">
+            <label className="text-[10px] font-black opacity-40 uppercase block mb-1">Emotion Intensity (1-5)</label>
+            <input type="range" min="1" max="5" step="1" className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-black" value={session.intensity} onChange={e => setSession({...session, intensity: Number(e.target.value)})} />
+            <div className="flex justify-between text-[8px] font-black mt-1 uppercase opacity-40"><span>Subtle</span><span>Overwhelming</span></div>
+          </div>
+          {isFinished && <div className="bg-white border-4 border-green-500 p-3 rounded-2xl animate-in slide-in-from-top text-left text-black"><label className="text-[10px] font-black text-green-700 uppercase block mb-1">Peer Review Conclusion</label><textarea required placeholder="Final thoughts..." className="w-full bg-transparent font-sans text-sm focus:outline-none min-h-[60px] resize-none leading-tight" value={session.conclusion} onChange={e => setSession({...session, conclusion: e.target.value})} /></div>}
+          <div className="text-left text-black"><label className="text-[10px] font-black mb-2 block uppercase opacity-40">Primary Vibe</label><div className="flex flex-wrap gap-1">{Object.keys(palette).map(emo => (<button key={emo} type="button" onClick={() => setSession({...session, emotion: emo})} className={`px-2 py-1 border-2 border-black rounded-lg text-[8px] font-black uppercase transition-all ${session.emotion === emo ? 'bg-black text-white scale-105' : 'bg-white opacity-40'}`}>{String(emo)}</button>))}</div></div>
+          <button type="submit" disabled={!activeBook || !session.endPage || Number(session.endPage) <= startPage || minutes <= 0} className={`w-full text-white p-5 rounded-3xl font-['Londrina_Solid'] text-2xl uppercase transition-all ${isFinished ? 'bg-green-600 shadow-[8px_8px_0px_0px_rgba(34,197,94,0.3)]' : 'bg-black shadow-[8px_8px_0px_0px_rgba(0,0,0,0.3)]'}`}>{isFinished ? 'Finish Experiment! 🏁' : `Save (${Number(minutes)}m)`}</button>
         </form>
       </div>
     </div>
@@ -280,7 +307,7 @@ const ReadingDrawer = ({ activeBook, onSave, onCancel }) => {
 };
 
 // ==========================================
-// 3. MAIN APP CONTROLLER
+// 5. MAIN APP CONTROLLER
 // ==========================================
 
 export default function App() {
@@ -290,16 +317,22 @@ export default function App() {
   const [libraryMode, setLibraryMode] = useState('grid');
   const [selectedBook, setSelectedBook] = useState(null);
   const [activeTab, setActiveTab] = useState('review');
-  const [finalWinner, setFinalWinner] = useState(null);
   const [isLogging, setIsLogging] = useState(false);
   const [isAddingBook, setIsAddingBook] = useState(false);
   const [focusedSubjectId, setFocusedSubjectId] = useState(null);
   const [error, setError] = useState(null);
-  const [books, setBooks] = useState([]);
+  const [allBooks, setAllBooks] = useState([]);
+
+  // Data Architect Rule: Memory-based filtering for the requested researcher ID
+  const TARGET_USER_ID = "0WW4Ed64jwWJICU0cAYY2VwJq8n2";
+  
+  const books = useMemo(() => {
+    return allBooks.filter(b => b.ownerId === TARGET_USER_ID || b.ownerId === user?.uid);
+  }, [allBooks, user]);
 
   useEffect(() => { setHasMounted(true); }, []);
 
-  // AUTH HANDSHAKE
+  // AUTHENTICATION HANDSHAKE
   useEffect(() => {
     if (!hasMounted) return;
     const unsubscribe = onAuthStateChanged(auth, async (u) => {
@@ -317,21 +350,25 @@ export default function App() {
     return () => unsubscribe();
   }, [hasMounted]);
 
-  // DATA SUBSCRIPTION
+  // DATA SUBSCRIPTION STREAM (Subscription Pattern)
   useEffect(() => {
     if (!user) return; 
     const booksRef = collection(db, 'artifacts', appId, 'public', 'data', 'books');
     const unsubscribe = onSnapshot(booksRef, (snapshot) => {
-      const booksData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setBooks(booksData);
+      const booksData = snapshot.docs.map(doc => ({ 
+        id: doc.id, 
+        ...doc.data() 
+      }));
+      setAllBooks(booksData);
     }, (err) => {
-      setError("Sync Error: Missing Permissions.");
+      console.error("Stream Interrupted:", err);
+      setError("Sync Error: Missing permissions.");
     });
+    
     return () => unsubscribe();
   }, [user]);
 
   const readingList = useMemo(() => books.filter(b => b.status === 'READING'), [books]);
-  const tbrPool = useMemo(() => books.filter(b => b.status === 'TBR'), [books]);
 
   // DATA INGESTION
   const handleAddBook = async (bookData) => {
@@ -340,7 +377,7 @@ export default function App() {
       const booksRef = collection(db, 'artifacts', appId, 'public', 'data', 'books');
       await addDoc(booksRef, { 
         ...bookData, 
-        ownerId: user.uid, // FIELD-BASED OWNERSHIP
+        ownerId: user.uid, 
         createdAt: serverTimestamp() 
       });
       setIsAddingBook(false);
@@ -398,8 +435,8 @@ export default function App() {
         {appState === 'garden' && (
           <div className="max-w-md mx-auto pt-10 animate-in fade-in text-left text-black">
             <header className="mb-10 text-left text-black">
-              <div className="inline-block bg-white border-[3px] border-black px-3 py-1 rounded-full mb-3 text-black">
-                <p className="font-['Londrina_Solid'] text-xs uppercase tracking-widest text-black">Researcher: {String(user?.uid?.substring(0, 8))}</p>
+              <div className="inline-block bg-white border-[3px] border-black px-3 py-1 rounded-full mb-3 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] text-black">
+                <p className="font-['Londrina_Solid'] text-xs uppercase tracking-widest text-black text-center px-4">Researcher: {String(user?.uid?.substring(0, 8))}</p>
               </div>
               <h1 className="font-['Londrina_Solid'] text-7xl uppercase leading-none text-black">My Garden</h1>
             </header>
@@ -413,64 +450,62 @@ export default function App() {
         )}
 
         {appState === 'manage' && (
-          <div className="fixed inset-0 bg-[#FDFCF0] z-40 p-8 flex flex-col animate-in slide-in-from-bottom overflow-y-auto text-black">
+          <div className="fixed inset-0 bg-[#FDFCF0] z-40 p-8 flex flex-col animate-in slide-in-from-bottom overflow-y-auto text-black text-left">
             <header className="flex justify-between items-start mb-10 text-black">
-              <div className="text-left text-black"><h2 className="font-['Londrina_Solid'] text-5xl uppercase leading-none">Reading Lab</h2></div>
-              <button onClick={() => setAppState('library')} className="w-14 h-14 bg-white border-[4px] border-black rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-black">📚</button>
+              <div className="text-left text-black"><h2 className="font-['Londrina_Solid'] text-5xl uppercase leading-none">Reading Lab</h2><p className="font-['Londrina_Solid'] text-xl opacity-30 uppercase tracking-tight">Active Subjects</p></div>
+              <button onClick={() => setAppState('library')} className="w-14 h-14 bg-white border-[4px] border-black rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">📚</button>
             </header>
             <div className="flex-1 space-y-4 text-left">
               {readingList.map(book => (
-                <button key={book.id} onClick={() => setFocusedSubjectId(book.id)} className={`w-full bg-white border-4 border-black p-5 rounded-[30px] flex items-center justify-between ${focusedSubjectId === book.id ? 'shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] border-blue-500' : 'opacity-50'}`}>
-                  <div className="text-left text-black"><p className="font-['Londrina_Solid'] text-2xl uppercase leading-none">{String(book.title)}</p></div>
+                <button key={book.id} onClick={() => setFocusedSubjectId(book.id)} className={`w-full bg-white border-4 border-black p-5 rounded-[30px] flex items-center justify-between text-left ${focusedSubjectId === book.id ? 'shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] border-blue-500 scale-[1.02]' : 'opacity-50'}`}>
+                  <div className="text-left text-black">
+                    <p className="font-['Londrina_Solid'] text-2xl uppercase leading-none">{String(book.title)}</p>
+                    <p className="text-[10px] font-black opacity-30 uppercase mt-1">Page {Number(book.currentPage)} / {Number(book.totalPages)}</p>
+                  </div>
                   <div className="w-4 h-4 rounded-full border-2 border-black" style={{ backgroundColor: palette[book.vibe] || '#000' }} />
                 </button>
               ))}
             </div>
-            <button onClick={() => setIsLogging(true)} disabled={!focusedSubjectId} className="w-full bg-black text-white p-6 rounded-[30px] font-['Londrina_Solid'] text-3xl uppercase mt-6 disabled:opacity-20">Log Observation</button>
+            <button onClick={() => setIsLogging(true)} disabled={!focusedSubjectId} className="w-full bg-black text-white p-6 rounded-[30px] font-['Londrina_Solid'] text-3xl uppercase mt-6 disabled:opacity-20 transition-all text-center">Log Observation</button>
             <button onClick={() => setAppState('garden')} className="w-full font-['Londrina_Solid'] text-xl opacity-30 uppercase text-center mt-6">Exit Lab</button>
           </div>
         )}
 
         {appState === 'library' && (
           <div className="max-w-md mx-auto animate-in fade-in text-black">
-            <header className="flex justify-between items-center mb-10 pt-4 text-black">
-              <button onClick={() => setAppState('manage')} className="text-3xl opacity-30 text-black">✕</button>
-              <div className="bg-white border-[4px] border-black p-1 rounded-[25px] text-black">
+            <header className="flex justify-between items-center mb-10 pt-4 text-black text-left">
+              <button onClick={() => setAppState('manage')} className="text-3xl opacity-30">✕</button>
+              <div className="inline-flex bg-white border-[4px] border-black p-1 rounded-[25px] shadow-[5px_5px_0px_0px_rgba(0,0,0,1)]">
                 {['grid', 'battle'].map(m => (<button key={m} onClick={() => setLibraryMode(m)} className={`px-6 py-2 rounded-[20px] font-['Londrina_Solid'] uppercase text-lg ${libraryMode === m ? 'bg-black text-white' : 'opacity-40'}`}>{String(m)}</button>))}
               </div>
               <div className="w-8" />
             </header>
-            <div className="grid grid-cols-2 gap-x-5 gap-y-10 text-black">
+            <div className="grid grid-cols-2 gap-x-5 gap-y-10">
               {libraryMode === 'grid' ? (
                 <>
-                  <button onClick={() => setIsAddingBook(true)} className="w-full aspect-[1/1.25] border-[4px] border-dashed border-black/20 rounded-[24px] flex flex-col items-center justify-center bg-white/50 text-black font-black">+</button>
+                  <button onClick={() => setIsAddingBook(true)} className="relative w-full aspect-[1/1.25] border-[4px] border-dashed border-black/20 rounded-[24px] p-3 flex flex-col items-center justify-center bg-white/50 transition-all"><div className="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center text-2xl font-black">+</div></button>
                   {books.map(b => <BookGridItem key={b.id} book={b} onSelect={(book) => { setSelectedBook(book); setActiveTab('review'); }} currentUserId={user.uid} />)}
                 </>
               ) : (
-                <div className="col-span-2 text-black">
-                  {!finalWinner ? (
-                     <div className="space-y-12">
-                       <BattleCard book={tbrPool[0]} label="The Champ" onClick={() => setFinalWinner(tbrPool[0])} />
-                     </div>
-                  ) : <button onClick={() => handleStartReading(finalWinner)}>Start!</button>}
-                </div>
+                <div className="col-span-2 text-center py-20 opacity-30 uppercase font-['Londrina_Solid'] text-2xl">Battle mode drafting...</div>
               )}
             </div>
           </div>
         )}
 
         {selectedBook && (
-          <div className="fixed inset-0 bg-[#FDFCF0] z-50 p-6 flex flex-col animate-in slide-in-from-bottom overflow-y-auto text-black">
-            <button onClick={() => setSelectedBook(null)} className="absolute top-6 right-6 text-4xl text-black">✕</button>
-            <div className="flex justify-center gap-4 mb-10 mt-12 text-black">{['review', 'capsule', 'pages'].map(t => (<button key={t} onClick={() => setActiveTab(t)} className={`flex-1 py-4 border-[4px] border-black rounded-[28px] font-['Londrina_Solid'] uppercase text-xl ${activeTab === t ? 'bg-black text-white' : 'bg-white'}`}>{String(t)}</button>))}</div>
+          <div className="fixed inset-0 bg-[#FDFCF0] z-50 p-6 flex flex-col animate-in slide-in-from-bottom overflow-y-auto text-black text-left">
+            <button onClick={() => setSelectedBook(null)} className="absolute top-6 right-6 text-4xl">✕</button>
+            <div className="flex justify-center gap-4 mb-10 mt-12 relative z-10 text-black text-center">{['review', 'capsule', 'pages'].map(t => (<button key={t} onClick={() => setActiveTab(t)} className={`flex-1 py-4 border-[4px] border-black rounded-[28px] font-['Londrina_Solid'] uppercase text-xl ${activeTab === t ? 'bg-black text-white shadow-none translate-y-1' : 'bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]'}`}>{String(t)}</button>))}</div>
             <div className="flex flex-col items-center flex-1 pb-10 text-black">
-              {activeTab === 'review' && (<div className="w-full space-y-8 text-black"><header className="text-left text-black"><h2 className="font-['Londrina_Solid'] text-5xl uppercase leading-none text-black">{String(selectedBook.title)}</h2></header><div className="bg-white border-[5px] border-black p-8 rounded-[45px] text-left text-black"><p className="text-xl italic text-black">"{String(selectedBook.review || "No review.")}"</p></div></div>)}
+              {activeTab === 'review' && (<div className="w-full space-y-8 text-black"><header className="text-left text-black"><h2 className="font-['Londrina_Solid'] text-5xl uppercase leading-none mb-2">{String(selectedBook.title)}</h2><p className="font-['Londrina_Solid'] text-xl opacity-40 uppercase">{String(selectedBook.author)}</p></header><div className="bg-white border-[5px] border-black p-8 rounded-[45px] shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] text-left"><h4 className="font-['Londrina_Solid'] text-2xl uppercase mb-3 text-green-600 tracking-tight">Summary</h4><p className="text-xl italic font-medium leading-relaxed text-black">"{String(selectedBook.review || "No peer review submitted yet.")}"</p></div><div className="grid grid-cols-2 gap-5"><div className="bg-white border-[5px] border-black p-5 rounded-[30px] text-left"><span className="text-[10px] font-bold uppercase opacity-30">Vibe</span><p className="font-['Londrina_Solid'] text-3xl uppercase leading-none mt-1">{String(selectedBook.vibe)}</p></div><div className="bg-white border-[5px] border-black p-5 rounded-[30px] shadow-[8px_8px_0px_0px_#22c55e] text-left"><span className="text-[10px] font-bold uppercase opacity-30">Status</span><p className="font-['Londrina_Solid'] text-3xl uppercase leading-none mt-1 text-green-600">{String(selectedBook.status)}</p></div></div></div>)}
               {activeTab === 'capsule' && <SedimentaryRecord sessions={selectedBook.sessions || []} bookTitle={selectedBook.title} />}
+              {activeTab === 'pages' && <StratifiedBookFlow sessions={selectedBook.sessions || []} bookTitle={selectedBook.title} totalPages={selectedBook.totalPages} />}
             </div>
           </div>
         )}
 
-        {isLogging && activeSubject && <ReadingDrawer activeBook={activeSubject} onCancel={() => setIsLogging(false)} onSave={handleSaveSession} />}
+        {isLogging && focusedSubjectId && <ReadingDrawer activeBook={books.find(b => b.id === focusedSubjectId)} onCancel={() => setIsLogging(false)} onSave={handleSaveSession} />}
         {isAddingBook && <AddBookDrawer onSave={handleAddBook} onCancel={() => setIsAddingBook(false)} />}
       </div>
     </div>
