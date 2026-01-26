@@ -189,7 +189,7 @@ export default function App() {
             <div className="grid grid-cols-2 gap-5">
                 <button onClick={() => setAppState('manage')} className="bg-[#AEC6CF] h-[155px] border-[5px] border-black rounded-[45px] p-5 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] text-left flex flex-col justify-between active:translate-y-1 transition-all text-black">
                   <span className="font-['Londrina_Solid'] text-2xl uppercase font-bold">Reading</span>
-                  <div className="text-4xl font-['Londrina_Solid']">{Number(books.length)}</div>
+                  <div className="text-4xl font-['Londrina_Solid']">{books.filter(b => b.ownerId === user?.uid).length}</div>
                 </button>
                 <button onClick={() => setAppState('dating_hub')} className="bg-[#FFD1DC] h-[155px] border-[5px] border-black rounded-[45px] p-5 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] text-left flex flex-col justify-between active:translate-y-1 transition-all text-black">
                   <span className="font-['Londrina_Solid'] text-2xl uppercase font-bold">Dating</span>
