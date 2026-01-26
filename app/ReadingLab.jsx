@@ -78,11 +78,22 @@ export default function ReadingLab({
                                         <h2 className="font-['Londrina_Solid'] text-5xl uppercase mb-6 text-center">The Gauntlet</h2>
                                         <div className="flex flex-col space-y-0 text-center">
                                             {currentChamp && <div className="pb-7"><BattleCard book={currentChamp} label="The Champ" onClick={() => handleBattleChoice(currentChamp)} isSelectionWinner={roundWinnerId === currentChamp.id} /></div>}
-                                            <div className="flex justify-center py-2 z-20 relative pointer-events-none text-black">
-                                                <div className="w-16 h-16 rounded-full bg-black border-[6px] border-[#FDFCF0] text-white flex items-center justify-center font-['Londrina_Solid'] text-3xl italic shadow-xl">VS</div>
-                                            </div>
-                                            {myTbrPool[battleIdx] && <div className="pt-7"><BattleCard book={myTbrPool[battleIdx]} label="The Challenger" onClick={() => handleBattleChoice(myTbrPool[battleIdx])} isSelectionWinner={roundWinnerId === myTbrPool[battleIdx].id} /></div>}
-                                        </div>
+                                           
+{tbrPool[battleIdx] && (
+  <>
+    <div className="flex justify-center py-2 z-20 relative pointer-events-none text-black">
+        <div className="w-16 h-16 rounded-full bg-black border-[6px] border-[#FDFCF0] text-white flex items-center justify-center font-['Londrina_Solid'] text-3xl italic shadow-xl">VS</div>
+    </div>
+    <div className="pt-7">
+        <BattleCard 
+            book={tbrPool[battleIdx]} 
+            label="The Challenger" 
+            onClick={() => handleBattleChoice(tbrPool[battleIdx])} 
+            isSelectionWinner={roundWinnerId === tbrPool[battleIdx].id} 
+        />
+    </div>
+  </>
+)}                                        </div>
                                     </div>
                                 ) : (
                                     <div className="text-center animate-in zoom-in py-10 text-black">

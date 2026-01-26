@@ -25,7 +25,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const platformAppId = "reading_lab_v1"; 
+const platformAppId = "reading_lab_v1";
 
 const palette = {
   Wonder: '#9370DB', Angst: '#4169E1', Smut: '#FF1493',
@@ -36,10 +36,10 @@ const genres = ["Fantasy", "Sci-Fi", "Literary", "Non-Fiction", "Romance", "Thri
 
 // Helper Icons
 const SettingsIcon = ({ size = 24, className = "" }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" /><circle cx="12" cy="12" r="3" /></svg>
 );
 const SparklesIcon = ({ size = 24, className = "" }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m12 3 1.912 5.813a2 2 0 0 0 1.275 1.275L21 12l-5.813 1.912a2 2 0 0 0-1.275 1.275L12 21l-1.912-5.813a2 2 0 0 0-1.275-1.275L3 12l5.813-1.912a2 2 0 0 0 1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m12 3 1.912 5.813a2 2 0 0 0 1.275 1.275L21 12l-5.813 1.912a2 2 0 0 0-1.275 1.275L12 21l-1.912-5.813a2 2 0 0 0-1.275-1.275L3 12l5.813-1.912a2 2 0 0 0 1.275-1.275L12 3Z" /><path d="M5 3v4" /><path d="M19 17v4" /><path d="M3 5h4" /><path d="M17 19h4" /></svg>
 );
 
 // ==========================================
@@ -49,7 +49,7 @@ const SparklesIcon = ({ size = 24, className = "" }) => (
 export default function App() {
   const [hasMounted, setHasMounted] = useState(false);
   const [user, setUser] = useState(null);
-  const [appState, setAppState] = useState('garden'); 
+  const [appState, setAppState] = useState('garden');
   const [libraryMode, setLibraryMode] = useState('library');
   const [books, setBooks] = useState([]);
   const [datingSubjects, setDatingSubjects] = useState([]);
@@ -71,7 +71,7 @@ export default function App() {
 
   // Battle Logic
   const [celebrating, setCelebrating] = useState(false);
-  const [roundWinnerId, setRoundWinnerId] = useState(null); 
+  const [roundWinnerId, setRoundWinnerId] = useState(null);
   const [battleIdx, setBattleIdx] = useState(0);
   const [currentChamp, setCurrentChamp] = useState(null);
   const [finalWinner, setFinalWinner] = useState(null);
@@ -95,8 +95,9 @@ export default function App() {
   }, [user]);
 
   const readingList = useMemo(() => books.filter(b => b.status === 'READING'), [books]);
-  const tbrPool = useMemo(() => books.filter(b => b.status === 'TBR'), [books]);
-  const peopleMetCount = useMemo(() => datingSubjects.length + sedimentPile.length, [datingSubjects, sedimentPile]);
+  const tbrPool = useMemo(() =>
+    books.filter(b => b.status === 'TBR' && b.ownerId === user?.uid),
+    [books, user]); const peopleMetCount = useMemo(() => datingSubjects.length + sedimentPile.length, [datingSubjects, sedimentPile]);
   const emptySlots = useMemo(() => activeSpecimens.filter(s => !s.codename).length, [activeSpecimens]);
 
   useEffect(() => {
@@ -143,19 +144,27 @@ export default function App() {
 
   const handleBattleChoice = (winner) => {
     if (!winner) return;
-    setRoundWinnerId(winner.id); setCelebrating(true);
+    setRoundWinnerId(winner.id);
+
     setTimeout(() => {
-      setCelebrating(false); setRoundWinnerId(null);
-      if (battleIdx >= tbrPool.length - 1) setFinalWinner(winner);
-      else { setCurrentChamp(winner); setBattleIdx(prev => prev + 1); }
-    }, 1000);
+      setRoundWinnerId(null);
+      // FIX: Use tbrPool.length (the filtered personal list) 
+      // instead of raw books array to ensure the winner screen triggers.
+      if (battleIdx >= tbrPool.length - 1) {
+        setFinalWinner(winner);
+confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });      } else {
+        setCurrentChamp(winner);
+        setBattleIdx(prev => prev + 1);
+      }
+    }, 800);
   };
 
   if (!hasMounted) return null;
 
   return (
     <div className="min-h-screen bg-[#FDFCF0] font-sans text-black overflow-x-hidden text-left">
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         @import url('https://fonts.googleapis.com/css2?family=Londrina+Solid:wght@300;400;900&display=swap');
         .dnf-stripes { background-image: repeating-linear-gradient(45deg, rgba(0,0,0,0.05), rgba(0,0,0,0.05) 10px, rgba(0,0,0,0.15) 10px, rgba(0,0,0,0.15) 20px); }
         .glass-body { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(50px); border: 6px solid rgba(0,0,0,0.15); }
@@ -187,35 +196,39 @@ export default function App() {
               <h1 className="font-['Londrina_Solid'] text-7xl uppercase leading-none font-black text-black">Pattern HQ</h1>
             </header>
             <div className="grid grid-cols-2 gap-5">
-                <button onClick={() => setAppState('manage')} className="bg-[#AEC6CF] h-[155px] border-[5px] border-black rounded-[45px] p-5 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] text-left flex flex-col justify-between active:translate-y-1 transition-all text-black">
-                  <span className="font-['Londrina_Solid'] text-2xl uppercase font-bold">Reading</span>
-                  <div className="text-4xl font-['Londrina_Solid']">{books.filter(b => b.ownerId === user?.uid).length}</div>
-                </button>
-                <button onClick={() => setAppState('dating_hub')} className="bg-[#FFD1DC] h-[155px] border-[5px] border-black rounded-[45px] p-5 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] text-left flex flex-col justify-between active:translate-y-1 transition-all text-black">
-                  <span className="font-['Londrina_Solid'] text-2xl uppercase font-bold">Dating</span>
-                  <div className="text-4xl font-['Londrina_Solid'] text-right">{Number(peopleMetCount)}</div>
-                </button>
+              <button onClick={() => setAppState('manage')} className="bg-[#AEC6CF] h-[155px] border-[5px] border-black rounded-[45px] p-5 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] text-left flex flex-col justify-between active:translate-y-1 transition-all text-black">
+                <span className="font-['Londrina_Solid'] text-2xl uppercase font-bold">Reading</span>
+                <div className="text-4xl font-['Londrina_Solid']">{books.filter(b => b.ownerId === user?.uid).length}</div>
+              </button>
+              <button onClick={() => setAppState('dating_hub')} className="bg-[#FFD1DC] h-[155px] border-[5px] border-black rounded-[45px] p-5 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] text-left flex flex-col justify-between active:translate-y-1 transition-all text-black">
+                <span className="font-['Londrina_Solid'] text-2xl uppercase font-bold">Dating</span>
+                <div className="text-4xl font-['Londrina_Solid'] text-right">{Number(peopleMetCount)}</div>
+              </button>
             </div>
           </div>
         )}
 
         {/* MODULAR ROUTING */}
         {(appState === 'manage' || appState === 'library' || selectedBook) && (
-          <ReadingLab 
-            {...{appState, setAppState, books, user, db, platformAppId, palette, genres, 
-                 focusedSubjectId, setFocusedSubjectId, setIsLogging, isLogging,
-                 libraryMode, setLibraryMode, isAddingBook, setIsAddingBook,
-                 handleStartReading, handleSaveSession, handleBattleChoice,
-                 tbrPool, currentChamp, roundWinnerId, battleIdx, finalWinner,
-                 selectedBook, setSelectedBook, activeTab, setActiveTab}}
+          <ReadingLab
+            {...{
+              appState, setAppState, books, user, db, platformAppId, palette, genres,
+              focusedSubjectId, setFocusedSubjectId, setIsLogging, isLogging,
+              libraryMode, setLibraryMode, isAddingBook, setIsAddingBook,
+              handleStartReading, handleSaveSession, handleBattleChoice,
+              tbrPool, currentChamp, roundWinnerId, battleIdx, finalWinner,
+              selectedBook, setSelectedBook, activeTab, setActiveTab
+            }}
           />
         )}
 
         {(appState === 'dating_hub' || appState === 'dating_bloom' || ['dating_garden', 'dating_lab', 'dating_playbook'].includes(appState)) && (
-          <LoveLab 
-            {...{appState, setAppState, emptySlots, activeSpecimens, sedimentPile, 
-                 setIsAddingPerson, isAddingPerson, handleAddPerson, SettingsIcon, 
-                 triggerSpecimenExpiration, fallingSpecimen, SparklesIcon}}
+          <LoveLab
+            {...{
+              appState, setAppState, emptySlots, activeSpecimens, sedimentPile,
+              setIsAddingPerson, isAddingPerson, handleAddPerson, SettingsIcon,
+              triggerSpecimenExpiration, fallingSpecimen, SparklesIcon
+            }}
           />
         )}
       </div>
