@@ -77,7 +77,7 @@ const ConfettiRain = () => (
 );
 
 // ==========================================
-// 3. CONFIGURATION & STATE
+// 3. CONFIGURATION LAYER
 // ==========================================
 
 const firebaseConfig = {
@@ -135,8 +135,8 @@ const MLMHeart = ({ size = 125, id = "heart", opacity = 1, isPlaceholder = false
 
 const SedimentaryRecord = ({ sessions = [], bookTitle = "Book Title" }) => (
   <div className="w-full animate-in fade-in zoom-in duration-300">
-    <div className="bg-white border-[5px] border-black rounded-[45px] shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] p-8 flex flex-col">
-      <div className="mb-6 text-left text-black">
+    <div className="bg-white border-[5px] border-black rounded-[45px] shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] p-8 flex flex-col text-black">
+      <div className="mb-6 text-left">
         <h3 className="font-['Londrina_Solid'] text-4xl uppercase leading-none tracking-tight">{String(bookTitle)}</h3>
         <p className="font-['Londrina_Solid'] text-[10px] opacity-40 uppercase tracking-[0.2em] font-bold mt-1">Emotional Stratigraphy</p>
       </div>
@@ -199,7 +199,7 @@ const StratifiedBookFlow = ({ sessions = [], bookTitle = "Book Title", totalPage
 };
 
 // ==========================================
-// 5. MANAGEMENT COMPONENTS
+// 5. MANAGEMENT COMPONENTS (READING LAB)
 // ==========================================
 
 const BookGridItem = ({ book, onSelect, currentUserId }) => (
@@ -213,8 +213,10 @@ const BookGridItem = ({ book, onSelect, currentUserId }) => (
   >
     {book.status === 'DNF' && <div className="absolute inset-0 dnf-stripes z-0 pointer-events-none" />}
     <div className="flex flex-col gap-1 z-10 text-black text-left">
-      <div className="font-['Londrina_Solid'] uppercase text-[8px] tracking-widest text-black/30">{String(book.status)}</div>
-      <div className={`px-1.5 py-0.5 rounded text-[7px] font-black uppercase ${book.ownerId === currentUserId ? 'bg-black text-white' : 'bg-slate-100 text-black'}`}>{book.ownerId === currentUserId ? 'My Lab' : 'Peer'}</div>
+      <div className="flex justify-between items-center">
+        <div className="font-['Londrina_Solid'] uppercase text-[8px] tracking-widest text-black/30">{String(book.status)}</div>
+        <div className={`px-1.5 py-0.5 rounded text-[7px] font-black uppercase ${book.ownerId === currentUserId ? 'bg-black text-white' : 'bg-slate-100 text-black'}`}>{book.ownerId === currentUserId ? 'My Lab' : 'Peer'}</div>
+      </div>
     </div>
     <div className="z-10 text-black text-left">
       <h3 className="font-['Londrina_Solid'] text-lg uppercase leading-none mb-1 line-clamp-2">{String(book.title)}</h3>
@@ -273,7 +275,7 @@ export default function App() {
   const [fallingSpecimen, setFallingSpecimen] = useState(null);
   const [sedimentPile, setSedimentPile] = useState([]);
 
-  // Computed
+  // Computed Metrics
   const emptySlots = useMemo(() => activeSpecimens.filter(s => !s.codename).length, [activeSpecimens]);
 
   // Battle Logic States
@@ -305,7 +307,7 @@ export default function App() {
   const tbrPool = useMemo(() => books.filter(b => b.status === 'TBR'), [books]);
   const peopleMetCount = useMemo(() => datingSubjects.length + sedimentPile.length, [datingSubjects, sedimentPile]);
 
-  // Battle Sync Logic
+  // FIX: Battle Initialization logic (Ensures 2 subjects are needed)
   useEffect(() => {
     if (appState === 'library' && libraryMode === 'battle' && !finalWinner && tbrPool.length > 1) {
       if (!currentChamp) {
@@ -315,7 +317,7 @@ export default function App() {
     }
   }, [appState, libraryMode, finalWinner, tbrPool.length, currentChamp]);
 
-  // Dating Hub Logic
+  // Actions
   const triggerSpecimenExpiration = (specimen) => {
     if (fallingSpecimen || !specimen.codename) return;
     setActiveSpecimens(prev => prev.map(s => s.id === specimen.id ? { ...s, codename: null } : s));
@@ -336,7 +338,15 @@ export default function App() {
 
   const handleAddBook = async (bookData) => {
     if (!user) return;
-    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'books'), { ...bookData, ownerId: user.uid, createdAt: serverTimestamp() });
+    // FIX: Set status to TBR so it shows in the battle pool
+    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'books'), { 
+      ...bookData, 
+      status: 'TBR',
+      currentPage: 1,
+      sessions: [],
+      ownerId: user.uid, 
+      createdAt: serverTimestamp() 
+    });
     setIsAddingBook(false);
   };
 
@@ -352,10 +362,19 @@ export default function App() {
   const handleSaveSession = async (sessionData) => {
     if (!user || !focusedSubjectId) return;
     const bookRef = doc(db, 'artifacts', appId, 'public', 'data', 'books', focusedSubjectId);
+    const pagesRead = Number(sessionData.endPage) - Number(sessionData.startPage);
+    
     await updateDoc(bookRef, {
       status: sessionData.isFinished ? 'FINISHED' : 'READING',
       currentPage: Number(sessionData.endPage),
-      sessions: arrayUnion({ emotion: String(sessionData.emotion), intensity: Number(sessionData.intensity), pagesRead: Number(sessionData.endPage - sessionData.startPage), date: new Date().toISOString() })
+      sessions: arrayUnion({
+        emotion: String(sessionData.emotion),
+        intensity: Number(sessionData.intensity),
+        minutes: Number(sessionData.minutes),
+        pagesRead: Number(pagesRead),
+        date: new Date().toISOString()
+      }),
+      review: sessionData.isFinished ? String(sessionData.conclusion) : ''
     });
     setIsLogging(false);
   };
@@ -417,26 +436,26 @@ export default function App() {
         }
       ` }} />
 
-      {/* Dynamic Celebration Overlay */}
+      {/* Celebration Layer */}
       {celebrating && !finalWinner && <ConfettiBurst />}
       {finalWinner && <ConfettiRain />}
 
       <div className="p-6 pb-28 text-black">
         {/* DASHBOARD */}
         {appState === 'garden' && (
-          <div className="max-w-md mx-auto pt-10 animate-in fade-in duration-500 text-left text-black">
+          <div className="max-w-md mx-auto pt-10 animate-in fade-in duration-500 text-left">
             <header className="mb-10 text-left text-black text-black">
-              <div className="inline-block bg-white border-[3px] border-black px-3 py-1 rounded-full mb-3 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] text-black font-black">
+              <div className="inline-block bg-white border-[3px] border-black px-3 py-1 rounded-full mb-3 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] text-black font-black text-black">
                 <p className="font-['Londrina_Solid'] text-xs uppercase tracking-widest text-black">Verified Researcher: {String(user?.uid?.substring(0, 8))}</p>
               </div>
-              <h1 className="font-['Londrina_Solid'] text-7xl uppercase leading-none font-black text-black text-black text-left">Pattern HQ</h1>
+              <h1 className="font-['Londrina_Solid'] text-7xl uppercase leading-none font-black text-black text-black">Pattern HQ</h1>
             </header>
-            <div className="grid grid-cols-2 gap-5 text-black text-black">
-                <button onClick={() => setAppState('manage')} className="bg-[#AEC6CF] h-[155px] border-[5px] border-black rounded-[45px] p-5 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] text-left flex flex-col justify-between active:translate-y-1 transition-all text-black text-black text-black">
+            <div className="grid grid-cols-2 gap-5 text-black">
+                <button onClick={() => setAppState('manage')} className="bg-[#AEC6CF] h-[155px] border-[5px] border-black rounded-[45px] p-5 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] text-left flex flex-col justify-between active:translate-y-1 transition-all text-black">
                   <span className="font-['Londrina_Solid'] text-2xl uppercase text-black font-bold text-left text-black">Reading</span>
                   <div className="text-4xl font-['Londrina_Solid'] text-black text-black">{Number(books.length)}</div>
                 </button>
-                <button onClick={() => setAppState('dating_hub')} className="bg-[#FFD1DC] h-[155px] border-[5px] border-black rounded-[45px] p-5 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] text-left flex flex-col justify-between active:translate-y-1 transition-all text-black text-black text-black">
+                <button onClick={() => setAppState('dating_hub')} className="bg-[#FFD1DC] h-[155px] border-[5px] border-black rounded-[45px] p-5 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] text-left flex flex-col justify-between active:translate-y-1 transition-all text-black">
                   <span className="font-['Londrina_Solid'] text-2xl uppercase text-black font-bold text-left text-black">Dating</span>
                   <div className="text-4xl font-['Londrina_Solid'] text-black text-right text-black">{Number(peopleMetCount)}</div>
                 </button>
@@ -448,56 +467,56 @@ export default function App() {
         {appState === 'manage' && (
           <div className="fixed inset-0 bg-[#FDFCF0] z-40 p-8 flex flex-col animate-in slide-in-from-bottom duration-500 overflow-y-auto text-black text-left text-black">
             <header className="flex justify-between items-start mb-10 text-black text-black">
-              <div className="text-left text-black text-black text-black"><h2 className="font-['Londrina_Solid'] text-5xl uppercase leading-none text-black text-black text-left font-black">Reading Lab</h2><p className="font-['Londrina_Solid'] text-xl opacity-30 uppercase tracking-tight text-black text-black text-left font-bold">Active Station</p></div>
-              <button onClick={() => setAppState('library')} className="w-14 h-14 bg-white border-[4px] border-black rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 transition-all text-black font-bold text-center text-black font-black">📚</button>
+              <div className="text-left text-black text-black text-black"><h2 className="font-['Londrina_Solid'] text-5xl uppercase leading-none text-black text-black text-left font-black text-black">Reading Lab</h2><p className="font-['Londrina_Solid'] text-xl opacity-30 uppercase tracking-tight text-black text-black text-left font-bold text-black text-left">Active Station</p></div>
+              <button onClick={() => setAppState('library')} className="w-14 h-14 bg-white border-[4px] border-black rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 transition-all text-black font-bold text-center text-black font-black text-black text-black">📚</button>
             </header>
-            <div className="flex-1 space-y-4 text-black text-left text-black">
+            <div className="flex-1 space-y-4 text-black text-left text-black text-black">
               {readingList.map(book => (
                 <button key={book.id} onClick={() => setFocusedSubjectId(book.id)} className={`w-full bg-white border-4 border-black p-5 rounded-[30px] flex items-center justify-between text-left transition-all ${focusedSubjectId === book.id ? 'shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] border-blue-500 scale-[1.02]' : 'opacity-50 grayscale shadow-none'}`}>
-                  <div className="text-left text-black text-black text-black"><p className="font-['Londrina_Solid'] text-2xl uppercase leading-none text-left text-black text-black font-black">{String(book.title)}</p><p className="text-[10px] font-black opacity-30 mt-1 uppercase text-left text-black font-black font-black">Page {Number(book.currentPage)}/{Number(book.totalPages)}</p></div>
-                  {focusedSubjectId === book.id ? <div onClick={(e) => { e.stopPropagation(); updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'books', book.id), { status: 'DNF' }); }} className="bg-yellow-400 text-black px-5 py-2.5 rounded-2xl border-[3px] border-black font-black text-xl uppercase text-center active:scale-90 transition-all text-black font-black">DNF</div> : <div className="w-4 h-4 rounded-full border-2 border-black shadow-sm text-black" style={{ backgroundColor: palette[book.vibe] || '#000' }} />}
+                  <div className="text-left text-black text-black text-black text-black"><p className="font-['Londrina_Solid'] text-2xl uppercase leading-none text-left text-black text-black font-black text-black text-black">{String(book.title)}</p><p className="text-[10px] font-black opacity-30 mt-1 uppercase text-left text-black font-black font-black text-black text-black">Page {Number(book.currentPage)}/{Number(book.totalPages)}</p></div>
+                  {focusedSubjectId === book.id ? <div onClick={(e) => { e.stopPropagation(); updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'books', book.id), { status: 'DNF' }); }} className="bg-yellow-400 text-black px-5 py-2.5 rounded-2xl border-[3px] border-black font-black text-xl uppercase text-center active:scale-90 transition-all text-black font-black text-black text-black">DNF</div> : <div className="w-4 h-4 rounded-full border-2 border-black shadow-sm text-black text-black" style={{ backgroundColor: palette[book.vibe] || '#000' }} />}
                 </button>
               ))}
             </div>
-            <button onClick={() => setIsLogging(true)} disabled={!focusedSubjectId} className="w-full bg-black text-white p-6 rounded-[30px] font-['Londrina_Solid'] text-3xl uppercase mt-6 disabled:opacity-20 font-bold text-center text-white text-center text-white font-black">Log Observation</button>
-            <button onClick={() => setAppState('garden')} className="w-full font-['Londrina_Solid'] text-xl opacity-30 uppercase text-center mt-6 text-black font-black text-center text-black font-black">Back to Garden</button>
+            <button onClick={() => setIsLogging(true)} disabled={!focusedSubjectId} className="w-full bg-black text-white p-6 rounded-[30px] font-['Londrina_Solid'] text-3xl uppercase mt-6 disabled:opacity-20 font-bold text-center text-white text-center text-white font-black text-white text-white">Log Observation</button>
+            <button onClick={() => setAppState('garden')} className="w-full font-['Londrina_Solid'] text-xl opacity-30 uppercase text-center mt-6 text-black font-black text-center text-black font-black text-black text-black">Back to Garden</button>
           </div>
         )}
 
         {/* TBR / BATTLE VIEW */}
         {appState === 'library' && (
-          <div className="max-w-md mx-auto animate-in fade-in text-black text-left text-black">
-            <header className="flex justify-between items-center mb-10 pt-4 text-black text-left text-black text-black">
-              <button onClick={() => setAppState('manage')} className="text-3xl opacity-30 font-bold text-center text-black font-black">✕</button>
-              <div className="inline-flex bg-white border-[4px] border-black p-1 rounded-[25px] shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] text-black text-black">
+          <div className="max-w-md mx-auto animate-in fade-in text-black text-left text-black text-black text-black">
+            <header className="flex justify-between items-center mb-10 pt-4 text-black text-left text-black text-black text-black text-black">
+              <button onClick={() => setAppState('manage')} className="text-3xl opacity-30 font-bold text-center text-black font-black text-black text-black">✕</button>
+              <div className="inline-flex bg-white border-[4px] border-black p-1 rounded-[25px] shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] text-black text-black text-black text-black">
                 {['grid', 'battle'].map(m => (<button key={m} onClick={() => { setLibraryMode(m); setFinalWinner(null); setCurrentChamp(null); }} className={`px-6 py-2 rounded-[20px] font-['Londrina_Solid'] uppercase text-lg transition-all ${libraryMode === m ? 'bg-black text-white' : 'opacity-40 text-black'}`}>{String(m)}</button>))}
               </div>
-              <div className="w-8 text-black" />
+              <div className="w-8 text-black text-black text-black" />
             </header>
-            <div className="grid grid-cols-2 gap-x-5 gap-y-10 text-black text-left text-black text-black">
+            <div className="grid grid-cols-2 gap-x-5 gap-y-10 text-black text-left text-black text-black text-black text-black">
               {libraryMode === 'grid' ? (
                 <>
-                  <button onClick={() => setIsAddingBook(true)} className="relative w-full aspect-[1/1.25] border-[4px] border-dashed border-black/20 rounded-[24px] p-3 flex flex-col items-center justify-center bg-white/50 hover:border-black/40 text-black font-bold text-center text-black font-black"><div className="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center text-2xl font-black text-center text-white font-black">+</div></button>
+                  <button onClick={() => setIsAddingBook(true)} className="relative w-full aspect-[1/1.25] border-[4px] border-dashed border-black/20 rounded-[24px] p-3 flex flex-col items-center justify-center bg-white/50 hover:border-black/40 text-black font-bold text-center text-black font-black text-black text-black"><div className="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center text-2xl font-black text-center text-white font-black text-white text-white">+</div></button>
                   {books.map(b => <BookGridItem key={b.id} book={b} onSelect={(book) => { setSelectedBook(book); setActiveTab('review'); }} currentUserId={user?.uid} />)}
                 </>
               ) : (
-                <div className="col-span-2 text-black text-black text-black">
+                <div className="col-span-2 text-black text-black text-black text-black text-black">
                   {tbrPool.length < 2 && !finalWinner ? (
-                    <div className="text-center py-20 font-['Londrina_Solid'] text-3xl opacity-30 uppercase text-black font-black">Min. 2 Subjects Required</div>
+                    <div className="text-center py-20 font-['Londrina_Solid'] text-3xl opacity-30 uppercase text-black font-black text-black text-black">Min. 2 Subjects Required</div>
                   ) : !finalWinner ? (
-                    <div className="space-y-2 text-black text-center text-black text-black">
-                       <div className="text-center mb-4 text-black text-black text-black"><h2 className="font-['Londrina_Solid'] text-5xl uppercase text-black text-center text-black font-black">The Gauntlet</h2></div>
-                       <div className="flex flex-col space-y-0 text-black text-black text-black text-black">
-                          {currentChamp && <div className="pb-7 text-black text-black text-black text-black"><BattleCard book={currentChamp} label="The Champ" onClick={() => handleBattleChoice(currentChamp)} isSelectionWinner={roundWinnerId === currentChamp.id} /></div>}
-                          <div className="flex justify-center py-2 z-20 relative pointer-events-none text-black text-center text-black text-black text-black"><div className="w-16 h-16 rounded-full bg-black border-[6px] border-[#FDFCF0] text-white flex items-center justify-center font-['Londrina_Solid'] text-3xl italic shadow-xl text-center text-white text-white font-black">VS</div></div>
-                          {tbrPool[battleIdx] && <div className="pt-7 text-black text-black text-black text-black"><BattleCard book={tbrPool[battleIdx]} label="The Challenger" isNew={true} onClick={() => handleBattleChoice(tbrPool[battleIdx])} isSelectionWinner={roundWinnerId === tbrPool[battleIdx].id} /></div>}
+                    <div className="space-y-2 text-black text-center text-black text-black text-black text-black">
+                       <div className="text-center mb-4 text-black text-black text-black text-black text-black"><h2 className="font-['Londrina_Solid'] text-5xl uppercase text-black text-center text-black font-black text-black text-black">The Gauntlet</h2></div>
+                       <div className="flex flex-col space-y-0 text-black text-black text-black text-black text-black text-black">
+                          {currentChamp && <div className="pb-7 text-black text-black text-black text-black text-black text-black"><BattleCard book={currentChamp} label="The Champ" onClick={() => handleBattleChoice(currentChamp)} isSelectionWinner={roundWinnerId === currentChamp.id} /></div>}
+                          <div className="flex justify-center py-2 z-20 relative pointer-events-none text-black text-center text-black text-black text-black text-black text-black"><div className="w-16 h-16 rounded-full bg-black border-[6px] border-[#FDFCF0] text-white flex items-center justify-center font-['Londrina_Solid'] text-3xl italic shadow-xl text-center text-white text-white font-black text-white text-white">VS</div></div>
+                          {tbrPool[battleIdx] && <div className="pt-7 text-black text-black text-black text-black text-black text-black"><BattleCard book={tbrPool[battleIdx]} label="The Challenger" isNew={true} onClick={() => handleBattleChoice(tbrPool[battleIdx])} isSelectionWinner={roundWinnerId === tbrPool[battleIdx].id} /></div>}
                        </div>
                     </div>
                   ) : (
-                    <div className="text-center animate-in zoom-in py-10 text-black text-center text-black text-black text-black">
-                      <div className="inline-block bg-green-200 border-2 border-black px-4 py-1 rounded-xl mb-4 font-black uppercase text-[10px] text-black text-black text-black font-black">Subject Selected</div>
-                      <h2 className="font-['Londrina_Solid'] text-6xl uppercase leading-none mb-8 text-black text-black text-black font-black">{String(finalWinner.title)}</h2>
-                      <button onClick={() => handleStartReading(finalWinner)} className="w-full bg-black text-white p-6 rounded-3xl font-['Londrina_Solid'] text-3xl uppercase shadow-[8px_8px_0px_0px_rgba(0,0,0,0.2)] active:translate-y-1 font-bold text-center text-white text-white font-black">Start Experiment</button>
+                    <div className="text-center animate-in zoom-in py-10 text-black text-center text-black text-black text-black text-black text-black">
+                      <div className="inline-block bg-green-200 border-2 border-black px-4 py-1 rounded-xl mb-4 font-black uppercase text-[10px] text-black text-black text-black font-black text-black text-black">Subject Selected</div>
+                      <h2 className="font-['Londrina_Solid'] text-6xl uppercase leading-none mb-8 text-black text-black text-black font-black text-black text-black text-black">{String(finalWinner.title)}</h2>
+                      <button onClick={() => handleStartReading(finalWinner)} className="w-full bg-black text-white p-6 rounded-3xl font-['Londrina_Solid'] text-3xl uppercase shadow-[8px_8px_0px_0px_rgba(0,0,0,0.2)] active:translate-y-1 font-bold text-center text-white text-white font-black text-white text-white">Start Experiment</button>
                     </div>
                   )}
                 </div>
@@ -508,96 +527,96 @@ export default function App() {
 
         {/* DATING HUB (BENTO STAT HUB) */}
         {appState === 'dating_hub' && (
-          <div className="fixed inset-0 bg-[#FDFCF0] z-50 flex flex-col animate-in slide-in-from-bottom duration-500 overflow-hidden text-black text-left text-black">
-            <header className="bg-[#1a1c2c] border-b-[6px] border-black px-10 py-8 flex justify-between items-center text-white relative shadow-xl text-white">
-               <button onClick={() => setAppState('garden')} className="font-['Londrina_Solid'] text-xl uppercase opacity-40 hover:opacity-100 transition-opacity font-bold text-white text-white">EXIT LAB</button>
-               <h2 className="font-['Londrina_Solid'] text-4xl uppercase leading-none tracking-tight text-white font-black text-white text-white font-black">The Love Jar</h2>
-               <button className="w-10 h-10 flex items-center justify-center border-4 border-white/20 rounded-xl bg-white/5 text-white text-white"><SettingsIcon size={20} className="text-white" /></button>
+          <div className="fixed inset-0 bg-[#FDFCF0] z-50 flex flex-col animate-in slide-in-from-bottom duration-500 overflow-hidden text-black text-left text-black text-black">
+            <header className="bg-[#1a1c2c] border-b-[6px] border-black px-10 py-8 flex justify-between items-center text-white relative shadow-xl text-white text-white text-white text-white">
+               <button onClick={() => setAppState('garden')} className="font-['Londrina_Solid'] text-xl uppercase opacity-40 hover:opacity-100 transition-opacity font-bold text-white text-white text-white text-white text-white">EXIT LAB</button>
+               <h2 className="font-['Londrina_Solid'] text-4xl uppercase leading-none tracking-tight text-white font-black text-white text-white font-black text-white text-white">The Love Jar</h2>
+               <button className="w-10 h-10 flex items-center justify-center border-4 border-white/20 rounded-xl bg-white/5 text-white text-white text-white text-white"><SettingsIcon size={20} className="text-white" /></button>
             </header>
             
-            <div className="flex-1 relative overflow-y-auto glass-body flex flex-col bg-white/5 p-8 pb-40 text-black text-black text-black">
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto w-full mb-10 text-black text-black text-black">
-                  <button onClick={() => setAppState('dating_bloom')} className="bg-[#FFD1DC] border-[5px] border-black rounded-[45px] p-8 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] text-left flex flex-col justify-between h-[220px] active:scale-95 transition-all group text-black text-black text-black">
-                     <span className="font-['Londrina_Solid'] text-3xl uppercase text-black font-bold text-black font-black text-black">Daily Bloom</span>
-                     <div className="flex flex-col text-black text-black text-black">
-                        <p className="font-['Londrina_Solid'] text-2xl text-black font-black text-black text-black">Flowers: {String(8 - emptySlots)}</p>
-                        <p className="font-['Londrina_Solid'] text-xl text-black opacity-40 text-black font-bold text-black">Available: {String(emptySlots)}</p>
+            <div className="flex-1 relative overflow-y-auto glass-body flex flex-col bg-white/5 p-8 pb-40 text-black text-black text-black text-black text-black">
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto w-full mb-10 text-black text-black text-black text-black text-black">
+                  <button onClick={() => setAppState('dating_bloom')} className="bg-[#FFD1DC] border-[5px] border-black rounded-[45px] p-8 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] text-left flex flex-col justify-between h-[220px] active:scale-95 transition-all group text-black text-black text-black text-black text-black">
+                     <span className="font-['Londrina_Solid'] text-3xl uppercase text-black font-bold text-black font-black text-black text-black text-black">Daily Bloom</span>
+                     <div className="flex flex-col text-black text-black text-black text-black text-black">
+                        <p className="font-['Londrina_Solid'] text-2xl text-black font-black text-black text-black text-black text-black text-black">Flowers: {String(8 - emptySlots)}</p>
+                        <p className="font-['Londrina_Solid'] text-xl text-black opacity-40 text-black font-bold text-black text-black text-black">Available: {String(emptySlots)}</p>
                      </div>
                   </button>
-                  <button onClick={() => setAppState('dating_garden')} className="bg-[#C1E1C1] border-[5px] border-black rounded-[45px] p-8 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] text-left flex flex-col justify-between h-[220px] active:scale-95 transition-all group text-black text-black text-black">
-                     <span className="font-['Londrina_Solid'] text-3xl uppercase text-black font-bold text-left text-black font-black text-black font-black">Active Bed</span>
-                     <div className="flex flex-col text-black text-left text-black text-black">
-                        <p className="font-['Londrina_Solid'] text-2xl text-black text-black font-black text-black text-black">Active: {String(activeSpecimens.filter(s => s.codename).length)}</p>
-                        <p className="font-['Londrina_Solid'] text-xl text-black opacity-40 text-black font-bold text-black text-black">Tracking live</p>
+                  <button onClick={() => setAppState('dating_garden')} className="bg-[#C1E1C1] border-[5px] border-black rounded-[45px] p-8 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] text-left flex flex-col justify-between h-[220px] active:scale-95 transition-all group text-black text-black text-black text-black text-black">
+                     <span className="font-['Londrina_Solid'] text-3xl uppercase text-black font-bold text-left text-black font-black text-black text-black text-black text-black">Active Bed</span>
+                     <div className="flex flex-col text-black text-left text-black text-black text-black text-black">
+                        <p className="font-['Londrina_Solid'] text-2xl text-black text-black font-black text-black text-black text-black text-black text-black">Active: {String(activeSpecimens.filter(s => s.codename).length)}</p>
+                        <p className="font-['Londrina_Solid'] text-xl text-black opacity-40 text-black font-bold text-black text-black text-black text-black">Tracking live</p>
                      </div>
                   </button>
-                  <button onClick={() => setAppState('dating_lab')} className="bg-[#AEC6CF] border-[5px] border-black rounded-[45px] p-8 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] text-left flex flex-col justify-between h-[220px] active:scale-95 transition-all group text-black text-black text-black">
-                     <span className="font-['Londrina_Solid'] text-3xl uppercase text-black font-bold text-left text-black font-black text-black font-black text-black">The Lab</span>
-                     <div className="flex flex-col text-black text-left text-black text-black text-black">
-                        <p className="font-['Londrina_Solid'] text-2xl text-black text-left text-black text-black font-black text-black text-black">Iteration: 2.1</p>
-                        <p className="font-['Londrina_Solid'] text-xl text-black opacity-40 text-left text-black font-bold text-black text-black">Profile: V2</p>
+                  <button onClick={() => setAppState('dating_lab')} className="bg-[#AEC6CF] border-[5px] border-black rounded-[45px] p-8 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] text-left flex flex-col justify-between h-[220px] active:scale-95 transition-all group text-black text-black text-black text-black text-black text-black">
+                     <span className="font-['Londrina_Solid'] text-3xl uppercase text-black font-bold text-left text-black font-black text-black text-black text-black text-black text-black">The Lab</span>
+                     <div className="flex flex-col text-black text-left text-black text-black text-black text-black text-black">
+                        <p className="font-['Londrina_Solid'] text-2xl text-black text-left text-black text-black font-black text-black text-black text-black text-black text-black text-black text-black">Iteration: 2.1</p>
+                        <p className="font-['Londrina_Solid'] text-xl text-black opacity-40 text-left text-black font-bold text-black text-black text-black text-black text-black text-black text-black">Profile: V2</p>
                      </div>
                   </button>
-                  <button onClick={() => setAppState('dating_playbook')} className="bg-[#FFFACD] border-[5px] border-black rounded-[45px] p-8 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] text-left flex flex-col justify-between h-[220px] active:scale-95 transition-all group rotate-[-1deg] text-black text-black text-black">
-                     <span className="font-['Londrina_Solid'] text-3xl uppercase text-black font-bold text-left text-black font-black text-black font-black text-black">Playbook</span>
-                     <div className="flex flex-col text-black text-left text-black text-black text-black">
-                        <p className="font-['Londrina_Solid'] text-2xl text-black text-left text-black text-black font-black text-black text-black">Ideas: 12</p>
-                        <p className="font-['Londrina_Solid'] text-xl text-black opacity-40 text-left text-black font-bold text-black text-black">Trial tactics</p>
+                  <button onClick={() => setAppState('dating_playbook')} className="bg-[#FFFACD] border-[5px] border-black rounded-[45px] p-8 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] text-left flex flex-col justify-between h-[220px] active:scale-95 transition-all group rotate-[-1deg] text-black text-black text-black text-black text-black text-black">
+                     <span className="font-['Londrina_Solid'] text-3xl uppercase text-black font-bold text-left text-black font-black text-black text-black text-black text-black text-black text-black">Playbook</span>
+                     <div className="flex flex-col text-black text-left text-black text-black text-black text-black text-black text-black">
+                        <p className="font-['Londrina_Solid'] text-2xl text-black text-left text-black text-black font-black text-black text-black text-black text-black text-black text-black">Ideas: 12</p>
+                        <p className="font-['Londrina_Solid'] text-xl text-black opacity-40 text-left text-black font-bold text-black text-black text-black text-black text-black text-black">Trial tactics</p>
                      </div>
                   </button>
                </div>
-               <button onClick={() => setIsAddingPerson(true)} className="w-full max-w-2xl mx-auto bg-black text-white border-[5px] border-black rounded-[45px] p-8 shadow-[10px_10px_0px_0px_rgba(100,100,100,0.5)] active:translate-y-2 transition-all flex items-center justify-center group text-white text-white font-black text-white">
-                  <span className="font-['Londrina_Solid'] text-4xl uppercase font-black text-center text-white text-white">Recruit New Subject</span>
+               <button onClick={() => setIsAddingPerson(true)} className="w-full max-w-2xl mx-auto bg-black text-white border-[5px] border-black rounded-[45px] p-8 shadow-[10px_10px_0px_0px_rgba(100,100,100,0.5)] active:translate-y-2 transition-all flex items-center justify-center group text-white text-white font-black text-white text-white text-white">
+                  <span className="font-['Londrina_Solid'] text-4xl uppercase font-black text-center text-white text-white text-white text-white">Recruit New Subject</span>
                </button>
             </div>
           </div>
         )}
 
-        {/* STAGE 2: DETAIL BLOOM (Physics Hearts) */}
+        {/* STAGE 2: DETAIL BLOOM (Hearts) */}
         {appState === 'dating_bloom' && (
-          <div className="fixed inset-0 bg-[#FDFCF0] z-50 flex flex-col animate-in slide-in-from-right duration-500 overflow-hidden text-black text-left text-black text-black text-black">
-            <header className="bg-[#1a1c2c] border-b-[6px] border-black px-10 py-8 flex justify-between items-center text-white relative shadow-xl text-white text-white">
-               <button onClick={() => setAppState('dating_hub')} className="font-['Londrina_Solid'] text-xl uppercase opacity-40 hover:opacity-100 transition-opacity font-bold text-white text-white text-white text-white">BACK</button>
-               <h2 className="font-['Londrina_Solid'] text-4xl uppercase leading-none tracking-tight text-white font-black text-white text-white font-black text-white font-black">Daily Bloom</h2>
-               <div className="w-10 text-white text-white" />
+          <div className="fixed inset-0 bg-[#FDFCF0] z-50 flex flex-col animate-in slide-in-from-right duration-500 overflow-hidden text-black text-left text-black text-black text-black text-black text-black text-black">
+            <header className="bg-[#1a1c2c] border-b-[6px] border-black px-10 py-8 flex justify-between items-center text-white relative shadow-xl text-white text-white text-white text-white text-white text-white text-white">
+               <button onClick={() => setAppState('dating_hub')} className="font-['Londrina_Solid'] text-xl uppercase opacity-40 hover:opacity-100 transition-opacity font-bold text-white text-white text-white text-white text-white text-white text-white">BACK</button>
+               <h2 className="font-['Londrina_Solid'] text-4xl uppercase leading-none tracking-tight text-white font-black text-white text-white font-black text-white font-black text-white font-black text-white font-black text-white font-black">Daily Bloom</h2>
+               <div className="w-10 text-white text-white text-white text-white text-white" />
             </header>
-            <div className="flex-1 relative overflow-y-auto glass-body flex flex-col bg-white/5 p-8 text-black text-black text-black text-black">
-               <div className="grid grid-cols-2 gap-y-16 gap-x-10 mb-24 justify-items-center text-black text-black text-black text-black">
+            <div className="flex-1 relative overflow-y-auto glass-body flex flex-col bg-white/5 p-8 text-black text-black text-black text-black text-black text-black text-black">
+               <div className="grid grid-cols-2 gap-y-16 gap-x-10 mb-24 justify-items-center text-black text-black text-black text-black text-black text-black text-black">
                   {activeSpecimens.map((s, i) => (
-                    <button key={s.id} onClick={() => triggerSpecimenExpiration(s)} className="flex flex-col items-center animate-float group text-black text-black text-black text-black" style={{ animationDelay: `${i * 0.4}s` }}>
+                    <button key={s.id} onClick={() => triggerSpecimenExpiration(s)} className="flex flex-col items-center animate-float group text-black text-black text-black text-black text-black text-black text-black text-black" style={{ animationDelay: `${i * 0.4}s` }}>
                        <MLMHeart id={`detail-${s.id}`} isPlaceholder={!s.codename} />
-                       <span className="font-['Londrina_Solid'] text-xs uppercase mt-5 opacity-60 text-black font-bold group-active:scale-110 transition-transform text-center text-black text-center text-black font-black text-black font-black">
+                       <span className="font-['Londrina_Solid'] text-xs uppercase mt-5 opacity-60 text-black font-bold group-active:scale-110 transition-transform text-center text-black text-center text-black font-black text-black font-black text-black font-black text-black font-black text-black">
                          {s.codename ? `Terminate ${String(s.codename)}` : 'Dormant Slot'}
                        </span>
                     </button>
                   ))}
                </div>
                {fallingSpecimen && (
-                  <div className="animate-physics-drop absolute bottom-32 left-1/2 -translate-x-1/2 text-black text-black text-black text-black" style={{ '--final-rot': `${fallingSpecimen.rot}deg`, zIndex: 100 }}>
+                  <div className="animate-physics-drop absolute bottom-32 left-1/2 -translate-x-1/2 text-black text-black text-black text-black text-black text-black text-black" style={{ '--final-rot': `${fallingSpecimen.rot}deg`, zIndex: 100 }}>
                      <MLMHeart id={`fall-${fallingSpecimen.id}`} />
                   </div>
                )}
             </div>
-            <div className="bg-black p-6 border-t-[6px] border-black text-center text-white font-black uppercase text-xs text-white">Sediment Log: {sedimentPile.length}</div>
+            <div className="bg-black p-6 border-t-[6px] border-black text-center text-white font-black uppercase text-xs text-white text-white text-white">Sediment Log: {sedimentPile.length}</div>
           </div>
         )}
 
-        {/* GLOBAL MODALS (Root Level Access) */}
+        {/* GLOBAL MODALS */}
         {isAddingBook && <AddBookDrawer onSave={handleAddBook} onCancel={() => setIsAddingBook(false)} />}
         
         {isAddingPerson && (
-           <div className="fixed inset-0 bg-black/60 z-[200] p-6 flex items-end justify-center text-black text-black">
-              <div className="bg-[#FDFCF0] border-[5px] border-black rounded-[40px] p-8 w-full max-sm shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] animate-in slide-in-from-bottom overflow-y-auto text-black text-left text-black text-black text-black">
-                 <header className="flex justify-between items-start mb-6 text-left text-black text-black text-black">
-                    <div className="text-left text-black text-black text-black text-black"><h2 className="font-['Londrina_Solid'] text-4xl uppercase leading-none font-black text-black text-left text-black font-black text-black font-black">Subject Recruitment</h2><p className="opacity-40 uppercase font-['Londrina_Solid'] text-lg font-bold text-black text-left text-black font-bold text-black font-bold">Transforms dormant slots</p></div>
-                    <button onClick={() => setIsAddingPerson(false)} className="text-3xl opacity-20 font-bold text-black text-center font-bold text-black font-black text-black font-black text-black">✕</button>
+           <div className="fixed inset-0 bg-black/60 z-[200] p-6 flex items-end justify-center text-black text-black text-black text-black">
+              <div className="bg-[#FDFCF0] border-[5px] border-black rounded-[40px] p-8 w-full max-sm shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] animate-in slide-in-from-bottom overflow-y-auto text-black text-left text-black text-black text-black text-black text-black text-black">
+                 <header className="flex justify-between items-start mb-6 text-left text-black text-black text-black text-black text-black text-black text-black">
+                    <div className="text-left text-black text-black text-black text-black text-black text-black text-black"><h2 className="font-['Londrina_Solid'] text-4xl uppercase leading-none font-black text-black text-left text-black font-black text-black font-black text-black font-black text-black font-black text-black font-black">Subject Recruitment</h2><p className="opacity-40 uppercase font-['Londrina_Solid'] text-lg font-bold text-black text-left text-black font-bold text-black font-bold text-black font-bold text-black font-bold text-black font-bold">Transforms dormant slots</p></div>
+                    <button onClick={() => setIsAddingPerson(false)} className="text-3xl opacity-20 font-bold text-black text-center font-bold text-black font-black text-black font-black text-black font-black text-black font-black text-black font-black text-black font-black">✕</button>
                  </header>
-                 <form onSubmit={(e) => { e.preventDefault(); handleAddPerson({ codename: e.target.codename.value }); }} className="space-y-5 text-left text-black text-black text-black text-black">
-                    <div className="bg-white border-4 border-black p-4 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-black text-left text-black text-black text-left text-black text-black">
-                       <label className="text-[10px] uppercase font-black opacity-40 block mb-1 text-black text-left text-black text-black text-black text-black text-black font-black text-black">Subject Codename</label>
-                       <input required name="codename" type="text" placeholder="..." className="w-full bg-transparent font-['Londrina_Solid'] text-2xl focus:outline-none text-black font-black text-black text-black font-black text-black" />
+                 <form onSubmit={(e) => { e.preventDefault(); handleAddPerson({ codename: e.target.codename.value }); }} className="space-y-5 text-left text-black text-black text-black text-black text-black text-black text-black text-black">
+                    <div className="bg-white border-4 border-black p-4 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-black text-left text-black text-black text-black text-left text-black text-black text-black text-black text-black text-black text-black">
+                       <label className="text-[10px] uppercase font-black opacity-40 block mb-1 text-black text-left text-black text-black text-black text-black text-black text-black text-black font-black text-black text-black text-black text-black text-black">Subject Codename</label>
+                       <input required name="codename" type="text" placeholder="..." className="w-full bg-transparent font-['Londrina_Solid'] text-2xl focus:outline-none text-black font-black text-black text-black text-black text-black text-black font-black text-black text-black text-black text-black text-black text-black" />
                     </div>
-                    <button type="submit" className="w-full bg-black text-white p-5 rounded-3xl font-['Londrina_Solid'] text-2xl uppercase shadow-[6px_6px_0px_0px_rgba(100,100,100,1)] active:translate-y-1 transition-all text-center text-white font-black text-white font-black text-white">Inject Subject</button>
+                    <button type="submit" className="w-full bg-black text-white p-5 rounded-3xl font-['Londrina_Solid'] text-2xl uppercase shadow-[6px_6px_0px_0px_rgba(100,100,100,1)] active:translate-y-1 transition-all text-center text-white font-black text-white font-black text-white text-white font-black text-white font-black text-white text-white font-black text-white font-black text-white font-black">Inject Subject</button>
                  </form>
               </div>
            </div>
@@ -607,14 +626,14 @@ export default function App() {
 
         {/* ANALYSIS MODAL (Post-Reading) */}
         {selectedBook && (
-          <div className="fixed inset-0 bg-[#FDFCF0] z-50 p-6 flex flex-col animate-in slide-in-from-bottom duration-500 overflow-y-auto text-black text-left text-black text-black">
-            <button onClick={() => setSelectedBook(null)} className="absolute top-6 right-6 text-4xl opacity-30 text-black font-bold text-center text-black text-black">✕</button>
-            <div className="flex justify-center gap-4 mb-10 mt-12 relative z-10 text-center text-black font-black text-black text-black">{['review', 'capsule', 'pages'].map(t => (<button key={t} onClick={() => setActiveTab(t)} className={`flex-1 py-4 border-[4px] border-black rounded-[28px] font-['Londrina_Solid'] uppercase text-xl transition-all ${activeTab === t ? 'bg-black text-white shadow-none translate-y-1' : 'bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-black font-bold text-black text-black font-black'}`}>{String(t)}</button>))}</div>
-            <div className="flex flex-col items-center flex-1 pb-10 text-black text-left text-black text-black text-black">
+          <div className="fixed inset-0 bg-[#FDFCF0] z-50 p-6 flex flex-col animate-in slide-in-from-bottom duration-500 overflow-y-auto text-black text-left text-black text-black text-black text-black text-black text-black">
+            <button onClick={() => setSelectedBook(null)} className="absolute top-6 right-6 text-4xl opacity-30 text-black font-bold text-center text-black text-black text-black text-black text-black text-black">✕</button>
+            <div className="flex justify-center gap-4 mb-10 mt-12 relative z-10 text-center text-black font-black text-black text-black text-black text-black text-black">{['review', 'capsule', 'pages'].map(t => (<button key={t} onClick={() => setActiveTab(t)} className={`flex-1 py-4 border-[4px] border-black rounded-[28px] font-['Londrina_Solid'] uppercase text-xl transition-all ${activeTab === t ? 'bg-black text-white shadow-none translate-y-1' : 'bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-black font-bold text-black text-black font-black text-black font-black text-black font-black'}`}>{String(t)}</button>))}</div>
+            <div className="flex flex-col items-center flex-1 pb-10 text-black text-left text-black text-black text-black text-black text-black text-black text-black">
               {activeTab === 'review' && (
-                <div className="w-full space-y-8 animate-in fade-in text-black text-left text-black text-black">
-                  <header className="text-left text-black text-left text-black text-left text-black text-black"><h2 className="font-['Londrina_Solid'] text-5xl uppercase leading-none mb-2 text-black font-black text-black">{String(selectedBook.title)}</h2><p className="font-['Londrina_Solid'] text-xl opacity-40 uppercase text-black font-bold text-black font-black">{String(selectedBook.author)}</p></header>
-                  <div className="bg-white border-[5px] border-black p-8 rounded-[45px] shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] text-left text-black font-black text-black text-black text-black text-left"><h4 className="font-['Londrina_Solid'] text-2xl uppercase mb-3 text-green-600 tracking-tight text-left text-green-600 font-black text-green-600">Conclusion</h4><p className="text-xl italic font-medium leading-relaxed text-black text-left font-bold text-black text-left text-black">"{String(selectedBook.review || "Ongoing investigation.")}"</p></div>
+                <div className="w-full space-y-8 animate-in fade-in text-black text-left text-black text-black text-black text-black text-black text-black text-black">
+                  <header className="text-left text-black text-left text-black text-left text-black text-black text-black text-black text-black"><h2 className="font-['Londrina_Solid'] text-5xl uppercase leading-none mb-2 text-black font-black text-black text-black text-black text-black">{String(selectedBook.title)}</h2><p className="font-['Londrina_Solid'] text-xl opacity-40 uppercase text-black font-bold text-black font-black text-black text-black text-black">{String(selectedBook.author)}</p></header>
+                  <div className="bg-white border-[5px] border-black p-8 rounded-[45px] shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] text-left text-black font-black text-black text-black text-black text-black text-black text-black text-left text-black text-black text-black"><h4 className="font-['Londrina_Solid'] text-2xl uppercase mb-3 text-green-600 tracking-tight text-left text-green-600 font-black text-green-600 text-green-600 text-green-600 text-green-600 text-green-600">Conclusion</h4><p className="text-xl italic font-medium leading-relaxed text-black text-left font-bold text-black text-left text-black text-black text-black text-black text-black text-black text-black text-black text-black">"{String(selectedBook.review || "Ongoing investigation.")}"</p></div>
                 </div>
               )}
               {activeTab === 'capsule' && <SedimentaryRecord sessions={selectedBook.sessions || []} bookTitle={selectedBook.title} />}
@@ -625,16 +644,16 @@ export default function App() {
         
         {/* Placeholder detail logic */}
         {['dating_garden', 'dating_lab', 'dating_playbook'].includes(appState) && (
-           <div className="fixed inset-0 bg-[#FDFCF0] z-50 flex flex-col animate-in zoom-in duration-300 text-black text-left text-black text-black text-black">
-              <header className="bg-[#1a1c2c] border-b-[6px] border-black px-10 py-8 flex justify-between items-center text-white relative shadow-xl font-black text-white text-white text-white">
-                 <button onClick={() => setAppState('dating_hub')} className="font-['Londrina_Solid'] text-xl uppercase opacity-40 hover:opacity-100 transition-opacity font-bold text-white text-white text-white text-white text-white">BACK</button>
-                 <h2 className="font-['Londrina_Solid'] text-4xl uppercase leading-none tracking-tight text-white text-white text-white font-black text-white">{String(appState.split('_')[1].toUpperCase())} STATION</h2>
-                 <div className="w-10 text-white text-white" />
+           <div className="fixed inset-0 bg-[#FDFCF0] z-50 flex flex-col animate-in zoom-in duration-300 text-black text-left text-black text-black text-black text-black text-black text-black text-black text-black text-black">
+              <header className="bg-[#1a1c2c] border-b-[6px] border-black px-10 py-8 flex justify-between items-center text-white relative shadow-xl font-black text-white text-white text-white text-white text-white text-white text-white text-white text-white text-white">
+                 <button onClick={() => setAppState('dating_hub')} className="font-['Londrina_Solid'] text-xl uppercase opacity-40 hover:opacity-100 transition-opacity font-bold text-white text-white text-white text-white text-white text-white text-white text-white text-white text-white text-white">BACK</button>
+                 <h2 className="font-['Londrina_Solid'] text-4xl uppercase leading-none tracking-tight text-white text-white text-white text-white font-black text-white text-white text-white text-white text-white text-white text-white font-black text-white text-white">{String(appState.split('_')[1].toUpperCase())} STATION</h2>
+                 <div className="w-10 text-white text-white text-white text-white text-white text-white text-white text-white text-white text-white" />
               </header>
-              <div className="flex-1 flex flex-col items-center justify-center p-10 text-center opacity-30 text-black font-black text-black text-black text-black text-black">
-                 <SparklesIcon size={100} className="mb-6 text-black text-black" />
-                 <h3 className="font-['Londrina_Solid'] text-4xl uppercase text-black text-black font-black text-black">Calibration Required</h3>
-                 <p className="font-['Londrina_Solid'] text-xl uppercase mt-2 text-black text-center text-black text-black font-bold text-black">Refining local variables...</p>
+              <div className="flex-1 flex flex-col items-center justify-center p-10 text-center opacity-30 text-black font-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black">
+                 <SparklesIcon size={100} className="mb-6 text-black text-black text-black text-black text-black text-black text-black" />
+                 <h3 className="font-['Londrina_Solid'] text-4xl uppercase text-black text-black font-black text-black text-black text-black text-black text-black text-black text-black font-black text-black text-black">Calibration Required</h3>
+                 <p className="font-['Londrina_Solid'] text-xl uppercase mt-2 text-black text-center text-black text-black font-bold text-black text-black text-black text-black text-black text-black text-black text-black font-bold text-black text-black">Refining local variables...</p>
               </div>
            </div>
         )}
@@ -648,33 +667,33 @@ const AddBookDrawer = ({ onSave, onCancel }) => {
   const toggleGenre = (g) => { setNb(prev => ({ ...prev, genre: prev.genre.includes(g) ? prev.genre.filter(item => item !== g) : [...prev.genre, g] })); };
 
   return (
-    <div className="fixed inset-0 bg-black/60 z-[200] p-6 flex items-end justify-center text-black">
-      <div className="bg-[#FDFCF0] border-[5px] border-black rounded-[40px] p-8 w-full max-w-sm shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] text-black overflow-y-auto max-h-[95vh] text-left text-black text-black">
-        <h2 className="font-['Londrina_Solid'] text-4xl uppercase mb-6 text-black text-left font-bold text-black font-black text-black">Subject Registration</h2>
-        <form onSubmit={(e) => { e.preventDefault(); onSave(nb); }} className="space-y-4 text-left text-black text-black text-black text-black">
-          <div className="bg-white border-4 border-black p-3 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between text-black text-left text-black text-black text-black">
-            <label className="text-[10px] uppercase font-black opacity-40 text-black text-left text-black font-bold text-black font-black text-black">Cries Hypothesis</label>
-            <div className="flex items-center justify-between text-black text-center font-bold text-black text-black text-black">
-              <button type="button" onClick={() => setNb(p => ({...p, cries: Math.max(0, p.cries - 1)}))} className="w-8 h-8 border-2 border-black rounded-full text-black font-bold text-center text-black font-black text-black">-</button>
-              <span className="font-['Londrina_Solid'] text-3xl text-black font-bold text-black font-black text-black">{nb.cries}</span>
-              <button type="button" onClick={() => setNb(p => ({...p, cries: p.cries + 1}))} className="w-8 h-8 border-2 border-black rounded-full text-black font-bold text-center text-black font-black text-black">+</button>
+    <div className="fixed inset-0 bg-black/60 z-[200] p-6 flex items-end justify-center text-black text-black text-black text-black text-black text-black text-black text-black">
+      <div className="bg-[#FDFCF0] border-[5px] border-black rounded-[40px] p-8 w-full max-w-sm shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] text-black overflow-y-auto max-h-[95vh] text-left text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black">
+        <h2 className="font-['Londrina_Solid'] text-4xl uppercase mb-6 text-black text-left font-bold text-black font-black text-black text-black text-black text-black text-black text-black text-black text-black font-black text-black text-black">Subject Registration</h2>
+        <form onSubmit={(e) => { e.preventDefault(); onSave(nb); }} className="space-y-4 text-left text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black">
+          <div className="bg-white border-4 border-black p-3 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between text-black text-left text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black">
+            <label className="text-[10px] uppercase font-black opacity-40 text-black text-left text-black font-bold text-black font-black text-black text-black text-black text-black text-black text-black text-black text-black text-black font-black text-black text-black">Cries Hypothesis</label>
+            <div className="flex items-center justify-between text-black text-center font-bold text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black">
+              <button type="button" onClick={() => setNb(p => ({...p, cries: Math.max(0, p.cries - 1)}))} className="w-8 h-8 border-2 border-black rounded-full text-black font-bold text-center text-black font-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black font-black text-black text-black">-</button>
+              <span className="font-['Londrina_Solid'] text-3xl text-black font-bold text-black font-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black font-black text-black text-black">{nb.cries}</span>
+              <button type="button" onClick={() => setNb(p => ({...p, cries: p.cries + 1}))} className="w-8 h-8 border-2 border-black rounded-full text-black font-bold text-center text-black font-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black font-black text-black text-black">+</button>
             </div>
           </div>
-          <div className="bg-white border-4 border-black p-3 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-black text-left text-black text-black text-black text-left text-black"><label className="text-[10px] uppercase font-black opacity-40 text-black text-left text-black font-bold text-black font-black text-black">Title</label><input required className="w-full bg-transparent font-['Londrina_Solid'] text-2xl focus:outline-none text-black font-bold text-black text-black text-black" value={nb.title} onChange={e => setNb({...nb, title: e.target.value})} /></div>
-          <div className="bg-white border-4 border-black p-3 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-black text-left text-black text-black text-black text-left text-black"><label className="text-[10px] uppercase font-black opacity-40 text-black text-left text-black font-bold text-black font-black text-black">Lead Author</label><input required className="w-full bg-transparent font-['Londrina_Solid'] text-2xl focus:outline-none text-black font-bold text-black text-black text-black text-black" value={nb.author} onChange={e => setNb({...nb, author: e.target.value})} /></div>
-          <div className="bg-white border-4 border-black p-3 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-black text-left text-black text-black text-black text-left text-black"><label className="text-[10px] uppercase font-black opacity-40 text-black text-left text-black font-bold text-black font-black text-black">Hypothesis (Intro)</label><textarea required className="w-full bg-transparent text-sm h-20 resize-none text-black font-bold text-black text-black text-black text-black" value={nb.introduction} onChange={e => setNb({...nb, introduction: e.target.value})} /></div>
-          <div className="bg-white border-4 border-black p-3 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-black text-left text-black text-black text-black text-left text-black text-black"><label className="text-[10px] uppercase font-black opacity-40 text-black text-left text-black font-bold text-black font-black text-black">Suggested By</label><input className="w-full bg-transparent font-['Londrina_Solid'] text-2xl focus:outline-none text-black font-bold text-black text-black text-black text-black text-black" value={nb.suggestedBy} onChange={e => setNb({...nb, suggestedBy: e.target.value})} /></div>
-          <div className="bg-white border-4 border-black p-3 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-black text-left text-black text-black text-black text-left text-black text-black"><label className="text-[10px] uppercase font-black opacity-40 text-black text-left text-black font-bold text-black font-black text-black">Total Pages</label><input required type="number" className="w-full bg-transparent font-['Londrina_Solid'] text-2xl focus:outline-none text-black font-bold text-black text-black text-black text-black text-black" value={nb.totalPages} onChange={e => setNb({...nb, totalPages: e.target.value})} /></div>
-          <div className="text-left text-black text-black">
-            <label className="text-[10px] uppercase font-black opacity-40 text-black text-left text-black font-black text-black">Genre Tags</label>
-            <div className="flex flex-wrap gap-1 mt-2 text-black">
+          <div className="bg-white border-4 border-black p-3 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-black text-left text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-left text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black font-black text-black text-black"><label className="text-[10px] uppercase font-black opacity-40 text-black text-left text-black font-bold text-black font-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black font-black text-black text-black">Title</label><input required className="w-full bg-transparent font-['Londrina_Solid'] text-2xl focus:outline-none text-black font-bold text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black font-black text-black text-black" value={nb.title} onChange={e => setNb({...nb, title: e.target.value})} /></div>
+          <div className="bg-white border-4 border-black p-3 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-black text-left text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-left text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black font-black text-black text-black text-black"><label className="text-[10px] uppercase font-black opacity-40 text-black text-left text-black font-bold text-black font-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black font-black text-black text-black text-black">Lead Author</label><input required className="w-full bg-transparent font-['Londrina_Solid'] text-2xl focus:outline-none text-black font-bold text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black font-black text-black text-black text-black" value={nb.author} onChange={e => setNb({...nb, author: e.target.value})} /></div>
+          <div className="bg-white border-4 border-black p-3 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-black text-left text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-left text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black font-black text-black text-black text-black text-black"><label className="text-[10px] uppercase font-black opacity-40 text-black text-left text-black font-bold text-black font-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black font-black text-black text-black text-black text-black">Hypothesis (Intro)</label><textarea required className="w-full bg-transparent text-sm h-20 resize-none text-black font-bold text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black font-black text-black text-black text-black text-black text-black" value={nb.introduction} onChange={e => setNb({...nb, introduction: e.target.value})} /></div>
+          <div className="bg-white border-4 border-black p-3 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-black text-left text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-left text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black font-black text-black text-black text-black text-black text-black text-black"><label className="text-[10px] uppercase font-black opacity-40 text-black text-left text-black font-bold text-black font-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black font-black text-black text-black text-black text-black text-black text-black">Suggested By</label><input className="w-full bg-transparent font-['Londrina_Solid'] text-2xl focus:outline-none text-black font-bold text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black font-black text-black text-black text-black text-black text-black text-black text-black" value={nb.suggestedBy} onChange={e => setNb({...nb, suggestedBy: e.target.value})} /></div>
+          <div className="bg-white border-4 border-black p-3 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-black text-left text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-left text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black font-black text-black text-black text-black text-black text-black text-black text-black text-black text-black"><label className="text-[10px] uppercase font-black opacity-40 text-black text-left text-black font-bold text-black font-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black font-black text-black text-black text-black text-black text-black text-black text-black text-black text-black">Total Pages</label><input required type="number" className="w-full bg-transparent font-['Londrina_Solid'] text-2xl focus:outline-none text-black font-bold text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black font-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black" value={nb.totalPages} onChange={e => setNb({...nb, totalPages: e.target.value})} /></div>
+          <div className="text-left text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black">
+            <label className="text-[10px] uppercase font-black opacity-40 text-black text-left text-black font-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black">Genre Tags</label>
+            <div className="flex flex-wrap gap-1 mt-2 text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black">
               {genres.map(g => (
-                <button key={g} type="button" onClick={() => toggleGenre(g)} className={`px-2 py-1 border-2 border-black rounded-lg text-[8px] font-black uppercase transition-all ${nb.genre.includes(g) ? 'bg-blue-500 text-white' : 'bg-white opacity-40 text-black'}`}>{g}</button>
+                <button key={g} type="button" onClick={() => toggleGenre(g)} className={`px-2 py-1 border-2 border-black rounded-lg text-[8px] font-black uppercase transition-all ${nb.genre.includes(g) ? 'bg-blue-500 text-white' : 'bg-white opacity-40 text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black'}`}>{g}</button>
               ))}
             </div>
           </div>
-          <button type="submit" className="w-full bg-black text-white p-5 rounded-3xl font-['Londrina_Solid'] text-2xl uppercase font-bold text-center text-white text-center text-white font-black text-white shadow-[6px_6px_0px_0px_rgba(100,100,100,1)] active:translate-y-1">Inject Archive</button>
-          <button type="button" onClick={onCancel} className="w-full opacity-30 uppercase font-black text-xs mt-2 text-black text-center text-black font-black text-black">Abort</button>
+          <button type="submit" className="w-full bg-black text-white p-5 rounded-3xl font-['Londrina_Solid'] text-2xl uppercase font-bold text-center text-white text-center text-white font-black text-white text-white font-black text-white text-white font-black text-white text-white font-black text-white text-white font-black text-white text-white font-black text-white shadow-[6px_6px_0px_0px_rgba(100,100,100,1)] active:translate-y-1 text-white">Inject Archive</button>
+          <button type="button" onClick={onCancel} className="w-full opacity-30 uppercase font-black text-xs mt-2 text-black text-center text-black font-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black font-black text-black text-black text-black">Abort</button>
         </form>
       </div>
     </div>
@@ -684,17 +703,97 @@ const AddBookDrawer = ({ onSave, onCancel }) => {
 const ReadingDrawer = ({ activeBook, onSave, onCancel }) => {
   const startPage = Number(activeBook?.currentPage) || 1;
   const totalPages = Number(activeBook?.totalPages) || 400;
-  const [session, setSession] = useState({ endPage: '', startTime: '09:00', endTime: '10:00', emotion: 'Wonder', intensity: 3, sessionCries: 0, conclusion: '' });
+  const [session, setSession] = useState({ 
+    endPage: '', 
+    startTime: '09:00', 
+    endTime: '10:00', 
+    emotion: 'Wonder', 
+    intensity: 3, 
+    sessionCries: 0, 
+    conclusion: '' 
+  });
+  
   const isFinished = Number(session.endPage) >= totalPages;
-  const handleSubmit = (e) => { e.preventDefault(); if (!session.endPage || !activeBook) return; onSave({ ...session, startPage, endPage: Number(session.endPage), isFinished }); };
+
+  const calculateMinutes = () => {
+    const [startH, startM] = session.startTime.split(':').map(Number);
+    const [endH, endM] = session.endTime.split(':').map(Number);
+    let diff = (endH * 60 + endM) - (startH * 60 + startM);
+    return diff < 0 ? diff + 1440 : diff;
+  };
+
+  const handleSubmit = (e) => { 
+    e.preventDefault(); 
+    const minutes = calculateMinutes();
+    if (!session.endPage || !activeBook || minutes <= 0) return; 
+    onSave({ ...session, startPage, endPage: Number(session.endPage), minutes, isFinished }); 
+  };
+
   return (
-    <div className="fixed inset-0 bg-black/60 z-[200] p-6 flex items-end justify-center text-black text-black text-black text-black">
-      <div className="bg-[#FDFCF0] border-[5px] border-black rounded-[40px] p-8 w-full max-w-sm shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] text-black overflow-y-auto max-h-[95vh] text-left text-black text-black text-black">
-        <header className="flex justify-between mb-8 text-left text-black text-black text-black text-black text-black"><div><h2 className="font-['Londrina_Solid'] text-4xl uppercase leading-none text-left text-black font-bold text-black text-black font-black text-black font-black">Log Session</h2><p className="font-['Londrina_Solid'] text-lg opacity-40 uppercase truncate text-black text-left text-black text-black font-bold text-black">{String(activeBook?.title)}</p></div><button onClick={onCancel} className="text-2xl text-black text-center font-bold text-black text-black font-black text-black font-black">✕</button></header>
-        <form onSubmit={handleSubmit} className="space-y-5 text-left text-black text-black text-black text-black text-black">
-          <div className="grid grid-cols-2 gap-4 text-left text-black text-black text-black text-black text-black"><div className="bg-white border-4 border-black p-3 rounded-2xl text-left text-black text-black text-black text-black text-black text-black"><label className="text-[10px] font-black opacity-30 uppercase block text-left text-black text-black text-black text-black">End Page</label><input required type="number" className="w-full bg-transparent font-['Londrina_Solid'] text-2xl focus:outline-none text-black font-bold text-black text-black font-black text-black text-black" value={session.endPage} onChange={e=>setSession({...session, endPage: e.target.value})} /></div><div className="bg-white border-4 border-black p-3 rounded-2xl text-left text-black text-black text-black text-black text-black text-black"><label className="text-[10px] font-black opacity-30 uppercase block text-left text-black text-black text-black text-black text-black">Cries</label><div className="flex justify-between items-center text-black font-bold text-center text-black text-black text-black font-black text-black font-black"><button type="button" onClick={()=>setSession(p=>({...p, sessionCries: Math.max(0, p.sessionCries-1)}))} className="text-xl text-left font-bold text-black text-black font-black text-black font-black">-</button><span className="font-['Londrina_Solid'] text-2xl text-black font-bold text-black text-black font-black text-black font-black">{session.sessionCries}</span><button type="button" onClick={()=>setSession(p=>({...p, sessionCries: p.sessionCries+1}))} className="text-xl text-left font-bold text-black text-black font-black text-black font-black">+</button></div></div></div>
-          <div className="bg-white border-4 border-black p-4 rounded-2xl text-left text-black text-black text-black text-black text-black text-black"><label className="text-[10px] font-black opacity-30 uppercase block mb-1 text-left text-black text-black text-black font-black text-black text-black text-black">Intensity (1-5)</label><input type="range" min="1" max="5" className="w-full accent-black text-black text-black font-black text-black text-black text-black" value={session.intensity} onChange={e=>setSession({...session, intensity: e.target.value})} /></div>
-          <button type="submit" className="w-full bg-black text-white p-5 rounded-3xl font-['Londrina_Solid'] text-2xl uppercase font-bold text-center text-white text-white font-black text-white shadow-[6px_6px_0px_0px_rgba(100,100,100,1)] active:translate-y-1">Save Observation</button>
+    <div className="fixed inset-0 bg-black/60 z-[200] p-6 flex items-end justify-center text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black">
+      <div className="bg-[#FDFCF0] border-[5px] border-black rounded-[40px] p-8 w-full max-w-sm shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] text-black overflow-y-auto max-h-[95vh] text-left text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black">
+        <header className="flex justify-between mb-8 text-left text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black"><div><h2 className="font-['Londrina_Solid'] text-4xl uppercase leading-none text-left text-black font-bold text-black text-black font-black text-black font-black text-black font-black text-black font-black text-black font-black text-black font-black text-black font-black">Log Session</h2><p className="font-['Londrina_Solid'] text-lg opacity-40 uppercase truncate text-black text-left text-black text-black font-bold text-black text-black text-black text-black text-black font-black text-black text-black text-black text-black text-black text-black text-black">{String(activeBook?.title)}</p></div><button onClick={onCancel} className="text-2xl text-black text-center font-bold text-black text-black font-black text-black font-black text-black font-black text-black font-black text-black font-black text-black font-black text-black font-black text-black font-black text-black font-black text-black font-black text-black font-black">✕</button></header>
+        
+        <form onSubmit={handleSubmit} className="space-y-5 text-left text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black">
+          {/* Page Tracking */}
+          <div className="grid grid-cols-2 gap-4 text-left text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black">
+            <div className="bg-slate-100 border-4 border-black/10 p-3 rounded-2xl opacity-60 text-black text-black text-black text-black">
+              <label className="text-[10px] font-black block uppercase text-black text-black text-black text-black text-black">Start Page</label>
+              <div className="font-['Londrina_Solid'] text-2xl text-black text-black text-black text-black text-black">{Number(startPage)}</div>
+            </div>
+            <div className={`bg-white border-4 p-3 rounded-2xl transition-all ${isFinished ? 'border-green-500 shadow-[4px_4px_0px_0px_rgba(34,197,94,1)]' : 'border-black'}`}>
+              <label className="text-[10px] font-black block uppercase text-black text-black text-black text-black text-black text-black">End Page</label>
+              <input required type="number" className="w-full bg-transparent font-['Londrina_Solid'] text-2xl focus:outline-none text-black font-bold text-black text-black font-black text-black text-black text-black text-black text-black text-black text-black text-black" value={session.endPage} onChange={e=>setSession({...session, endPage: e.target.value})} />
+            </div>
+          </div>
+
+          {/* Time Tracking */}
+          <div className="grid grid-cols-2 gap-4 text-black text-left text-black text-black text-black text-black text-black text-black text-black text-black text-black">
+            <div className="bg-white border-4 border-black p-2 rounded-2xl text-black text-black text-black text-black">
+              <label className="text-[8px] font-black block uppercase text-black text-black text-black text-black text-black text-black">Start Time</label>
+              <input type="time" required className="w-full bg-transparent font-['Londrina_Solid'] text-xl focus:outline-none text-black font-bold text-black text-black font-black text-black text-black text-black text-black text-black text-black text-black" value={session.startTime} onChange={e => setSession({...session, startTime: e.target.value})} />
+            </div>
+            <div className="bg-white border-4 border-black p-2 rounded-2xl text-black text-black text-black text-black">
+              <label className="text-[8px] font-black block uppercase text-black text-black text-black text-black text-black text-black">End Time</label>
+              <input type="time" required className="w-full bg-transparent font-['Londrina_Solid'] text-xl focus:outline-none text-black font-bold text-black text-black font-black text-black text-black text-black text-black text-black text-black text-black" value={session.endTime} onChange={e => setSession({...session, endTime: e.target.value})} />
+            </div>
+          </div>
+
+          {/* Cries Counter */}
+          <div className="bg-white border-4 border-black p-3 rounded-2xl flex items-center justify-between text-black text-black text-black text-black text-black text-black text-black text-black">
+            <label className="text-[10px] font-black uppercase opacity-40 text-black text-black text-black text-black text-black text-black text-black">Cries this session?</label>
+            <div className="flex items-center gap-3 text-black text-black text-black text-black text-black text-black text-black text-black">
+               <button type="button" onClick={()=>setSession(p=>({...p, sessionCries: Math.max(0, p.sessionCries-1)}))} className="w-6 h-6 border-2 border-black rounded-full font-black text-center text-black font-black text-black text-black text-black text-black text-black text-black">-</button>
+               <span className="font-['Londrina_Solid'] text-xl text-black font-black text-black text-black text-black text-black text-black">{session.sessionCries}</span>
+               <button type="button" onClick={()=>setSession(p=>({...p, sessionCries: p.sessionCries+1}))} className="w-6 h-6 border-2 border-black rounded-full font-black text-center text-black font-black text-black text-black text-black text-black text-black text-black">+</button>
+            </div>
+          </div>
+
+          {/* Intensity Slider */}
+          <div className="bg-white border-4 border-black p-4 rounded-2xl text-left text-black text-black text-black text-black text-black text-black text-black text-black text-black">
+            <label className="text-[10px] font-black opacity-30 uppercase block mb-1 text-black text-black text-black font-black text-black text-black text-black text-black text-black text-black">Emotion Intensity (1-5)</label>
+            <input type="range" min="1" max="5" step="1" className="w-full accent-black text-black text-black font-black text-black text-black text-black text-black text-black text-black text-black text-black" value={session.intensity} onChange={e=>setSession({...session, intensity: e.target.value})} />
+          </div>
+
+          {/* Peer Review Conclusion (Conditional) */}
+          {isFinished && (
+            <div className="bg-white border-4 border-green-500 p-3 rounded-2xl animate-in slide-in-from-top text-black text-black text-black text-black text-black text-black text-black text-black">
+              <label className="text-[10px] font-black text-green-700 uppercase block mb-1 text-black text-black text-black text-black text-black text-black text-black text-black">Review Conclusion</label>
+              <textarea required placeholder="Final experimental thoughts..." className="w-full bg-transparent font-sans text-sm focus:outline-none min-h-[60px] resize-none leading-tight text-black text-black text-black font-black text-black text-black text-black text-black text-black text-black" value={session.conclusion} onChange={e => setSession({...session, conclusion: e.target.value})} />
+            </div>
+          )}
+
+          {/* Vibe Selection */}
+          <div className="text-left text-black text-black text-black text-black text-black text-black text-black text-black">
+            <label className="text-[10px] font-black mb-2 block uppercase opacity-40 text-black text-black text-black text-black text-black text-black text-black text-black">Primary Vibe</label>
+            <div className="flex flex-wrap gap-1 text-black text-black text-black text-black text-black text-black text-black text-black text-black text-black">
+              {Object.keys(palette).slice(0, 7).map(emo => (
+                <button key={emo} type="button" onClick={() => setSession({...session, emotion: emo})} className={`px-2 py-1 border-2 border-black rounded-lg text-[7px] font-black uppercase transition-all ${session.emotion === emo ? 'bg-black text-white scale-105' : 'bg-white opacity-40 text-black text-black text-black text-black text-black text-black text-black'}`}>{emo}</button>
+              ))}
+            </div>
+          </div>
+
+          <button type="submit" className="w-full bg-black text-white p-5 rounded-3xl font-['Londrina_Solid'] text-2xl uppercase font-bold text-center text-white text-white font-black text-white text-white font-black text-white text-white font-black text-white text-white font-black text-white text-white font-black text-white text-white font-black text-white text-white font-black text-white shadow-[6px_6px_0px_0px_rgba(100,100,100,1)] active:translate-y-1">Save Observation</button>
         </form>
       </div>
     </div>
