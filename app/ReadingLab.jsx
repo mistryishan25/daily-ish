@@ -248,24 +248,24 @@ const ReadingDrawer = ({ activeBook, onSave, onCancel, palette }) => {
         conclusion: ''
     });
 
-const toggleEmotion = (emo) => {
-    setSession(prev => {
-        const currentEmos = prev.emotions || [];
-        const currentIntensities = { ...prev.intensities };
+    const toggleEmotion = (emo) => {
+        setSession(prev => {
+            const currentEmos = prev.emotions || [];
+            const currentIntensities = { ...prev.intensities };
 
-        if (currentEmos.includes(emo)) {
-            // Remove: Filter out the emotion and delete its intensity data
-            const nextEmos = currentEmos.filter(e => e !== emo);
-            delete currentIntensities[emo];
-            return { ...prev, emotions: nextEmos, intensities: currentIntensities };
-        } else if (currentEmos.length < 3) {
-            // Add: Push to array and initialize intensity at 3
-            currentIntensities[emo] = 3; 
-            return { ...prev, emotions: [...currentEmos, emo], intensities: currentIntensities };
-        }
-        return prev;
-    });
-};
+            if (currentEmos.includes(emo)) {
+                // Remove: Filter out the emotion and delete its intensity data
+                const nextEmos = currentEmos.filter(e => e !== emo);
+                delete currentIntensities[emo];
+                return { ...prev, emotions: nextEmos, intensities: currentIntensities };
+            } else if (currentEmos.length < 3) {
+                // Add: Push to array and initialize intensity at 3
+                currentIntensities[emo] = 3;
+                return { ...prev, emotions: [...currentEmos, emo], intensities: currentIntensities };
+            }
+            return prev;
+        });
+    };
 
 
     const isFinished = Number(session.endPage) >= totalPages;
@@ -351,10 +351,20 @@ const toggleEmotion = (emo) => {
                     <div className="bg-white border-4 border-black p-3 rounded-2xl flex items-center justify-between text-black text-left">
                         <label className="text-[10px] font-black uppercase opacity-40 text-black text-left">Cries this session?</label>
                         <div className="flex items-center gap-3 text-black">
-                            <button type="button" onClick={() => setSession(p => ({ ...p, sessionCries: Math.max(0, p.sessionCries - 1) }))} className="w-6 h-6 border-2 border-black rounded-full font-black text-center text-black text-left text-left">-</button>
-                            <span className="font-['Londrina_Solid'] text-xl font-black text-black text-left text-left">{session.sessionCries}</span>
-                            <button type="button" onClick={() => setSession(p => ({ ...p, sessionCries: p.sessionCries + 1 }))} className="w-6 h-6 border-2 border-black rounded-full font-black text-center text-black text-left text-left">+</button>
-                        </div>
+                            <button
+                                type="button"
+                                onClick={() => setSession(p => ({ ...p, sessionCries: Math.max(0, p.sessionCries - 1) }))}
+                                className="w-8 h-8 border-[3px] border-black rounded-full flex items-center justify-center font-black text-xl leading-none bg-white text-black active:scale-90 transition-transform"
+                            >
+                                −
+                            </button>                            <span className="font-['Londrina_Solid'] text-xl font-black text-black text-left text-left">{session.sessionCries}</span>
+<button 
+            type="button" 
+            onClick={() => setSession(p => ({ ...p, sessionCries: p.sessionCries + 1 }))} 
+            className="w-8 h-8 border-[3px] border-black rounded-full flex items-center justify-center font-black text-xl leading-none bg-white text-black active:scale-90 transition-transform"
+        >
+            +
+        </button>                        </div>
                     </div>
 
                     {/* Expressive Emotion Selection */}
@@ -380,54 +390,54 @@ const toggleEmotion = (emo) => {
                         })}
                     </div>
 
-{/* Consolidated Intensity Lab Card */}
-{session.emotions.length > 0 && (
-    <div className="bg-white border-[5px] border-black rounded-[40px] p-6 mb-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] animate-in zoom-in duration-200">
-        <h4 className="font-['Londrina_Solid'] text-xs uppercase opacity-30 mb-6 tracking-[0.2em] font-black">Magnitude Vector</h4>
-        
-        <div className="space-y-8">
-            {session.emotions.map((emo, index) => (
-                <div key={emo} className="relative">
-                    <div className="flex justify-between items-center mb-2">
-                        <div className="flex items-center gap-2">
-                            {/* Smaller, more integrated Rank Bubble */}
-                            <div className="w-6 h-6 bg-yellow-400 border-2 border-black rounded-full flex items-center justify-center font-black text-[10px]">
-                                {index + 1}
-                            </div>
-                            <span className="font-['Londrina_Solid'] text-lg uppercase font-black">{emo}</span>
-                        </div>
-                        <span className="font-['Londrina_Solid'] text-xl font-black opacity-60">
-                             {session.intensities[emo]}
-                        </span>
-                    </div>
+                    {/* Consolidated Intensity Lab Card */}
+                    {session.emotions.length > 0 && (
+                        <div className="bg-white border-[5px] border-black rounded-[40px] p-6 mb-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] animate-in zoom-in duration-200">
+                            <h4 className="font-['Londrina_Solid'] text-xs uppercase opacity-30 mb-6 tracking-[0.2em] font-black">Magnitude Vector</h4>
 
-                    <input
-                        type="range"
-                        min="1"
-                        max="5"
-                        step="1"
-                        value={session.intensities[emo] || 3}
-                        onChange={(e) => setSession({
-                            ...session,
-                            intensities: { ...session.intensities, [emo]: parseInt(e.target.value) }
-                        })}
-                        className="w-full h-2 bg-slate-100 rounded-full appearance-none cursor-pointer accent-black
+                            <div className="space-y-8">
+                                {session.emotions.map((emo, index) => (
+                                    <div key={emo} className="relative">
+                                        <div className="flex justify-between items-center mb-2">
+                                            <div className="flex items-center gap-2">
+                                                {/* Smaller, more integrated Rank Bubble */}
+                                                <div className="w-6 h-6 bg-yellow-400 border-2 border-black rounded-full flex items-center justify-center font-black text-[10px]">
+                                                    {index + 1}
+                                                </div>
+                                                <span className="font-['Londrina_Solid'] text-lg uppercase font-black">{emo}</span>
+                                            </div>
+                                            <span className="font-['Londrina_Solid'] text-xl font-black opacity-60">
+                                                {session.intensities[emo]}
+                                            </span>
+                                        </div>
+
+                                        <input
+                                            type="range"
+                                            min="1"
+                                            max="5"
+                                            step="1"
+                                            value={session.intensities[emo] || 3}
+                                            onChange={(e) => setSession({
+                                                ...session,
+                                                intensities: { ...session.intensities, [emo]: parseInt(e.target.value) }
+                                            })}
+                                            className="w-full h-2 bg-slate-100 rounded-full appearance-none cursor-pointer accent-black
                                    [&::-webkit-slider-thumb]:appearance-none 
                                    [&::-webkit-slider-thumb]:w-8 [&::-webkit-slider-thumb]:h-8 
                                    [&::-webkit-slider-thumb]:bg-yellow-400 [&::-webkit-slider-thumb]:border-[3px] 
                                    [&::-webkit-slider-thumb]:border-black [&::-webkit-slider-thumb]:rounded-full 
                                    [&::-webkit-slider-thumb]:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]"
-                    />
-                    
-                    {/* Visual Divider between items (except the last one) */}
-                    {index < session.emotions.length - 1 && (
-                        <div className="absolute -bottom-4 left-0 right-0 h-[2px] bg-black/5 rounded-full" />
+                                        />
+
+                                        {/* Visual Divider between items (except the last one) */}
+                                        {index < session.emotions.length - 1 && (
+                                            <div className="absolute -bottom-4 left-0 right-0 h-[2px] bg-black/5 rounded-full" />
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
                     )}
-                </div>
-            ))}
-        </div>
-    </div>
-)}
                     {/* <div className="bg-white border-4 border-black p-4 rounded-2xl text-black text-left text-left text-left">
                         <label className="text-[10px] font-black opacity-30 uppercase block mb-1 text-black text-left text-left">Intensity (1-5)</label>
                         <input type="range" min="1" max="5" step="1" className="w-full accent-black text-black text-left" value={session.intensity} onChange={e => setSession({ ...session, intensity: e.target.value })} />
@@ -463,10 +473,24 @@ const AddBookDrawer = ({ onSave, onCancel, genres }) => {
                     <div className="bg-white border-4 border-black p-3 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between text-black text-left text-left text-left">
                         <label className="text-[10px] uppercase font-black opacity-40 text-black text-left text-left">Cries Hypothesis</label>
                         <div className="flex items-center justify-between font-bold text-black text-left text-left">
-                            <button type="button" onClick={() => setNb(p => ({ ...p, cries: Math.max(0, p.cries - 1) }))} className="w-8 h-8 border-2 border-black rounded-full font-black text-black text-left text-left text-left">-</button>
-                            <span className="font-['Londrina_Solid'] text-3xl font-black text-black text-left text-left">{nb.cries}</span>
-                            <button type="button" onClick={() => setNb(p => ({ ...p, cries: p.cries + 1 }))} className="w-8 h-8 border-2 border-black rounded-full font-black text-black text-left text-left text-left">+</button>
-                        </div>
+                            {/* Minus Button */}
+                            <button
+                                type="button"
+                                onClick={() => setNb(p => ({ ...p, cries: Math.max(0, p.cries - 1) }))}
+                                className="w-12 h-12 border-[4px] border-black rounded-full flex items-center justify-center text-2xl font-black leading-none bg-white text-black active:bg-black active:text-white transition-all shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                            >
+                                <span className="mb-1">−</span> {/* Using a proper minus sign and tiny margin can help optical centering */}
+                            </button>
+
+                            <span className="font-['Londrina_Solid'] text-5xl font-black text-black">{nb.cries}</span>
+                            {/* Plus Button */}
+                            <button
+                                type="button"
+                                onClick={() => setNb(p => ({ ...p, cries: p.cries + 1 }))}
+                                className="w-12 h-12 border-[4px] border-black rounded-full flex items-center justify-center text-2xl font-black leading-none bg-white text-black active:bg-black active:text-white transition-all shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                            >
+                                <span className="mb-0.5">+</span>
+                            </button>                      </div>
                     </div>
                     <div className="bg-white border-4 border-black p-3 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-left text-black text-left text-left"><label className="text-[10px] uppercase font-black opacity-40 text-left text-black text-left text-left">Title</label><input required className="w-full bg-transparent font-['Londrina_Solid'] text-2xl focus:outline-none font-black text-black text-left text-left" value={nb.title} onChange={e => setNb({ ...nb, title: e.target.value })} /></div>
                     <div className="bg-white border-4 border-black p-3 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-left text-black text-left text-left"><label className="text-[10px] uppercase font-black opacity-40 text-left text-black text-left text-left">Author</label><input required className="w-full bg-transparent font-['Londrina_Solid'] text-2xl focus:outline-none font-black text-black text-left text-left" value={nb.author} onChange={e => setNb({ ...nb, author: e.target.value })} /></div>
