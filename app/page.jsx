@@ -136,7 +136,7 @@ export default function App() {
     await updateDoc(doc(db, 'artifacts', platformAppId, 'public', 'data', 'books', focusedSubjectId), {
       status: sessionData.isFinished ? 'FINISHED' : 'READING',
       currentPage: Number(sessionData.endPage),
-      sessions: arrayUnion({ emotion: String(sessionData.emotion), intensity: Number(sessionData.intensity), minutes: Number(sessionData.minutes), pagesRead: Number(pagesRead), date: new Date().toISOString() }),
+      sessions: arrayUnion({ emotions: sessionData.emotions, intensities: sessionData.intensities, minutes: Number(sessionData.minutes), pagesRead: Number(pagesRead), date: new Date().toISOString(), mode: sessionData.mode}),
       review: sessionData.isFinished ? String(sessionData.conclusion) : ''
     });
     setIsLogging(false);
@@ -152,7 +152,8 @@ export default function App() {
       // instead of raw books array to ensure the winner screen triggers.
       if (battleIdx >= tbrPool.length - 1) {
         setFinalWinner(winner);
-confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });      } else {
+        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+      } else {
         setCurrentChamp(winner);
         setBattleIdx(prev => prev + 1);
       }
