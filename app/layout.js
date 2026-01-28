@@ -16,7 +16,7 @@ export const metadata = {
   title: "My Garden",
   description: "Nounish Habit Tracker",
   icons : {
-    icon: "/favicon.ico",
+    apple: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxODAgMTgwIj4KICA8cmVjdCB3aWR0aD0iMTgwIiBoZWlnaHQ9IjE4MCIgZmlsbD0iI0ZGRDcwMCIvPgogIDxyZWN0IHg9IjQwIiB5PSI0MCIgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9IndoaXRlIiBzdHJva2U9ImJsYWNrIiBzdHJva2Utd2lkdGg9IjgiLz4KICA8cmVjdCB4PSI1NSIgeT0iNjAiIHdpZHRoPSI3MCIgaGVpZ2h0PSI4IiBmaWxsPSJibGFjayIvPgogIDxyZWN0IHg9IjU1IiB5PSI4MCIgd2lkdGg9IjcwIiBoZWlnaHQ9IjgiIGZpbGw9ImJsYWNrIi8+CiAgPHJlY3QgeD0iNTUiIHk9IjEwMCIgd2lkdGg9IjcwIiBoZWlnaHQ9IjgiIGZpbGw9ImJsYWNrIi8+Cjwvc3ZnPg==",
   },
 };
 
