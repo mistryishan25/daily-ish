@@ -4,8 +4,9 @@ import { collection, addDoc, updateDoc, doc, deleteDoc, serverTimestamp } from '
 
 /**
  * QuestLog.jsx
- * Static Version: Animation and hover silhouette effects removed.
- * Progress is automatically aggregated for the main dashboard card.
+ * Updated: 
+ * 1. Auto-deletes action steps if text is cleared.
+ * 2. Enhanced layout centering to prevent "sliding" during scroll.
  */
 
 export default function QuestLog({ quests, user, db, platformAppId }) {
@@ -74,9 +75,17 @@ export default function QuestLog({ quests, user, db, platformAppId }) {
         updateMilestones(quest.id, next);
     };
 
+    // UPDATED: Logic to delete step if text is empty
     const updateStepText = (quest, mIdx, sIdx, text) => {
         const next = [...(quest.milestones || [])];
-        next[mIdx].steps[sIdx].text = text;
+        
+        if (text.trim() === '') {
+            // Remove the step entirely if text is deleted
+            next[mIdx].steps.splice(sIdx, 1);
+        } else {
+            next[mIdx].steps[sIdx].text = text;
+        }
+        
         updateMilestones(quest.id, next);
     };
 
@@ -140,10 +149,10 @@ export default function QuestLog({ quests, user, db, platformAppId }) {
                 })}
             </div>
 
-            {/* QUEST LAB WORKSPACE */}
+            {/* QUEST LAB WORKSPACE - UPDATED CENTERING LOGIC */}
             {activeQuest && (
-                <div className="fixed inset-0 bg-[#FDFCF0] z-[400] flex flex-col overflow-y-auto p-6 md:p-12 text-black">
-                    <div className="max-w-4xl mx-auto w-full">
+                <div className="fixed inset-0 bg-[#FDFCF0] z-[400] flex flex-col items-center overflow-y-auto overflow-x-hidden p-6 md:p-12 text-black">
+                    <div className="w-full max-w-4xl mx-auto">
                         <header className="flex justify-between items-start mb-12">
                             <div className="text-left">
                                 <div className="flex items-center gap-3 mb-2">
@@ -164,8 +173,8 @@ export default function QuestLog({ quests, user, db, platformAppId }) {
                             </button>
                         </header>
 
-                        <div className="grid grid-cols-1 md:grid-cols-1 gap-10">
-                            <div className="space-y-10 pb-20">
+                        <div className="w-full pb-20">
+                            <div className="space-y-10">
                                 {(activeQuest.milestones || []).map((milestone, mIdx) => (
                                     <div key={mIdx} className="bg-white border-[5px] border-black rounded-[45px] p-8 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] text-left group">
                                         <div className="flex justify-between items-center mb-6">
