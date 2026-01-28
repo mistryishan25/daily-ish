@@ -7,6 +7,7 @@ import { collection, addDoc, updateDoc, doc, deleteDoc, serverTimestamp } from '
  * Updated: 
  * 1. Auto-deletes action steps if text is cleared.
  * 2. Enhanced layout centering to prevent "sliding" during scroll.
+ * 3. Privacy Filter: Only displays quests created by the current user.
  */
 
 export default function QuestLog({ quests, user, db, platformAppId }) {
@@ -116,36 +117,38 @@ export default function QuestLog({ quests, user, db, platformAppId }) {
             </header>
 
             <div className="space-y-6 overflow-y-auto pr-2 custom-scrollbar">
-                {quests.map((quest) => {
-                    const allSteps = (quest.milestones || []).flatMap(m => m.steps || []);
-                    const totalSteps = allSteps.length;
-                    const completedSteps = allSteps.filter(s => s.completed).length;
-                    const progress = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
+                {quests
+                    .filter((q) => q.ownerId === user?.uid) // Privacy Filter
+                    .map((quest) => {
+                        const allSteps = (quest.milestones || []).flatMap(m => m.steps || []);
+                        const totalSteps = allSteps.length;
+                        const completedSteps = allSteps.filter(s => s.completed).length;
+                        const progress = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
 
-                    return (
-                        <div 
-                            key={quest.id}
-                            onClick={() => setActiveQuestId(quest.id)}
-                            className="border-[4px] border-black rounded-[35px] bg-[#FDFCF0] cursor-pointer text-left"
-                        >
-                            <div className="p-6">
-                                <div className="flex justify-between items-center mb-2">
-                                    <div className="flex items-center gap-2">
-                                        <div className={`w-2.5 h-2.5 rounded-full ${categories[quest.category] || 'bg-black'}`} />
-                                        <span className="font-['Londrina_Solid'] text-sm font-black uppercase opacity-40">{quest.category}</span>
+                        return (
+                            <div 
+                                key={quest.id}
+                                onClick={() => setActiveQuestId(quest.id)}
+                                className="border-[4px] border-black rounded-[35px] bg-[#FDFCF0] cursor-pointer text-left"
+                            >
+                                <div className="p-6">
+                                    <div className="flex justify-between items-center mb-2">
+                                        <div className="flex items-center gap-2">
+                                            <div className={`w-2.5 h-2.5 rounded-full ${categories[quest.category] || 'bg-black'}`} />
+                                            <span className="font-['Londrina_Solid'] text-sm font-black uppercase opacity-40">{quest.category}</span>
+                                        </div>
+                                        <span className="font-['Londrina_Solid'] text-xs font-black opacity-30 uppercase">{progress}% Done</span>
                                     </div>
-                                    <span className="font-['Londrina_Solid'] text-xs font-black opacity-30 uppercase">{progress}% Done</span>
-                                </div>
-                                <h4 className="font-['Londrina_Solid'] text-3xl uppercase leading-none mb-4">{quest.title}</h4>
-                                <div className="h-4 bg-black/5 rounded-full overflow-hidden border-[3px] border-black">
-                                    <div className="h-full bg-yellow-400 border-r-[3px] border-black" style={{ width: `${progress}%` }} />
-                                </div>
-                                <div className="mt-2 text-[10px] font-black uppercase opacity-40 text-right">
-                                    {completedSteps}/{totalSteps} Steps Complete
+                                    <h4 className="font-['Londrina_Solid'] text-3xl uppercase leading-none mb-4">{quest.title}</h4>
+                                    <div className="h-4 bg-black/5 rounded-full overflow-hidden border-[3px] border-black">
+                                        <div className="h-full bg-yellow-400 border-r-[3px] border-black" style={{ width: `${progress}%` }} />
+                                    </div>
+                                    <div className="mt-2 text-[10px] font-black uppercase opacity-40 text-right">
+                                        {completedSteps}/{totalSteps} Steps Complete
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    );
+                        );
                 })}
             </div>
 
