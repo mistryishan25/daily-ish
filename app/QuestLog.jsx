@@ -8,6 +8,7 @@ import { collection, addDoc, updateDoc, doc, deleteDoc, serverTimestamp } from '
  * 1. Auto-deletes action steps if text is cleared.
  * 2. Enhanced layout centering to prevent "sliding" during scroll.
  * 3. Privacy Filter: Only displays quests created by the current user.
+ * 4. Close button added to Add Quest popup.
  */
 
 export default function QuestLog({ quests, user, db, platformAppId }) {
@@ -248,7 +249,15 @@ export default function QuestLog({ quests, user, db, platformAppId }) {
             {/* ADD QUEST MODAL */}
             {isAdding && (
                 <div className="fixed inset-0 bg-black/60 z-[500] p-6 flex items-center justify-center text-black" onClick={() => setIsAdding(false)}>
-                    <div className="bg-[#FDFCF0] border-[5px] border-black rounded-[45px] p-10 w-full max-w-lg shadow-[15px_15px_0px_0px_rgba(0,0,0,1)]" onClick={e => e.stopPropagation()}>
+                    <div className="bg-[#FDFCF0] border-[5px] border-black rounded-[45px] p-10 w-full max-w-lg shadow-[15px_15px_0px_0px_rgba(0,0,0,1)] relative" onClick={e => e.stopPropagation()}>
+                        {/* CLOSE BUTTON */}
+                        <button 
+                            onClick={() => setIsAdding(false)} 
+                            className="absolute top-6 right-8 text-2xl font-black opacity-30 hover:opacity-100 transition-opacity"
+                        >
+                            ✕
+                        </button>
+
                         <h2 className="font-['Londrina_Solid'] text-5xl uppercase mb-8 text-left">Initial Brief</h2>
                         <form onSubmit={handleAdd} className="space-y-6 text-left">
                             <div className="bg-white border-4 border-black p-4 rounded-3xl shadow-[5px_5px_0px_0px_rgba(0,0,0,1)]">
