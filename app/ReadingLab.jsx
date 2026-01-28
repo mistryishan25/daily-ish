@@ -24,6 +24,18 @@ export default function ReadingLab({
     const myReadingList = useMemo(() => myBooks.filter(b => b.status === 'READING'), [myBooks]);
     const myTbrPool = useMemo(() => myBooks.filter(b => b.status === 'TBR'), [myBooks]);
 
+    // --- Persistence Logic ---
+    const handleStartSession = async (bookId) => {
+        // We save the server time to this specific book
+        const bookRef = doc(db, 'artifacts', platformAppId, 'public', 'data', 'books', bookId);
+        await updateDoc(bookRef, { sessionStartedAt: serverTimestamp() });
+    };
+
+    const handleCancelSession = async (e, bookId) => {
+        e.stopPropagation(); // Prevents opening the drawer when clicking 'Reset'
+        const bookRef = doc(db, 'artifacts', platformAppId, 'public', 'data', 'books', bookId);
+        await updateDoc(bookRef, { sessionStartedAt: null });
+    };
     // Helper to render the main content based on state
     const renderMainContent = () => {
         // --- Sub-View: Library / Battle Gauntlet ---
@@ -51,6 +63,10 @@ export default function ReadingLab({
                                         key={b.id}
                                         book={b}
                                         palette={palette}
+                                        isLive={!!b.sessionStartedAt}
+                                        onStartSession={() => handleStartSession(b.id)}
+                                        onCancelSession={(e) => handleCancelSession(e, b.id)}
+                                        onFinishSession={() => { setFocusedSubjectId(b.id); setIsLogging(true); }}
                                         onSelect={(book) => { setSelectedBook(book); setActiveTab('review'); }}
                                         onDelete={async (id) => {
                                             await deleteDoc(doc(db, 'artifacts', platformAppId, 'public', 'data', 'books', id));
@@ -123,21 +139,116 @@ export default function ReadingLab({
                         </span>
                     </button>                </header>
                 <div className="flex-1 space-y-4 text-left">
-                    {myReadingList.map(book => (
-                        <button key={book.id} onClick={() => setFocusedSubjectId(book.id)} className={`w-full bg-blue-50 border-4 border-black p-5 rounded-[30px] flex items-center justify-between text-left transition-all ${focusedSubjectId === book.id ? 'shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] border-blue-500 scale-[1.02]' : 'opacity-50 grayscale shadow-none'}`}>
-                            <div className="text-left text-black">
-                                <p className="font-['Londrina_Solid'] text-2xl uppercase leading-none font-black">{String(book.title)}</p>
-                                <p className="text-[10px] font-black opacity-30 mt-1 uppercase">Page {Number(book.currentPage)}/{Number(book.totalPages)}</p>
-                            </div>
-                            {focusedSubjectId === book.id ? (
-                                <div onClick={(e) => { e.stopPropagation(); updateDoc(doc(db, 'artifacts', platformAppId, 'public', 'data', 'books', book.id), { status: 'DNF' }); }} className="bg-yellow-400 text-black px-5 py-2.5 rounded-2xl border-[3px] border-black font-black text-xl uppercase text-center active:scale-90 transition-all">DNF</div>
-                            ) : (
-                                <div className="w-4 h-4 rounded-full border-2 border-black shadow-sm" style={{ backgroundColor: palette[book.vibe] || '#000' }} />
-                            )}
-                        </button>
-                    ))}
+                 {myReadingList.map(book => {
+    const isBookLive = !!book.sessionStartedAt;
+    const isSelected = focusedSubjectId === book.id;
+
+    return (
+        /* 1. PARENT CONTAINER - Logic updated to prioritize "Live" visibility */
+        <div 
+            key={book.id} 
+            className={`relative transition-all duration-500 
+                ${(isSelected || isBookLive) ? 'opacity-100 grayscale-0' : 'opacity-30 grayscale-[1]'}
+                ${isSelected ? 'scale-[1.02] z-20' : 'z-10'}
+            `}
+        >
+            
+            {/* 2. THE LASER GLOW (Now always bright if live) */}
+            {isBookLive && (
+                <div className="absolute -inset-1.5 bg-gradient-to-r from-blue-500 via-yellow-400 to-pink-500 rounded-[35px] animate-laser-glow blur-[3px] z-0" />
+            )}
+
+            {/* 3. THE BUTTON (Solid white background) */}
+            <button
+                onClick={() => setFocusedSubjectId(book.id)}
+                className={`relative w-full border-4 border-black p-5 rounded-[30px] flex items-center justify-between text-left transition-all bg-white z-10
+                    ${isSelected ? 'shadow-[10px_10px_0px_0px_rgba(0,0,0,1)]' : 'shadow-none'}
+                `}
+            >
+                <div className="text-left text-black relative z-10">
+                    <p className="font-['Londrina_Solid'] text-2xl uppercase leading-none font-black">
+                        {String(book.title)}
+                    </p>
+                    <p className="text-[10px] font-black opacity-30 mt-1 uppercase">
+                        Page {Number(book.currentPage)}/{Number(book.totalPages)}
+                        {isBookLive && " • LIVE DATA COLLECTION"}
+                    </p>
                 </div>
-                <button onClick={() => setIsLogging(true)} disabled={!focusedSubjectId} className="w-full bg-black text-white p-6 rounded-[30px] font-['Londrina_Solid'] text-3xl uppercase mt-6 disabled:opacity-20 font-bold text-center">Log Observation</button>
+
+                <div className="relative z-10">
+                    {isSelected ? (
+                        <div 
+                            onClick={(e) => { 
+                                e.stopPropagation(); 
+                                updateDoc(doc(db, 'artifacts', platformAppId, 'public', 'data', 'books', book.id), { status: 'DNF' }); 
+                            }} 
+                            className="bg-yellow-400 text-black px-5 py-2.5 rounded-2xl border-[3px] border-black font-black text-xl uppercase text-center active:scale-90 transition-all"
+                        >
+                            DNF
+                        </div>
+                    ) : (
+                        <div className="w-4 h-4 rounded-full border-2 border-black shadow-sm" style={{ backgroundColor: palette[book.vibe] || '#000' }} />
+                    )}
+                </div>
+            </button>
+        </div>
+    );
+})}
+                </div>
+                {/* --- SMART STATION BUTTON --- */}
+                {/* --- UPDATED SMART STATION BUTTONS --- */}
+                <div className="mt-6 space-y-4">
+                    {!focusedSubjectId ? (
+                        <button disabled className="w-full bg-black/10 text-black/20 p-6 rounded-[30px] font-['Londrina_Solid'] text-3xl uppercase font-bold cursor-not-allowed">
+                            Select a Subject
+                        </button>
+                    ) : (() => {
+                        // We find the book in ALL your books to check the timer status
+                        const currentBook = myBooks.find(b => b.id === focusedSubjectId);
+                        const isLive = !!currentBook?.sessionStartedAt;
+
+                        if (!isLive) {
+                            return (
+                                /* CASE B: START SESSION BUTTON (Black) */
+                                <button
+                                    onClick={() => handleStartSession(focusedSubjectId)}
+                                    className="w-full bg-black text-white p-6 rounded-[30px] font-['Londrina_Solid'] text-3xl uppercase font-bold shadow-[6px_6px_0px_0px_rgba(0,0,0,0.2)] active:translate-y-1 transition-all flex items-center justify-center gap-3"
+                                >
+                                    <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3l14 9-14 9V3z" /></svg>
+                                    Start Session
+                                </button>
+                            );
+                        } else {
+                            return (
+                                /* CASE C: FINISH BUTTON (The Laser Glow) */
+                                <div className="space-y-4">
+                                    <div className="relative group">
+                                        {/* THE LASER GLOW LAYER */}
+                                        <div className="absolute -inset-2 bg-gradient-to-r from-blue-500 via-yellow-400 to-pink-500 rounded-[35px] animate-laser-glow blur-[4px] z-0" />
+
+                                        <button
+                                            onClick={() => setIsLogging(true)}
+                                            className="relative w-full bg-white border-[4px] border-black p-6 rounded-[30px] font-['Londrina_Solid'] text-3xl uppercase font-bold shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 transition-all z-10 overflow-hidden"
+                                        >
+                                            <div className="absolute inset-0 bg-yellow-400/10 animate-pulse pointer-events-none" />
+                                            <span className="relative z-20 flex items-center justify-center gap-3">
+                                                <span className="w-3 h-3 bg-yellow-400 border-2 border-black rounded-full animate-ping" />
+                                                Finish & Log Data
+                                            </span>
+                                        </button>
+                                    </div>
+
+                                    <button
+                                        onClick={(e) => handleCancelSession(e, focusedSubjectId)}
+                                        className="w-full font-['Londrina_Solid'] text-sm uppercase opacity-30 hover:opacity-100 py-2 transition-opacity"
+                                    >
+                                        Reset Live Clock
+                                    </button>
+                                </div>
+                            );
+                        }
+                    })()}
+                </div>
                 <button onClick={() => setAppState('garden')} className="w-full font-['Londrina_Solid'] text-xl opacity-30 uppercase text-center mt-6 text-black">Back to Garden</button>
             </div>
         );
@@ -237,15 +348,25 @@ export default function ReadingLab({
 const ReadingDrawer = ({ activeBook, onSave, onCancel, palette }) => {
     const startPage = Number(activeBook?.currentPage) || 1;
     const totalPages = Number(activeBook?.totalPages) || 400;
+    // B. ADD THIS: Time Formatting Logic
+    const startTime = activeBook?.sessionStartedAt?.toDate ? activeBook.sessionStartedAt.toDate() : null;
+
+    // Helper to turn dates into "2:30 PM" format
+    const formatTime = (date) => date ? date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--';
+
+    const startTimeDisplay = formatTime(startTime);
+    const endTimeDisplay = formatTime(new Date()); // "Now" is the end time
+
+    const elapsedMinutes = startTime ? Math.round((new Date() - startTime) / 60000) : '';
     const [session, setSession] = useState({
         mode: 'Flow',
         endPage: '',
-        startTime: '09:00',
-        endTime: '10:00',
+        // endTime: '10:00',
         emotions: [],
         intensities: {},
         sessionCries: 0,
-        conclusion: ''
+        conclusion: '',
+        minutes: elapsedMinutes
     });
 
     const toggleEmotion = (emo) => {
@@ -279,7 +400,7 @@ const ReadingDrawer = ({ activeBook, onSave, onCancel, palette }) => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        const minutes = calculateMinutes();
+        const minutes = Number(session.minutes);
         if (!session.endPage || !activeBook || minutes <= 0) return;
         onSave({ ...session, emotions: session.emotions, startPage, endPage: Number(session.endPage), minutes, isFinished });
     };
@@ -337,15 +458,30 @@ const ReadingDrawer = ({ activeBook, onSave, onCancel, palette }) => {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4 text-left text-black">
-                        <div className="bg-white border-4 border-black p-2 rounded-2xl text-left text-black">
-                            <label className="text-[8px] font-black block uppercase text-black text-left">Start Time</label>
-                            <input type="time" required className="w-full bg-transparent font-['Londrina_Solid'] text-xl focus:outline-none font-black text-left text-black text-left" value={session.startTime} onChange={e => setSession({ ...session, startTime: e.target.value })} />
+                    {/* --- STEP 3: THE TIMELINE SUMMARY --- */}
+                    <div className="bg-slate-100 border-4 border-black/10 p-4 rounded-2xl opacity-60 mb-4">
+                        <label className="text-[10px] font-black block uppercase opacity-50 mb-1">Observation Timeline</label>
+                        <div className="flex justify-between items-center">
+                            <div className="text-left">
+                                <span className="text-[8px] font-black uppercase block opacity-40">Start</span>
+                                <span className="font-['Londrina_Solid'] text-2xl uppercase">{startTimeDisplay}</span>
+                            </div>
+                            <div className="w-8 h-[2px] bg-black/20" />
+                            <div className="text-right">
+                                <span className="text-[8px] font-black uppercase block opacity-40">Current End</span>
+                                <span className="font-['Londrina_Solid'] text-2xl uppercase">{endTimeDisplay}</span>
+                            </div>
                         </div>
-                        <div className="bg-white border-4 border-black p-2 rounded-2xl text-left text-black">
-                            <label className="text-[8px] font-black block uppercase text-black text-left">End Time</label>
-                            <input type="time" required className="w-full bg-transparent font-['Londrina_Solid'] text-xl focus:outline-none font-black text-left text-black text-left" value={session.endTime} onChange={e => setSession({ ...session, endTime: e.target.value })} />
-                        </div>
+                    </div>
+
+                    <div className="bg-white border-4 border-black p-4 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                        <label className="text-[10px] font-black uppercase opacity-50 block mb-1">Minutes Observed</label>
+                        <input
+                            type="number"
+                            className="w-full bg-transparent font-['Londrina_Solid'] text-4xl focus:outline-none"
+                            value={session.minutes}
+                            onChange={e => setSession({ ...session, minutes: e.target.value })}
+                        />
                     </div>
 
                     <div className="bg-white border-4 border-black p-3 rounded-2xl flex items-center justify-between text-black text-left">
@@ -358,18 +494,18 @@ const ReadingDrawer = ({ activeBook, onSave, onCancel, palette }) => {
                             >
                                 −
                             </button>                            <span className="font-['Londrina_Solid'] text-xl font-black text-black text-left text-left">{session.sessionCries}</span>
-<button 
-            type="button" 
-            onClick={() => setSession(p => ({ ...p, sessionCries: p.sessionCries + 1 }))} 
-            className="w-8 h-8 border-[3px] border-black rounded-full flex items-center justify-center font-black text-xl leading-none bg-white text-black active:scale-90 transition-transform"
-        >
-            +
-        </button>                        </div>
+                            <button
+                                type="button"
+                                onClick={() => setSession(p => ({ ...p, sessionCries: p.sessionCries + 1 }))}
+                                className="w-8 h-8 border-[3px] border-black rounded-full flex items-center justify-center font-black text-xl leading-none bg-white text-black active:scale-90 transition-transform"
+                            >
+                                +
+                            </button>                        </div>
                     </div>
 
                     {/* Expressive Emotion Selection */}
                     <div className="flex flex-wrap gap-2 mb-4">
-                        {['Catharsis', 'Dread', 'Ethereal', 'Enlightened', 'Melancholy', 'Introspective', 'Awe'].map(emo => {
+                        {['Warmth', 'Joy', 'Sad', 'Funny', 'Smut', 'Fast', 'Scared', 'Cool', 'Peace', 'Meh'].map(emo => {
                             const rank = (session.emotions || []).indexOf(emo) + 1;
                             return (
                                 <button
@@ -527,19 +663,31 @@ const AddBookDrawer = ({ onSave, onCancel, genres }) => {
     );
 };
 
-const BookGridItem = ({ book, onSelect, onDelete, currentUserId, palette }) => (
+const BookGridItem = ({ book, onSelect, onDelete, currentUserId, palette, isLive, onStartSession, onCancelSession, onFinishSession }) => (
     <div className="relative group">
         <button
             /* FIX: Ensure newly added books (TBR) are also clickable to view analysis/registration data */
             onClick={() => (book.status === 'FINISHED' || book.status === 'READING' || book.status === 'DNF' || book.status === 'TBR') && onSelect(book)}
-            className={`relative w-full aspect-[1/1.25] border-black border-[4px] rounded-[24px] p-3 text-left flex flex-col justify-between transition-all active:scale-95 overflow-hidden ${book.status === 'FINISHED' ? 'bg-green-50 shadow-[8px_8px_0px_0px_#22c55e]' : book.status === 'READING' ? 'bg-blue-50 shadow-[8px_8px_0px_0px_#3b82f6]' : 'bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]'}`}
-        >
+            className={`relative w-full aspect-[1/1.25] border-black border-[4px] rounded-[24px] p-3 text-left flex flex-col justify-between transition-all active:scale-95 overflow-hidden 
+    ${isLive ? 'bg-white ring-4 ring-yellow-400 shadow-[8px_8px_0px_0px_#facc15]' :
+                    book.status === 'FINISHED' ? 'bg-green-50 shadow-[8px_8px_0px_0px_#22c55e]' :
+                        book.status === 'READING' ? 'bg-blue-50 shadow-[8px_8px_0px_0px_#3b82f6]' :
+                            'bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]'}`}        >
             {book.status === 'DNF' && <div className="absolute inset-0 dnf-stripes z-0 pointer-events-none text-left text-left" />}
             {book.status === 'FINISHED' && (
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0 text-left text-left">
                     <svg width="80%" height="80%" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="opacity-10 -rotate-12">
                         <polyline points="20 6 9 17 4 12" />
                     </svg>
+                </div>
+            )}
+            {/* --- STEP 3: THE LIVE INDICATOR --- */}
+            {isLive && (
+                <div className="absolute top-2 right-2 bg-yellow-400 border-2 border-black px-1.5 py-0.5 rounded-full flex items-center gap-1 z-20 animate-bounce shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                    {/* Pulsing Red Dot */}
+                    <div className="w-1.5 h-1.5 bg-red-600 rounded-full animate-pulse border border-black/20" />
+                    {/* Label */}
+                    <span className="font-black text-[7px] uppercase tracking-tighter text-black">LIVE</span>
                 </div>
             )}
             <div className="flex flex-col gap-1 z-10 text-black text-left text-left text-left">
@@ -563,6 +711,48 @@ const BookGridItem = ({ book, onSelect, onDelete, currentUserId, palette }) => (
                     <div className="w-3.5 h-3.5 rounded-full border-2 border-black shadow-sm" style={{ backgroundColor: palette[book.vibe] || '#000' }} />
                 )}
                 {Number(book.cries) > 0 && <span className="text-[10px] font-black opacity-40 text-black text-left text-left text-left text-left">💧 {Number(book.cries)}</span>}
+            </div>
+            {/* --- STEP 4: SESSION INTERACTION BUTTONS --- */}
+            <div className="mt-3 flex gap-1.5 z-20">
+                {!isLive ? (
+                    /* 1. Only show "Start" for books you are currently reading */
+                    book.status === 'READING' && (
+                        <button
+                            type="button"
+                            onClick={(e) => {
+                                e.stopPropagation(); // CRITICAL: Prevents opening the book details
+                                onStartSession();
+                            }}
+                            className="flex-1 bg-black text-white py-2 rounded-[14px] font-['Londrina_Solid'] text-xs uppercase shadow-[3px_3px_0px_0px_rgba(255,255,255,0.2)] active:translate-y-0.5 transition-all"
+                        >
+                            Start Lab
+                        </button>
+                    )
+                ) : (
+                    /* 2. Show Finish and Reset buttons when clock is ticking */
+                    <>
+                        <button
+                            type="button"
+                            onClick={(e) => {
+                                e.stopPropagation(); // CRITICAL
+                                onFinishSession();
+                            }}
+                            className="flex-[2] bg-yellow-400 text-black py-2 rounded-[14px] font-['Londrina_Solid'] text-xs uppercase border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-y-0.5 transition-all"
+                        >
+                            Finish Trial
+                        </button>
+                        <button
+                            type="button"
+                            onClick={(e) => {
+                                e.stopPropagation(); // CRITICAL
+                                onCancelSession(e);
+                            }}
+                            className="flex-1 bg-white text-black py-2 rounded-[14px] font-black text-[8px] uppercase border-2 border-black opacity-40 hover:opacity-100 hover:bg-red-50"
+                        >
+                            Reset
+                        </button>
+                    </>
+                )}
             </div>
         </button>
         {/* CLEAN SLATE ACTION: Allows manual deletion of subjects */}
@@ -620,6 +810,8 @@ const StratifiedBookFlow = ({ sessions = [], bookTitle = "Book Title", totalPage
             </div>
         );
     };
+
+
 
     return (
         <div className="w-full animate-in slide-in-from-right duration-300 text-black text-left text-left">

@@ -3,10 +3,12 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, collection, doc, updateDoc, onSnapshot, serverTimestamp, arrayUnion } from 'firebase/firestore';
-
+// import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 // LOCAL IMPORTS (Ensure files are in the same folder)
 import ReadingLab from './ReadingLab';
 import LoveLab from './LoveLab';
+import QuestLog from './QuestLog';
+import EnduranceLab from './EnduranceLab';
 
 // ==========================================
 // 1. CONFIG
@@ -27,10 +29,25 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const platformAppId = "reading_lab_v1";
 
+
 const palette = {
-  Wonder: '#9370DB', Angst: '#4169E1', Smut: '#FF1493',
-  Joy: '#FFD700', Grief: '#4B0082', Boredom: '#D3D3D3', Fear: '#2F4F4F',
-  Outbound: '#D3D3D3', Lead: '#AEC6CF', Active: '#FFD1DC', DNF: '#FFB347'
+  // --- Rudimentary Emotions ---
+  Warmth: '#FFB347',   // Cozy
+  Joy: '#FFD700',      // Happy
+  Sad: '#AEC6CF',      // Crying
+  Scared: '#2F4F4F',   // Spooky
+  Fast: '#FF1493',     // Page-turner
+  Funny: '#FDFD96',    // Laughing
+  Angry: '#FF6961',    // Character-hate
+  Cool: '#779ECB',     // "That was sick"
+  Peace: '#9370DB',    // Calm
+  Meh: '#D3D3D3',      // Bored/Simple
+  
+  // --- The Favorites/Status ---
+  Smut: '#FF1493',     // Deep Pink
+  Wonder: '#9370DB',
+  Active: '#FFD1DC',
+  DNF: '#FFB347'
 };
 const genres = ["Fantasy", "Sci-Fi", "Literary", "Non-Fiction", "Romance", "Thriller", "Horror", "Memoir", "Poetry"];
 
@@ -59,6 +76,8 @@ export default function App() {
   const [isAddingBook, setIsAddingBook] = useState(false);
   const [isAddingPerson, setIsAddingPerson] = useState(false);
   const [focusedSubjectId, setFocusedSubjectId] = useState(null);
+  const [quests, setQuests] = useState([]);
+  const [triathlonLogs, setTriathlonLogs] = useState([]);
 
   const [activeSpecimens, setActiveSpecimens] = useState([
     { id: 1, codename: "Alpha", active: true }, { id: 2, codename: "Beta", active: true },
@@ -89,9 +108,19 @@ export default function App() {
 
   useEffect(() => {
     if (!user) return;
+
+    // Existing Listeners
     const bSub = onSnapshot(collection(db, 'artifacts', platformAppId, 'public', 'data', 'books'), (snap) => setBooks(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
     const dSub = onSnapshot(collection(db, 'artifacts', platformAppId, 'public', 'data', 'subjects'), (snap) => setDatingSubjects(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
-    return () => { bSub(); dSub(); };
+
+    // ADD THIS LINE: Quest Listener
+    const qSub = onSnapshot(collection(db, 'artifacts', platformAppId, 'public', 'data', 'quests'), (snap) => setQuests(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
+    const tSub = onSnapshot(collection(db, 'artifacts', platformAppId, 'public', 'data', 'triathlon_logs'), (snap) => {
+      setTriathlonLogs(snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(l => l.ownerId === user.uid));
+    });
+    
+    // UPDATE THIS: Add qSub() to the cleanup
+    return () => { bSub(); dSub(); qSub(); tSub(); };
   }, [user]);
 
   const readingList = useMemo(() => books.filter(b => b.status === 'READING'), [books]);
@@ -136,12 +165,23 @@ export default function App() {
     await updateDoc(doc(db, 'artifacts', platformAppId, 'public', 'data', 'books', focusedSubjectId), {
       status: sessionData.isFinished ? 'FINISHED' : 'READING',
       currentPage: Number(sessionData.endPage),
-      sessions: arrayUnion({ emotions: sessionData.emotions, intensities: sessionData.intensities, minutes: Number(sessionData.minutes), pagesRead: Number(pagesRead), date: new Date().toISOString(), mode: sessionData.mode}),
+      sessionStartedAt: null,
+      sessions: arrayUnion({ emotions: sessionData.emotions, intensities: sessionData.intensities, minutes: Number(sessionData.minutes), pagesRead: Number(pagesRead), date: new Date().toISOString(), mode: sessionData.mode }),
       review: sessionData.isFinished ? String(sessionData.conclusion) : ''
     });
     setIsLogging(false);
   };
 
+  const handleStartSession = async (bookId) => {
+  const bookRef = doc(db, 'artifacts', platformAppId, 'public', 'data', 'books', bookId);
+  await updateDoc(bookRef, { sessionStartedAt: serverTimestamp() });
+};
+
+const handleCancelSession = async (e, bookId) => {
+  e.stopPropagation(); // Stops the card from opening
+  const bookRef = doc(db, 'artifacts', platformAppId, 'public', 'data', 'books', bookId);
+  await updateDoc(bookRef, { sessionStartedAt: null });
+};
   const handleBattleChoice = (winner) => {
     if (!winner) return;
     setRoundWinnerId(winner.id);
@@ -192,23 +232,40 @@ export default function App() {
           <div className="max-w-md mx-auto pt-10 animate-in fade-in duration-500">
             <header className="mb-10 text-left">
               <div className="inline-block bg-white border-[3px] border-black px-3 py-1 rounded-full mb-3 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] text-black">
-                <p className="font-['Londrina_Solid'] text-xs uppercase tracking-widest text-black">Verified Researcher: {String(user?.uid?.substring(0, 8))}</p>
+                <p className="font-['Londrina_Solid'] text-xs uppercase tracking-widest text-black">
+                  Verified Researcher: {String(user?.uid?.substring(0, 8))}
+                </p>
               </div>
               <h1 className="font-['Londrina_Solid'] text-7xl uppercase leading-none font-black text-black">Pattern HQ</h1>
             </header>
+
             <div className="grid grid-cols-2 gap-5">
+              {/* TOP ROW: Reading and Dating */}
               <button onClick={() => setAppState('manage')} className="bg-[#AEC6CF] h-[155px] border-[5px] border-black rounded-[45px] p-5 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] text-left flex flex-col justify-between active:translate-y-1 transition-all text-black">
                 <span className="font-['Londrina_Solid'] text-2xl uppercase font-bold">Reading</span>
                 <div className="text-4xl font-['Londrina_Solid']">{books.filter(b => b.ownerId === user?.uid).length}</div>
               </button>
+
               <button onClick={() => setAppState('dating_hub')} className="bg-[#FFD1DC] h-[155px] border-[5px] border-black rounded-[45px] p-5 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] text-left flex flex-col justify-between active:translate-y-1 transition-all text-black">
                 <span className="font-['Londrina_Solid'] text-2xl uppercase font-bold">Dating</span>
                 <div className="text-4xl font-['Londrina_Solid'] text-right">{Number(peopleMetCount)}</div>
               </button>
+              <button onClick={() => setAppState('triathlon_lab')} className="bg-[#E2F0CB] h-[155px] border-[5px] border-black rounded-[45px] p-5 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] text-left flex flex-col justify-between active:translate-y-1 transition-all">
+                <span className="font-['Londrina_Solid'] text-2xl uppercase font-bold">Endurance</span>
+                <div className="text-4xl font-['Londrina_Solid']">{triathlonLogs.length} Trials</div>
+              </button>
+              {/* BOTTOM ROW: Quest Log (No fixed height, grows naturally) */}
+              <div className="col-span-2 mt-2">
+                <QuestLog
+                  quests={quests}
+                  user={user}
+                  db={db}
+                  platformAppId={platformAppId}
+                />
+              </div>
             </div>
           </div>
         )}
-
         {/* MODULAR ROUTING */}
         {(appState === 'manage' || appState === 'library' || selectedBook) && (
           <ReadingLab
@@ -235,4 +292,6 @@ export default function App() {
       </div>
     </div>
   );
+
+  
 }
