@@ -139,61 +139,61 @@ export default function ReadingLab({
                         </span>
                     </button>                </header>
                 <div className="flex-1 space-y-4 text-left">
-                 {myReadingList.map(book => {
-    const isBookLive = !!book.sessionStartedAt;
-    const isSelected = focusedSubjectId === book.id;
+                    {myReadingList.map(book => {
+                        const isBookLive = !!book.sessionStartedAt;
+                        const isSelected = focusedSubjectId === book.id;
 
-    return (
-        /* 1. PARENT CONTAINER - Logic updated to prioritize "Live" visibility */
-        <div 
-            key={book.id} 
-            className={`relative transition-all duration-500 
+                        return (
+                            /* 1. PARENT CONTAINER - Logic updated to prioritize "Live" visibility */
+                            <div
+                                key={book.id}
+                                className={`relative transition-all duration-500 
                 ${(isSelected || isBookLive) ? 'opacity-100 grayscale-0' : 'opacity-30 grayscale-[1]'}
                 ${isSelected ? 'scale-[1.02] z-20' : 'z-10'}
             `}
-        >
-            
-            {/* 2. THE LASER GLOW (Now always bright if live) */}
-            {isBookLive && (
-                <div className="absolute -inset-1.5 bg-gradient-to-r from-blue-500 via-yellow-400 to-pink-500 rounded-[35px] animate-laser-glow blur-[3px] z-0" />
-            )}
+                            >
 
-            {/* 3. THE BUTTON (Solid white background) */}
-            <button
-                onClick={() => setFocusedSubjectId(book.id)}
-                className={`relative w-full border-4 border-black p-5 rounded-[30px] flex items-center justify-between text-left transition-all bg-white z-10
+                                {/* 2. THE LASER GLOW (Now always bright if live) */}
+                                {isBookLive && (
+                                    <div className="absolute -inset-1.5 bg-gradient-to-r from-blue-500 via-yellow-400 to-pink-500 rounded-[35px] animate-laser-glow blur-[3px] z-0" />
+                                )}
+
+                                {/* 3. THE BUTTON (Solid white background) */}
+                                <button
+                                    onClick={() => setFocusedSubjectId(book.id)}
+                                    className={`relative w-full border-4 border-black p-5 rounded-[30px] flex items-center justify-between text-left transition-all bg-white z-10
                     ${isSelected ? 'shadow-[10px_10px_0px_0px_rgba(0,0,0,1)]' : 'shadow-none'}
                 `}
-            >
-                <div className="text-left text-black relative z-10">
-                    <p className="font-['Londrina_Solid'] text-2xl uppercase leading-none font-black">
-                        {String(book.title)}
-                    </p>
-                    <p className="text-[10px] font-black opacity-30 mt-1 uppercase">
-                        Page {Number(book.currentPage)}/{Number(book.totalPages)}
-                        {isBookLive && " • LIVE DATA COLLECTION"}
-                    </p>
-                </div>
+                                >
+                                    <div className="text-left text-black relative z-10">
+                                        <p className="font-['Londrina_Solid'] text-2xl uppercase leading-none font-black">
+                                            {String(book.title)}
+                                        </p>
+                                        <p className="text-[10px] font-black opacity-30 mt-1 uppercase">
+                                            Page {Number(book.currentPage)}/{Number(book.totalPages)}
+                                            {isBookLive && " • LIVE DATA COLLECTION"}
+                                        </p>
+                                    </div>
 
-                <div className="relative z-10">
-                    {isSelected ? (
-                        <div 
-                            onClick={(e) => { 
-                                e.stopPropagation(); 
-                                updateDoc(doc(db, 'artifacts', platformAppId, 'public', 'data', 'books', book.id), { status: 'DNF' }); 
-                            }} 
-                            className="bg-yellow-400 text-black px-5 py-2.5 rounded-2xl border-[3px] border-black font-black text-xl uppercase text-center active:scale-90 transition-all"
-                        >
-                            DNF
-                        </div>
-                    ) : (
-                        <div className="w-4 h-4 rounded-full border-2 border-black shadow-sm" style={{ backgroundColor: palette[book.vibe] || '#000' }} />
-                    )}
-                </div>
-            </button>
-        </div>
-    );
-})}
+                                    <div className="relative z-10">
+                                        {isSelected ? (
+                                            <div
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    updateDoc(doc(db, 'artifacts', platformAppId, 'public', 'data', 'books', book.id), { status: 'DNF' });
+                                                }}
+                                                className="bg-yellow-400 text-black px-5 py-2.5 rounded-2xl border-[3px] border-black font-black text-xl uppercase text-center active:scale-90 transition-all"
+                                            >
+                                                DNF
+                                            </div>
+                                        ) : (
+                                            <div className="w-4 h-4 rounded-full border-2 border-black shadow-sm" style={{ backgroundColor: palette[book.vibe] || '#000' }} />
+                                        )}
+                                    </div>
+                                </button>
+                            </div>
+                        );
+                    })}
                 </div>
                 {/* --- SMART STATION BUTTON --- */}
                 {/* --- UPDATED SMART STATION BUTTONS --- */}
@@ -270,8 +270,45 @@ export default function ReadingLab({
                     <div className="flex flex-col items-center flex-1 pb-10 text-black text-left">
                         {activeTab === 'review' && (
                             <div className="w-full space-y-8 animate-in fade-in">
-                                <header><h2 className="font-['Londrina_Solid'] text-5xl uppercase leading-none mb-2 font-black text-black">{String(selectedBook.title)}</h2><p className="font-['Londrina_Solid'] text-xl opacity-40 uppercase font-bold text-black">{String(selectedBook.author)}</p></header>
-                                <div className="bg-white border-[5px] border-black p-8 rounded-[45px] shadow-[12px_12px_0px_0px_rgba(0,0,0,1)]"><h4 className="font-['Londrina_Solid'] text-2xl uppercase mb-3 text-green-600 tracking-tight font-black text-left">Conclusion</h4><p className="text-xl italic font-medium leading-relaxed text-black">"{String(selectedBook.review || "Ongoing investigation.")}"</p></div>
+                                <header>
+                                    <h2 className="font-['Londrina_Solid'] text-5xl uppercase leading-none mb-2 font-black text-black">
+                                        {String(selectedBook.title)}
+                                    </h2>
+                                    <p className="font-['Londrina_Solid'] text-xl opacity-40 uppercase font-bold text-black">
+                                        {String(selectedBook.author)}
+                                    </p>
+                                </header>
+
+                                {/* The Conclusion / Findings Box */}
+                                <div className="bg-white border-[5px] border-black p-8 rounded-[45px] shadow-[12px_12px_0px_0px_rgba(0,0,0,1)]">
+                                    <h4 className="font-['Londrina_Solid'] text-2xl uppercase mb-3 text-green-600 tracking-tight font-black text-left">
+                                        Conclusion
+                                    </h4>
+                                    <p className="text-xl italic font-medium leading-relaxed text-black">
+                                        "{String(selectedBook.review || "Ongoing investigation.")}"
+                                    </p>
+                                </div>
+
+                                {/* POINT 1: RE-ACTIVATE BUTTON (Only shows for DNF books) */}
+                                {selectedBook.status === 'DNF' && (
+                                    <div className="mt-8 p-6 border-4 border-dashed border-black/10 rounded-[40px] flex flex-col items-center gap-4 bg-white/50">
+                                        <p className="font-['Londrina_Solid'] text-sm opacity-40 uppercase tracking-widest">
+                                            Research Discontinued
+                                        </p>
+                                        <button
+                                            onClick={async () => {
+                                                const bookRef = doc(db, 'artifacts', platformAppId, 'public', 'data', 'books', selectedBook.id);
+                                                await updateDoc(bookRef, {
+                                                    status: 'READING'
+                                                });
+                                                setSelectedBook(null); // Close modal to refresh the lab view
+                                            }}
+                                            className="w-full bg-yellow-400 border-4 border-black py-4 rounded-[25px] font-['Londrina_Solid'] text-2xl uppercase shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 transition-all"
+                                        >
+                                            Re-Activate Subject
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         )}
                         {activeTab === 'capsule' && <SedimentaryRecord sessions={selectedBook.sessions || []} bookTitle={selectedBook.title} palette={palette} />}
@@ -663,104 +700,151 @@ const AddBookDrawer = ({ onSave, onCancel, genres }) => {
     );
 };
 
-const BookGridItem = ({ book, onSelect, onDelete, currentUserId, palette, isLive, onStartSession, onCancelSession, onFinishSession }) => (
+// const BookGridItem = ({ book, onSelect, onDelete, currentUserId, palette, isLive, onStartSession, onCancelSession, onFinishSession }) => (
+//     <div className="relative group">
+//         <button
+//             /* FIX: Ensure newly added books (TBR) are also clickable to view analysis/registration data */
+//             onClick={() => (book.status === 'FINISHED' || book.status === 'READING' || book.status === 'DNF' || book.status === 'TBR') && onSelect(book)}
+//             className={`relative w-full aspect-[1/1.25] border-black border-[4px] rounded-[24px] p-3 text-left flex flex-col justify-between transition-all active:scale-95 overflow-hidden 
+//     ${isLive ? 'bg-white ring-4 ring-yellow-400 shadow-[8px_8px_0px_0px_#facc15]' :
+//                     book.status === 'FINISHED' ? 'bg-green-50 shadow-[8px_8px_0px_0px_#22c55e]' :
+//                         book.status === 'READING' ? 'bg-blue-50 shadow-[8px_8px_0px_0px_#3b82f6]' :
+//                             'bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]'}`}        >
+//             {book.status === 'DNF' && <div className="absolute inset-0 dnf-stripes z-0 pointer-events-none text-left text-left" />}
+//             {book.status === 'FINISHED' && (
+//                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0 text-left text-left">
+//                     <svg width="80%" height="80%" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="opacity-10 -rotate-12">
+//                         <polyline points="20 6 9 17 4 12" />
+//                     </svg>
+//                 </div>
+//             )}
+//             {/* --- STEP 3: THE LIVE INDICATOR --- */}
+//             {isLive && (
+//                 <div className="absolute top-2 right-2 bg-yellow-400 border-2 border-black px-1.5 py-0.5 rounded-full flex items-center gap-1 z-20 animate-bounce shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+//                     {/* Pulsing Red Dot */}
+//                     <div className="w-1.5 h-1.5 bg-red-600 rounded-full animate-pulse border border-black/20" />
+//                     {/* Label */}
+//                     <span className="font-black text-[7px] uppercase tracking-tighter text-black">LIVE</span>
+//                 </div>
+//             )}
+//             <div className="flex flex-col gap-1 z-10 text-black text-left text-left text-left">
+//                 <div className="flex justify-between items-center text-left text-left text-left">
+//                     <div className="font-['Londrina_Solid'] uppercase text-[8px] tracking-widest text-black/30 text-left text-left text-left">{String(book.status)}</div>
+//                     <div className={`px-1.5 py-0.5 rounded text-[7px] font-black uppercase ${book.ownerId === currentUserId ? 'bg-black text-white' : 'bg-slate-100 text-black'}`}>{book.ownerId === currentUserId ? 'My Lab' : 'Peer'}</div>
+//                 </div>
+//             </div>
+//             <div className="z-10 text-black text-left text-left text-left">
+//                 <h3 className="font-['Londrina_Solid'] text-lg uppercase leading-none mb-1 line-clamp-2 text-left text-left text-left text-left">{String(book.title)}</h3>
+//                 <p className="font-['Londrina_Solid'] text-[10px] opacity-40 uppercase truncate text-left text-left text-left text-left">{String(book.author)}</p>
+//             </div>
+//             <div className="flex justify-between items-center z-10 text-black text-left text-left text-left">
+//                 {book.status === 'DNF' ? (
+//                     <div className="bg-yellow-400 text-black px-2 py-0.5 rounded-md border-2 border-black font-black text-[10px] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] uppercase text-center font-black text-left text-left">DNF</div>
+//                 ) : book.status === 'FINISHED' ? (
+//                     <div className="bg-green-500 text-black px-2 py-0.5 rounded-md border-2 border-black font-black text-[10px] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] uppercase text-center font-black text-left text-left">FINISHED</div>
+//                 ) : book.status === 'READING' ? (
+//                     <div className="bg-blue-400 text-black px-2 py-0.5 rounded-md border-2 border-black font-black text-[10px] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] uppercase text-center font-black text-left text-left">CURRENT</div>
+//                 ) : (
+//                     <div className="w-3.5 h-3.5 rounded-full border-2 border-black shadow-sm" style={{ backgroundColor: palette[book.vibe] || '#000' }} />
+//                 )}
+//                 {Number(book.cries) > 0 && <span className="text-[10px] font-black opacity-40 text-black text-left text-left text-left text-left">💧 {Number(book.cries)}</span>}
+//             </div>
+//             {/* --- STEP 4: SESSION INTERACTION BUTTONS --- */}
+//             <div className="mt-3 flex gap-1.5 z-20">
+//                 {!isLive ? (
+//                     /* 1. Only show "Start" for books you are currently reading */
+//                     book.status === 'READING' && (
+//                         <button
+//                             type="button"
+//                             onClick={(e) => {
+//                                 e.stopPropagation(); // CRITICAL: Prevents opening the book details
+//                                 onStartSession();
+//                             }}
+//                             className="flex-1 bg-black text-white py-2 rounded-[14px] font-['Londrina_Solid'] text-xs uppercase shadow-[3px_3px_0px_0px_rgba(255,255,255,0.2)] active:translate-y-0.5 transition-all"
+//                         >
+//                             Start Lab
+//                         </button>
+//                     )
+//                 ) : (
+//                     /* 2. Show Finish and Reset buttons when clock is ticking */
+//                     <>
+//                         <button
+//                             type="button"
+//                             onClick={(e) => {
+//                                 e.stopPropagation(); // CRITICAL
+//                                 onFinishSession();
+//                             }}
+//                             className="flex-[2] bg-yellow-400 text-black py-2 rounded-[14px] font-['Londrina_Solid'] text-xs uppercase border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-y-0.5 transition-all"
+//                         >
+//                             Finish Trial
+//                         </button>
+//                         <button
+//                             type="button"
+//                             onClick={(e) => {
+//                                 e.stopPropagation(); // CRITICAL
+//                                 onCancelSession(e);
+//                             }}
+//                             className="flex-1 bg-white text-black py-2 rounded-[14px] font-black text-[8px] uppercase border-2 border-black opacity-40 hover:opacity-100 hover:bg-red-50"
+//                         >
+//                             Reset
+//                         </button>
+//                     </>
+//                 )}
+//             </div>
+//         </button>
+//         {/* CLEAN SLATE ACTION: Allows manual deletion of subjects */}
+//         <button
+//             onClick={(e) => { e.stopPropagation(); onDelete(book.id); }}
+//             className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full border-2 border-black flex items-center justify-center font-black text-[10px] shadow-md opacity-0 group-hover:opacity-100 transition-opacity z-20 active:translate-y-0.5"
+//         >
+//             ✕
+//         </button>
+//     </div>
+// );
+
+const BookGridItem = ({ book, onSelect, onDelete, palette, isLive }) => (
     <div className="relative group">
+        {/* DELETE BUTTON: Appears on hover, uses stopPropagation to prevent opening modal  */}
         <button
-            /* FIX: Ensure newly added books (TBR) are also clickable to view analysis/registration data */
-            onClick={() => (book.status === 'FINISHED' || book.status === 'READING' || book.status === 'DNF' || book.status === 'TBR') && onSelect(book)}
-            className={`relative w-full aspect-[1/1.25] border-black border-[4px] rounded-[24px] p-3 text-left flex flex-col justify-between transition-all active:scale-95 overflow-hidden 
-    ${isLive ? 'bg-white ring-4 ring-yellow-400 shadow-[8px_8px_0px_0px_#facc15]' :
+            onClick={(e) => {
+                e.stopPropagation();
+                if (window.confirm("Permanently delete this subject?")) onDelete(book.id);
+            }}
+            className="absolute -top-2 -right-2 w-7 h-7 bg-black text-white rounded-full border-2 border-white flex items-center justify-center font-black text-xs shadow-lg z-30 opacity-0 group-hover:opacity-100 transition-opacity active:scale-90"
+        >
+            ✕
+        </button>
+
+        <button
+            onClick={() => onSelect(book)}
+            className={`relative w-full aspect-[1/1.25] border-black border-[4px] rounded-[35px] p-4 text-left flex flex-col justify-between transition-all active:scale-95 overflow-hidden 
+                ${isLive ? 'bg-white ring-4 ring-yellow-400 shadow-[8px_8px_0px_0px_#facc15]' :
                     book.status === 'FINISHED' ? 'bg-green-50 shadow-[8px_8px_0px_0px_#22c55e]' :
-                        book.status === 'READING' ? 'bg-blue-50 shadow-[8px_8px_0px_0px_#3b82f6]' :
-                            'bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]'}`}        >
-            {book.status === 'DNF' && <div className="absolute inset-0 dnf-stripes z-0 pointer-events-none text-left text-left" />}
-            {book.status === 'FINISHED' && (
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0 text-left text-left">
-                    <svg width="80%" height="80%" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="opacity-10 -rotate-12">
-                        <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                </div>
-            )}
-            {/* --- STEP 3: THE LIVE INDICATOR --- */}
-            {isLive && (
-                <div className="absolute top-2 right-2 bg-yellow-400 border-2 border-black px-1.5 py-0.5 rounded-full flex items-center gap-1 z-20 animate-bounce shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-                    {/* Pulsing Red Dot */}
-                    <div className="w-1.5 h-1.5 bg-red-600 rounded-full animate-pulse border border-black/20" />
-                    {/* Label */}
-                    <span className="font-black text-[7px] uppercase tracking-tighter text-black">LIVE</span>
-                </div>
-            )}
-            <div className="flex flex-col gap-1 z-10 text-black text-left text-left text-left">
-                <div className="flex justify-between items-center text-left text-left text-left">
-                    <div className="font-['Londrina_Solid'] uppercase text-[8px] tracking-widest text-black/30 text-left text-left text-left">{String(book.status)}</div>
-                    <div className={`px-1.5 py-0.5 rounded text-[7px] font-black uppercase ${book.ownerId === currentUserId ? 'bg-black text-white' : 'bg-slate-100 text-black'}`}>{book.ownerId === currentUserId ? 'My Lab' : 'Peer'}</div>
-                </div>
+                        'bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]'}`}
+        >
+            {/* DNF Visual Overlay [cite: 5, 57] */}
+            {book.status === 'DNF' && <div className="absolute inset-0 dnf-stripes z-0 opacity-10 pointer-events-none" />}
+
+            <div className="z-10">
+                <h3 className="font-['Londrina_Solid'] text-xl uppercase leading-none mb-1 line-clamp-2">{String(book.title)}</h3>
+                <p className="font-['Londrina_Solid'] text-xs opacity-40 uppercase truncate">{String(book.author)}</p>
             </div>
-            <div className="z-10 text-black text-left text-left text-left">
-                <h3 className="font-['Londrina_Solid'] text-lg uppercase leading-none mb-1 line-clamp-2 text-left text-left text-left text-left">{String(book.title)}</h3>
-                <p className="font-['Londrina_Solid'] text-[10px] opacity-40 uppercase truncate text-left text-left text-left text-left">{String(book.author)}</p>
-            </div>
-            <div className="flex justify-between items-center z-10 text-black text-left text-left text-left">
+
+            <div className="flex justify-between items-center z-10">
+                {/* Status Pills: Restored the rectangle design for visual clarity */}
                 {book.status === 'DNF' ? (
-                    <div className="bg-yellow-400 text-black px-2 py-0.5 rounded-md border-2 border-black font-black text-[10px] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] uppercase text-center font-black text-left text-left">DNF</div>
+                    <div className="bg-yellow-400 text-black px-2 py-0.5 rounded-md border-2 border-black font-black text-[10px] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] uppercase">DNF</div>
                 ) : book.status === 'FINISHED' ? (
-                    <div className="bg-green-500 text-black px-2 py-0.5 rounded-md border-2 border-black font-black text-[10px] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] uppercase text-center font-black text-left text-left">FINISHED</div>
+                    <div className="bg-green-500 text-black px-2 py-0.5 rounded-md border-2 border-black font-black text-[10px] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] uppercase">FINISHED</div>
                 ) : book.status === 'READING' ? (
-                    <div className="bg-blue-400 text-black px-2 py-0.5 rounded-md border-2 border-black font-black text-[10px] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] uppercase text-center font-black text-left text-left">CURRENT</div>
+                    <div className="bg-blue-400 text-black px-2 py-0.5 rounded-md border-2 border-black font-black text-[10px] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] uppercase">CURRENT</div>
                 ) : (
                     <div className="w-3.5 h-3.5 rounded-full border-2 border-black shadow-sm" style={{ backgroundColor: palette[book.vibe] || '#000' }} />
                 )}
-                {Number(book.cries) > 0 && <span className="text-[10px] font-black opacity-40 text-black text-left text-left text-left text-left">💧 {Number(book.cries)}</span>}
+
+                {/* Optional Data Point: Cries count [cite: 57] */}
+                {Number(book.cries) > 0 && <span className="text-[10px] font-black opacity-40">💧 {Number(book.cries)}</span>}
             </div>
-            {/* --- STEP 4: SESSION INTERACTION BUTTONS --- */}
-            <div className="mt-3 flex gap-1.5 z-20">
-                {!isLive ? (
-                    /* 1. Only show "Start" for books you are currently reading */
-                    book.status === 'READING' && (
-                        <button
-                            type="button"
-                            onClick={(e) => {
-                                e.stopPropagation(); // CRITICAL: Prevents opening the book details
-                                onStartSession();
-                            }}
-                            className="flex-1 bg-black text-white py-2 rounded-[14px] font-['Londrina_Solid'] text-xs uppercase shadow-[3px_3px_0px_0px_rgba(255,255,255,0.2)] active:translate-y-0.5 transition-all"
-                        >
-                            Start Lab
-                        </button>
-                    )
-                ) : (
-                    /* 2. Show Finish and Reset buttons when clock is ticking */
-                    <>
-                        <button
-                            type="button"
-                            onClick={(e) => {
-                                e.stopPropagation(); // CRITICAL
-                                onFinishSession();
-                            }}
-                            className="flex-[2] bg-yellow-400 text-black py-2 rounded-[14px] font-['Londrina_Solid'] text-xs uppercase border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-y-0.5 transition-all"
-                        >
-                            Finish Trial
-                        </button>
-                        <button
-                            type="button"
-                            onClick={(e) => {
-                                e.stopPropagation(); // CRITICAL
-                                onCancelSession(e);
-                            }}
-                            className="flex-1 bg-white text-black py-2 rounded-[14px] font-black text-[8px] uppercase border-2 border-black opacity-40 hover:opacity-100 hover:bg-red-50"
-                        >
-                            Reset
-                        </button>
-                    </>
-                )}
-            </div>
-        </button>
-        {/* CLEAN SLATE ACTION: Allows manual deletion of subjects */}
-        <button
-            onClick={(e) => { e.stopPropagation(); onDelete(book.id); }}
-            className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full border-2 border-black flex items-center justify-center font-black text-[10px] shadow-md opacity-0 group-hover:opacity-100 transition-opacity z-20 active:translate-y-0.5"
-        >
-            ✕
         </button>
     </div>
 );
