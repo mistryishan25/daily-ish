@@ -7,14 +7,14 @@ import React, { useState, useMemo, useEffect } from 'react';
  * A/B Testing Lab, and high-fidelity Subject Entry.
  */
 
-export default function LoveLab({ 
-  appState, setAppState, emptySlots, activeSpecimens, sedimentPile, 
-  setIsAddingPerson, isAddingPerson, handleAddPerson, SettingsIcon, 
+export default function LoveLab({
+  appState, setAppState, emptySlots, activeSpecimens, sedimentPile,
+  setIsAddingPerson, isAddingPerson, handleAddPerson, SettingsIcon,
   triggerSpecimenExpiration, fallingSpecimen, SparklesIcon
 }) {
   const [selectedDate, setSelectedDate] = useState("TODAY");
   const [isDateActive, setIsDateActive] = useState(false);
-  
+
   // Trigger for the lightbulb-glow animation
   const [newlyAddedId, setNewlyAddedId] = useState(null);
 
@@ -70,7 +70,7 @@ export default function LoveLab({
 
     // --- STATION: ACTIVE GARDEN (Engagement Monitoring) ---
     if (appState === 'dating_garden') {
-      const poolSize = 50; 
+      const poolSize = 50;
       const currentCount = 8 - emptySlots + sedimentPile.length;
       const threshold = Math.floor(poolSize * 0.37);
       const phase = currentCount <= threshold ? 'Exploration' : 'Selection';
@@ -90,8 +90,8 @@ export default function LoveLab({
                 {currentCount}/{poolSize}
               </div>
               <div className="w-full h-8 bg-white/30 border-[3px] border-black rounded-full overflow-hidden flex p-1 mb-4">
-                 <div className="h-full bg-blue-500 rounded-full transition-all duration-1000" style={{ width: `${Math.min((currentCount / poolSize) * 100, 37)}%` }} />
-                 {currentCount > threshold && <div className="h-full bg-green-500 rounded-full ml-1" style={{ width: `${((currentCount - threshold) / poolSize) * 100}%` }} />}
+                <div className="h-full bg-blue-500 rounded-full transition-all duration-1000" style={{ width: `${Math.min((currentCount / poolSize) * 100, 37)}%` }} />
+                {currentCount > threshold && <div className="h-full bg-green-500 rounded-full ml-1" style={{ width: `${((currentCount - threshold) / poolSize) * 100}%` }} />}
               </div>
               <p className="text-xs opacity-60 italic font-medium px-4">Establishing baseline quality. Commit only after 37% of sample size is processed.</p>
             </div>
@@ -100,14 +100,14 @@ export default function LoveLab({
             <div className="bg-white border-[5px] border-black rounded-[45px] p-8 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)]">
               <h4 className="font-['Londrina_Solid'] text-2xl uppercase font-black mb-6">Live Behavioral Tracking</h4>
               <div className="space-y-4">
-                 <div className="flex justify-between items-center bg-slate-50 p-5 rounded-3xl border-2 border-black/5">
-                    <div className="flex flex-col"><span className="font-bold uppercase text-[9px] opacity-40">Avg Reply Latency</span><span className="font-['Londrina_Solid'] text-2xl">4.2 HOURS</span></div>
-                    <span className="text-2xl opacity-20">🕒</span>
-                 </div>
-                 <div className="flex justify-between items-center bg-slate-50 p-5 rounded-3xl border-2 border-black/5">
-                    <div className="flex flex-col"><span className="font-bold uppercase text-[9px] opacity-40">Effort Ratio (You:Him)</span><span className="font-['Londrina_Solid'] text-2xl">1.2 : 1.0</span></div>
-                    <span className="text-2xl opacity-20">⚖️</span>
-                 </div>
+                <div className="flex justify-between items-center bg-slate-50 p-5 rounded-3xl border-2 border-black/5">
+                  <div className="flex flex-col"><span className="font-bold uppercase text-[9px] opacity-40">Avg Reply Latency</span><span className="font-['Londrina_Solid'] text-2xl">4.2 HOURS</span></div>
+                  <span className="text-2xl opacity-20">🕒</span>
+                </div>
+                <div className="flex justify-between items-center bg-slate-50 p-5 rounded-3xl border-2 border-black/5">
+                  <div className="flex flex-col"><span className="font-bold uppercase text-[9px] opacity-40">Effort Ratio (You:Him)</span><span className="font-['Londrina_Solid'] text-2xl">1.2 : 1.0</span></div>
+                  <span className="text-2xl opacity-20">⚖️</span>
+                </div>
               </div>
             </div>
           </div>
@@ -119,7 +119,8 @@ export default function LoveLab({
     if (appState === 'dating_bloom') {
       return (
         <div className="fixed inset-0 bg-[#FDFCF0] z-50 flex flex-col animate-in slide-in-from-right duration-500 overflow-hidden text-black text-left">
-          <style dangerouslySetInnerHTML={{ __html: `
+          <style dangerouslySetInnerHTML={{
+            __html: `
             @keyframes heart-pop-glow {
               0% { transform: scale(1); filter: drop-shadow(0 0 0px rgba(255,255,255,0)); }
               50% { transform: scale(1.4); filter: drop-shadow(0 0 35px #fff700); }
@@ -146,12 +147,11 @@ export default function LoveLab({
               </div>
               <div className="grid grid-cols-2 gap-4 max-w-md mx-auto">
                 {dateTabs.map((date) => (
-                  <button 
+                  <button
                     key={date}
                     onClick={() => { setSelectedDate(date); setIsDateActive(true); }}
-                    className={`py-6 px-4 border-[4px] border-black rounded-[35px] font-['Londrina_Solid'] text-2xl uppercase transition-all shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-0.5 active:shadow-none flex flex-col items-center justify-center gap-2 ${
-                      selectedDate === date ? 'bg-[#ff748c] text-black translate-y-0.5' : 'bg-[#FFD1DC] text-black hover:bg-[#ffb6c1]'
-                    }`}
+                    className={`py-6 px-4 border-[4px] border-black rounded-[35px] font-['Londrina_Solid'] text-2xl uppercase transition-all shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-0.5 active:shadow-none flex flex-col items-center justify-center gap-2 ${selectedDate === date ? 'bg-[#ff748c] text-black translate-y-0.5' : 'bg-[#FFD1DC] text-black hover:bg-[#ffb6c1]'
+                      }`}
                   >
                     <span className="opacity-40 text-[10px] font-black tracking-widest uppercase">LOG DATE</span>
                     {date}
@@ -166,14 +166,14 @@ export default function LoveLab({
                   {activeSpecimens.map((s, i) => (
                     <div key={s.id} className="flex flex-col items-center">
                       <div className={newlyAddedId === s.id ? 'animate-pop-glow' : 'animate-float'} style={{ animationDelay: `${i * 0.1}s` }}>
-                         <MLMHeart id={`detail-${s.id}`} isPlaceholder={!s.codename} />
+                        <MLMHeart id={`detail-${s.id}`} isPlaceholder={!s.codename} />
                       </div>
                       {s.codename ? (
                         <button onClick={() => triggerSpecimenExpiration(s)} className="font-['Londrina_Solid'] text-xs uppercase mt-5 opacity-60 font-bold hover:text-red-500 transition-colors">
                           Terminate {String(s.codename)}
                         </button>
                       ) : selectedDate === "TODAY" ? (
-                        <button 
+                        <button
                           onClick={() => setIsAddingPerson(true)}
                           className="bg-black text-white px-4 py-2 rounded-2xl border-2 border-black font-['Londrina_Solid'] text-[10px] uppercase mt-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-0.5 transition-all font-black"
                         >
@@ -199,33 +199,33 @@ export default function LoveLab({
     return (
       <div className="fixed inset-0 bg-[#FDFCF0] z-50 flex flex-col animate-in slide-in-from-bottom duration-500 overflow-hidden text-black text-left">
         <header className="bg-[#1a1c2c] border-b-[6px] border-black px-10 py-8 flex justify-between items-center text-white relative shadow-xl">
-           <button onClick={() => setAppState('garden')} className="font-['Londrina_Solid'] text-xl uppercase opacity-40 hover:opacity-100 transition-opacity font-bold">EXIT LAB</button>
-           <h2 className="font-['Londrina_Solid'] text-4xl uppercase leading-none tracking-tight font-black text-white">The Love Jar</h2>
-           <button className="w-10 h-10 flex items-center justify-center border-4 border-white/20 rounded-xl bg-white/5 text-white"><SettingsIcon size={20} /></button>
+          <button onClick={() => setAppState('garden')} className="font-['Londrina_Solid'] text-xl uppercase opacity-40 hover:opacity-100 transition-opacity font-bold">EXIT LAB</button>
+          <h2 className="font-['Londrina_Solid'] text-4xl uppercase leading-none tracking-tight font-black text-white">The Love Jar</h2>
+          <button className="w-10 h-10 flex items-center justify-center border-4 border-white/20 rounded-xl bg-white/5 text-white"><SettingsIcon size={20} /></button>
         </header>
-        
+
         <div className="flex-1 relative overflow-y-auto glass-body flex flex-col bg-white/5 p-8 pb-40">
-           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto w-full mb-10">
-              <BentoButton title="Daily Bloom" bg="bg-[#FFD1DC]" onClick={() => setAppState('dating_bloom')}>
-                 <p className="font-['Londrina_Solid'] text-2xl text-black font-black">Today's Cycle</p>
-                 <p className="font-['Londrina_Solid'] text-xl text-black opacity-40 font-bold">View Hearts: {8 - emptySlots}</p>
-              </BentoButton>
-              <BentoButton title="Active Garden" bg="bg-[#C1E1C1]" onClick={() => setAppState('dating_garden')}>
-                 <p className="font-['Londrina_Solid'] text-2xl text-black font-black">Reciprocal Study</p>
-                 <p className="font-['Londrina_Solid'] text-xl text-black opacity-40 font-bold">Latency: 4.2h</p>
-              </BentoButton>
-              <BentoButton title="The Lab" bg="bg-[#AEC6CF]" onClick={() => setAppState('dating_lab')}>
-                 <p className="font-['Londrina_Solid'] text-2xl text-black font-black">Split Profiles</p>
-                 <p className="font-['Londrina_Solid'] text-xl text-black opacity-40 font-bold">Match Conversion</p>
-              </BentoButton>
-              <BentoButton title="Playbook" bg="bg-[#FFFACD]" onClick={() => setAppState('dating_playbook')} className="rotate-[-1deg]">
-                 <p className="font-['Londrina_Solid'] text-2xl text-black font-black">Experimental Tactics</p>
-                 <p className="font-['Londrina_Solid'] text-xl text-black opacity-40 font-bold">12 Active Hooks</p>
-              </BentoButton>
-           </div>
-           <button onClick={() => setIsAddingPerson(true)} className="w-full max-w-2xl mx-auto bg-black text-white border-[5px] border-black rounded-[45px] p-8 shadow-[10px_10px_0px_0px_rgba(100,100,100,0.5)] active:translate-y-2 transition-all flex items-center justify-center text-4xl font-['Londrina_Solid'] uppercase font-black">
-              Recruit New Subject
-           </button>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto w-full mb-10">
+            <BentoButton title="Daily Bloom" bg="bg-[#FFD1DC]" onClick={() => setAppState('dating_bloom')}>
+              <p className="font-['Londrina_Solid'] text-2xl text-black font-black">Today's Cycle</p>
+              <p className="font-['Londrina_Solid'] text-xl text-black opacity-40 font-bold">View Hearts: {8 - emptySlots}</p>
+            </BentoButton>
+            <BentoButton title="Active Garden" bg="bg-[#C1E1C1]" onClick={() => setAppState('dating_garden')}>
+              <p className="font-['Londrina_Solid'] text-2xl text-black font-black">Reciprocal Study</p>
+              <p className="font-['Londrina_Solid'] text-xl text-black opacity-40 font-bold">Latency: 4.2h</p>
+            </BentoButton>
+            <BentoButton title="The Lab" bg="bg-[#AEC6CF]" onClick={() => setAppState('dating_lab')}>
+              <p className="font-['Londrina_Solid'] text-2xl text-black font-black">Split Profiles</p>
+              <p className="font-['Londrina_Solid'] text-xl text-black opacity-40 font-bold">Match Conversion</p>
+            </BentoButton>
+            <BentoButton title="Playbook" bg="bg-[#FFFACD]" onClick={() => setAppState('dating_playbook')} className="rotate-[-1deg]">
+              <p className="font-['Londrina_Solid'] text-2xl text-black font-black">Experimental Tactics</p>
+              <p className="font-['Londrina_Solid'] text-xl text-black opacity-40 font-bold">12 Active Hooks</p>
+            </BentoButton>
+          </div>
+          <button onClick={() => setIsAddingPerson(true)} className="w-full max-w-2xl mx-auto bg-black text-white border-[5px] border-black rounded-[45px] p-8 shadow-[10px_10px_0px_0px_rgba(100,100,100,0.5)] active:translate-y-2 transition-all flex items-center justify-center text-4xl font-['Londrina_Solid'] uppercase font-black">
+            Recruit New Subject
+          </button>
         </div>
       </div>
     );
@@ -235,9 +235,9 @@ export default function LoveLab({
     <>
       {renderCurrentView()}
       {isAddingPerson && (
-        <AddPersonModal 
-          handleAddPerson={wrapHandleAddPerson} 
-          onCancel={() => setIsAddingPerson(false)} 
+        <AddPersonModal
+          handleAddPerson={wrapHandleAddPerson}
+          onCancel={() => setIsAddingPerson(false)}
         />
       )}
     </>
@@ -284,55 +284,195 @@ const MLMHeart = ({ size = 125, id = "heart", opacity = 1, isPlaceholder = false
 }
 
 const AddPersonModal = ({ handleAddPerson, onCancel }) => {
-  const [vectors, setVectors] = useState({ Aesthetic: 5, Intel: 5, Vibe: 5 });
+  const [vectors, setVectors] = useState({
+    'Visual Pull': 5,
+    'Conv. Potential': 5,
+    'Lifestyle Fit': 5
+  });
+  const [mood, setMood] = useState('Curious');
+  const [archetype, setArchetype] = useState(null);
+  const [showArchetypeInfo, setShowArchetypeInfo] = useState(false);
+
+  const moods = [
+    { id: 'Curious', icon: '🔍' },
+    { id: 'Bored', icon: '🥱' },
+    { id: 'Depth-Seeking', icon: '🌊' },
+    { id: 'Standards-High', icon: '💎' }
+  ];
+
+  const archetypes = [
+    'Wordsmith', 'Visualist', 'Academic', 'Traveler', 'Enigma', 'Corporate'
+  ];
+
+  const archetypeDefinitions = {
+    'Wordsmith': 'Deep prompts, witty banter, high verbal engagement.',
+    'Visualist': 'Curated aesthetic, professional photos, minimal text.',
+    'Academic': 'Researchers, students, or high-intellectual "Resonance Markers".',
+    'Traveler': 'Photos from various geographical coordinates, "Active" lifestyle.',
+    'Enigma': 'Low-effort or mysterious prompts; high risk of "Ghosting" transitions.',
+    'Corporate': 'Career-focused profiles; clear "Lifestyle Fit" markers.'
+  };
 
   return (
-    <div className="fixed inset-0 bg-black/70 z-[250] p-6 flex items-end justify-center text-left text-black" onClick={onCancel}>
-      <div 
-        className="bg-[#FDFCF0] border-[5px] border-black rounded-[45px] p-10 w-full max-sm shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] animate-in slide-in-from-bottom overflow-y-auto text-black max-h-[90vh]" 
+    <div className="fixed inset-0 bg-black/70 z-[250] px-6 pt-20 pb-6 flex items-end justify-center text-left text-black" onClick={onCancel}>
+      <div
+        className="bg-[#FDFCF0] border-[5px] border-black rounded-[45px] p-8 w-full max-sm shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] animate-in slide-in-from-bottom overflow-y-auto text-black max-h-[85vh] relative"
         onClick={(e) => e.stopPropagation()}
       >
-        <header className="flex justify-between items-start mb-8">
+        <header className="sticky top-0 bg-[#FDFCF0] z-20 pb-6 flex justify-between items-start">
           <div>
             <h2 className="font-['Londrina_Solid'] text-5xl uppercase leading-none font-black text-black">Subject Registry</h2>
-            <p className="opacity-40 uppercase font-['Londrina_Solid'] text-xl font-bold mt-1">Quantifying the Attraction Profile</p>
+            <p className="opacity-40 uppercase font-['Londrina_Solid'] text-xl font-bold mt-1 tracking-tight">Mirror Hypothesis Calibration</p>
           </div>
-          <button onClick={onCancel} className="text-3xl opacity-20 font-bold">✕</button>
+          <button onClick={onCancel} className="text-3xl opacity-20 font-bold p-2">✕</button>
         </header>
-        
-        <form onSubmit={(e) => { 
-          e.preventDefault(); 
-          handleAddPerson({ 
+
+        <form onSubmit={(e) => {
+          e.preventDefault();
+          handleAddPerson({
             codename: e.target.codename.value,
-            origin: e.target.origin.value,
             vectors: vectors,
-            hypothesis: e.target.hypothesis.value 
-          }); 
-        }} className="space-y-6">
-          
-          <div className="bg-[#FFD1DC] border-4 border-black p-4 rounded-3xl shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] text-left">
-            <label className="text-[10px] uppercase font-black opacity-40 block mb-1">Subject Codename</label>
-            <input required name="codename" type="text" placeholder="Alias..." className="w-full bg-transparent font-['Londrina_Solid'] text-3xl focus:outline-none text-black" />
+            selfMood: mood,
+            archetype: archetype,
+            hypothesis: e.target.hypothesis.value
+          });
+        }} className="space-y-8 mt-4">
+
+          {/* 1. SELF-CALIBRATION (MOOD) */}
+          <div className="bg-white border-4 border-black p-5 rounded-3xl shadow-[5px_5px_0px_0px_rgba(0,0,0,1)]">
+            <label className="text-[10px] uppercase font-black opacity-40 block mb-4 tracking-widest text-center">Researcher Self-Mood (Prior Bias)</label>
+            <div className="flex justify-between items-center px-2">
+              {moods.map((m) => (
+                <button
+                  key={m.id}
+                  type="button"
+                  onClick={() => setMood(m.id)}
+                  className={`flex flex-col items-center gap-2 transition-all ${mood === m.id ? 'scale-110' : 'opacity-30 grayscale'}`}
+                >
+                  <span className="text-3xl">{m.icon}</span>
+                  <span className="font-black text-[8px] uppercase">{m.id}</span>
+                </button>
+              ))}
+            </div>
           </div>
 
+          <div className="bg-[#FFD1DC] border-4 border-black p-5 rounded-3xl shadow-[5px_5px_0px_0px_rgba(0,0,0,1)]">
+            <label className="text-[10px] uppercase font-black opacity-40 block mb-1 tracking-widest">Subject Codename</label>
+            <input required name="codename" type="text" placeholder="Alias..." className="w-full bg-transparent font-['Londrina_Solid'] text-4xl focus:outline-none text-black placeholder:opacity-20" />
+          </div>
+
+          {/* 2. RESONANCE MARKERS (VECTORS) */}
           <div className="bg-white border-4 border-black p-6 rounded-3xl shadow-[5px_5px_0px_0px_rgba(0,0,0,1)]">
-            <h4 className="font-['Londrina_Solid'] text-xl uppercase font-black mb-4 flex items-center gap-2">Attraction Vector <span className="text-[10px] opacity-20">(Radar Base)</span></h4>
-            <div className="space-y-5">
-              {['Aesthetic', 'Intel', 'Vibe'].map(v => (
-                <div key={v} className="space-y-1">
-                  <div className="flex justify-between font-black uppercase text-[10px]"><span>{v}</span><span>{vectors[v]}/10</span></div>
-                  <input type="range" min="1" max="10" value={vectors[v]} onChange={(e) => setVectors({...vectors, [v]: parseInt(e.target.value)})} className="w-full accent-[#ff748c]" />
+            <h4 className="font-['Londrina_Solid'] text-xl uppercase font-black mb-6 flex items-center gap-2 text-blue-600">Resonance Markers <span className="text-[10px] opacity-30">(The Mirror)</span></h4>
+            <div className="space-y-8">
+              {Object.keys(vectors).map(v => (
+                <div key={v} className="space-y-3">
+                  <div className="flex justify-between font-black uppercase text-[12px] tracking-widest">
+                    <span>{v}</span>
+                    <span className="bg-black text-white px-2 py-0.5 rounded-lg">{vectors[v]}/10</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="1"
+                    max="10"
+                    value={vectors[v]}
+                    onChange={(e) => setVectors({ ...vectors, [v]: parseInt(e.target.value) })}
+                    className="w-full h-4 bg-black/5 rounded-full appearance-none cursor-pointer accent-blue-600
+                      [&::-webkit-slider-thumb]:appearance-none 
+                      [&::-webkit-slider-thumb]:w-10 
+                      [&::-webkit-slider-thumb]:h-10 
+                      [&::-webkit-slider-thumb]:bg-white 
+                      [&::-webkit-slider-thumb]:border-[5px] 
+                      [&::-webkit-slider-thumb]:border-black 
+                      [&::-webkit-slider-thumb]:rounded-full 
+                      [&::-webkit-slider-thumb]:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
+                      active:[&::-webkit-slider-thumb]:scale-110 transition-all"
+                  />
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="bg-white border-4 border-black p-4 rounded-3xl text-left">
-            <label className="text-[10px] uppercase font-black opacity-40 block mb-1">Hinge Intel / Why him?</label>
-            <textarea required name="hypothesis" placeholder="Log initial hooks and attraction hypothesis..." className="w-full bg-transparent font-sans text-sm h-24 resize-none focus:outline-none text-black" />
+          {/* 3. HOOK ARCHETYPE (TAXONOMY) */}
+          <div className="bg-white border-4 border-black p-5 rounded-3xl shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] relative">
+            <div className="flex justify-between items-center mb-4">
+              <label className="text-[10px] uppercase font-black opacity-40 tracking-widest">
+                Hook Archetype (Independent Var.)
+              </label>
+              <button
+                type="button"
+                onClick={() => setShowArchetypeInfo(true)}
+                className="w-6 h-6 rounded-full border-2 border-black flex items-center justify-center font-serif italic text-xs bg-slate-100 active:scale-90"
+              >
+                i
+              </button>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              {archetypes.map(a => (
+                <button
+                  key={a}
+                  type="button"
+                  onClick={() => setArchetype(a)}
+                  className={`px-3 py-2 border-2 border-black rounded-xl text-[10px] font-black uppercase transition-all ${archetype === a ? 'bg-black text-white scale-105' : 'bg-white opacity-40'}`}
+                >
+                  {a}
+                </button>
+              ))}
+            </div>
+
+        {/* ARCHETYPE REFERENCE OVERLAY - FIXED POPUP */}
+{showArchetypeInfo && (
+  <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[300] px-6 pt-20 pb-10 flex items-center justify-center animate-in fade-in duration-300">
+    <div 
+      className="bg-[#FDFCF0] border-[5px] border-black rounded-[45px] p-8 w-full max-w-sm shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] relative max-h-[70vh] flex flex-col"
+      onClick={(e) => e.stopPropagation()}
+    >
+      {/* Top Right Close Button */}
+      <button 
+        onClick={() => setShowArchetypeInfo(false)} 
+        className="absolute top-6 right-8 text-2xl font-black opacity-20 hover:opacity-100 transition-opacity"
+      >
+        ✕
+      </button>
+
+      <header className="mb-6">
+        <div className="inline-block bg-blue-100 border-2 border-black px-3 py-1 rounded-full mb-3">
+          <p className="font-['Londrina_Solid'] text-[10px] uppercase tracking-widest font-black text-blue-600">Research Manual</p>
+        </div>
+        <h4 className="font-['Londrina_Solid'] text-4xl uppercase font-black leading-none">Taxonomy</h4>
+      </header>
+
+      <div className="space-y-6 overflow-y-auto pr-2 custom-scrollbar">
+        {Object.entries(archetypeDefinitions).map(([name, def]) => (
+          <div key={name} className="border-b-2 border-black/5 pb-4 last:border-0">
+            <p className="font-['Londrina_Solid'] text-xl uppercase font-black text-black leading-none mb-1">
+              {name}
+            </p>
+            <p className="text-sm font-medium opacity-60 leading-tight">
+              {def}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      <button 
+        onClick={() => setShowArchetypeInfo(false)}
+        className="mt-6 w-full bg-black text-white py-4 rounded-2xl font-['Londrina_Solid'] text-xl uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)] active:translate-y-1 transition-all"
+      >
+        Understood
+      </button>
+    </div>
+  </div>
+)}
           </div>
 
-          <button type="submit" className="w-full bg-black text-white p-6 rounded-[40px] font-['Londrina_Solid'] text-3xl uppercase shadow-[8px_8px_0px_0px_rgba(0,0,0,0.4)] active:translate-y-1 transition-all text-center">Inject Data</button>
+          <div className="bg-white border-4 border-black p-6 rounded-3xl text-left shadow-[5px_5px_0px_0px_rgba(0,0,0,1)]">
+            <label className="text-[10px] uppercase font-black opacity-40 block mb-2 tracking-widest">Internal Hypothesis</label>
+            <textarea required name="hypothesis" placeholder="I am swiping on this person because they remind me of... and I expect our interaction to be..." className="w-full bg-transparent font-sans text-sm h-32 resize-none focus:outline-none text-black leading-relaxed" />
+          </div>
+
+          <button type="submit" className="w-full bg-black text-white p-6 rounded-[40px] font-['Londrina_Solid'] text-3xl uppercase shadow-[8px_8px_0px_0px_rgba(0,0,0,0.4)] active:translate-y-1 active:shadow-none transition-all text-center">Inject Data</button>
         </form>
       </div>
     </div>
