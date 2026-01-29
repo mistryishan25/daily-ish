@@ -803,14 +803,15 @@ const AddBookDrawer = ({ onSave, onCancel, genres }) => {
 // );
 
 const BookGridItem = ({ book, onSelect, onDelete, palette, isLive }) => (
-    <div className="relative group">
-        {/* DELETE BUTTON: Appears on hover, uses stopPropagation to prevent opening modal  */}
+    <div className="relative">
+        {/* PERSISTENT MOBILE DELETE BUTTON */}
         <button
-            onClick={(e) => {
-                e.stopPropagation();
-                if (window.confirm("Permanently delete this subject?")) onDelete(book.id);
+            onClick={(e) => { 
+                e.stopPropagation(); // Guardrail: Prevents triggering the card's main onSelect 
+                if(window.confirm("Permanently delete this subject?")) onDelete(book.id); 
             }}
-            className="absolute -top-2 -right-2 w-7 h-7 bg-black text-white rounded-full border-2 border-white flex items-center justify-center font-black text-xs shadow-lg z-30 opacity-0 group-hover:opacity-100 transition-opacity active:scale-90"
+            className="absolute -top-2 -right-2 w-8 h-8 bg-red-500 text-white rounded-full border-[3px] border-black flex items-center justify-center font-black text-xs shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] z-30 active:scale-75 transition-transform"
+            aria-label="Delete Book"
         >
             ✕
         </button>
@@ -819,19 +820,19 @@ const BookGridItem = ({ book, onSelect, onDelete, palette, isLive }) => (
             onClick={() => onSelect(book)}
             className={`relative w-full aspect-[1/1.25] border-black border-[4px] rounded-[35px] p-4 text-left flex flex-col justify-between transition-all active:scale-95 overflow-hidden 
                 ${isLive ? 'bg-white ring-4 ring-yellow-400 shadow-[8px_8px_0px_0px_#facc15]' :
-                    book.status === 'FINISHED' ? 'bg-green-50 shadow-[8px_8px_0px_0px_#22c55e]' :
-                        'bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]'}`}
+                book.status === 'FINISHED' ? 'bg-green-50 shadow-[8px_8px_0px_0px_#22c55e]' :
+                'bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]'}`}
         >
-            {/* DNF Visual Overlay [cite: 5, 57] */}
+            {/* DNF Visual Overlay [cite: 6, 7] */}
             {book.status === 'DNF' && <div className="absolute inset-0 dnf-stripes z-0 opacity-10 pointer-events-none" />}
-
+            
             <div className="z-10">
                 <h3 className="font-['Londrina_Solid'] text-xl uppercase leading-none mb-1 line-clamp-2">{String(book.title)}</h3>
                 <p className="font-['Londrina_Solid'] text-xs opacity-40 uppercase truncate">{String(book.author)}</p>
             </div>
 
             <div className="flex justify-between items-center z-10">
-                {/* Status Pills: Restored the rectangle design for visual clarity */}
+                {/* Status Pills [cite: 7] */}
                 {book.status === 'DNF' ? (
                     <div className="bg-yellow-400 text-black px-2 py-0.5 rounded-md border-2 border-black font-black text-[10px] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] uppercase">DNF</div>
                 ) : book.status === 'FINISHED' ? (
@@ -842,7 +843,7 @@ const BookGridItem = ({ book, onSelect, onDelete, palette, isLive }) => (
                     <div className="w-3.5 h-3.5 rounded-full border-2 border-black shadow-sm" style={{ backgroundColor: palette[book.vibe] || '#000' }} />
                 )}
 
-                {/* Optional Data Point: Cries count [cite: 57] */}
+                {/* Magnitude/Cries Indicator [cite: 57] */}
                 {Number(book.cries) > 0 && <span className="text-[10px] font-black opacity-40">💧 {Number(book.cries)}</span>}
             </div>
         </button>
