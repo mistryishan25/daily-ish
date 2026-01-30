@@ -542,7 +542,7 @@ const ReadingDrawer = ({ activeBook, onSave, onCancel, palette }) => {
 
                     {/* Expressive Emotion Selection */}
                     <div className="flex flex-wrap gap-2 mb-4">
-                        {['Warmth', 'Joy', 'Sad', 'Funny', 'Smut', 'Fast', 'Scared', 'Cool', 'Peace', 'Meh'].map(emo => {
+                        {['Warmth', 'Joy', 'Sad', 'Intrigue', 'Funny', 'Smut', 'Fast', 'Scared', 'Cool', 'Peace', 'Meh'].map(emo => {
                             const rank = (session.emotions || []).indexOf(emo) + 1;
                             return (
                                 <button
