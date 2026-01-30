@@ -28,9 +28,8 @@ export default function ReadingLab({
     const handleStartSession = async (bookId) => {
         // 1. Old Path (Legacy)
         const oldRef = doc(db, 'artifacts', platformAppId, 'public', 'data', 'books', bookId);
-
         // 2. New Path (User-Centric)
-        const newRef = doc(db, 'users', user.uid, 'reading_lab', 'books', bookId);
+        const newRef = doc(db, 'users', user.uid, 'labs', 'reading_lab', 'books', bookId);
 
         // Shadow Write to both
         await updateDoc(oldRef, { sessionStartedAt: serverTimestamp() });
@@ -360,26 +359,26 @@ export default function ReadingLab({
                 <AddBookDrawer
                     genres={genres}
                     onCancel={() => setIsAddingBook(false)}
-       onSave={async (nb) => {
-    if (!user) return;
-    const bookData = {
-        ...nb,
-        status: 'TBR',
-        currentPage: 1,
-        sessions: [],
-        ownerId: user.uid,
-        createdAt: serverTimestamp()
-    };
+                    onSave={async (nb) => {
+                        if (!user) return;
+                        const bookData = {
+                            ...nb,
+                            status: 'TBR',
+                            currentPage: 1,
+                            sessions: [],
+                            ownerId: user.uid,
+                            createdAt: serverTimestamp()
+                        };
 
-    // 1. Write to Legacy Collection
-    await addDoc(collection(db, 'artifacts', platformAppId, 'public', 'data', 'books'), bookData);
+                        // 1. Write to Legacy Collection
+                        await addDoc(collection(db, 'artifacts', platformAppId, 'public', 'data', 'books'), bookData);
 
-    // 2. Write to New User-Centric Collection
-    // Note: We use the same data object to ensure parity
-    await addDoc(collection(db, 'users', user.uid, 'reading_lab', 'books'), bookData);
+                        // 2. Write to New User-Centric Collection
+                        // Note: We use the same data object to ensure parity
+                        await addDoc(collection(db, 'users', user.uid, 'reading_lab', 'books'), bookData);
 
-    setIsAddingBook(false);
-}}
+                        setIsAddingBook(false);
+                    }}
                 />
             )}
 
