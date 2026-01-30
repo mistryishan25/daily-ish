@@ -26,15 +26,24 @@ export default function ReadingLab({
 
     // --- Persistence Logic ---
     const handleStartSession = async (bookId) => {
-        // We save the server time to this specific book
-        const bookRef = doc(db, 'artifacts', platformAppId, 'public', 'data', 'books', bookId);
-        await updateDoc(bookRef, { sessionStartedAt: serverTimestamp() });
+        // 1. Old Path (Legacy)
+        const oldRef = doc(db, 'artifacts', platformAppId, 'public', 'data', 'books', bookId);
+
+        // 2. New Path (User-Centric)
+        const newRef = doc(db, 'users', user.uid, 'reading_lab', 'books', bookId);
+
+        // Shadow Write to both
+        await updateDoc(oldRef, { sessionStartedAt: serverTimestamp() });
+        await updateDoc(newRef, { sessionStartedAt: serverTimestamp() });
     };
 
     const handleCancelSession = async (e, bookId) => {
-        e.stopPropagation(); // Prevents opening the drawer when clicking 'Reset'
-        const bookRef = doc(db, 'artifacts', platformAppId, 'public', 'data', 'books', bookId);
-        await updateDoc(bookRef, { sessionStartedAt: null });
+        e.stopPropagation();
+        const oldRef = doc(db, 'artifacts', platformAppId, 'public', 'data', 'books', bookId);
+        const newRef = doc(db, 'users', user.uid, 'reading_lab', 'books', bookId);
+
+        await updateDoc(oldRef, { sessionStartedAt: null });
+        await updateDoc(newRef, { sessionStartedAt: null });
     };
     // Helper to render the main content based on state
     const renderMainContent = () => {
@@ -351,18 +360,26 @@ export default function ReadingLab({
                 <AddBookDrawer
                     genres={genres}
                     onCancel={() => setIsAddingBook(false)}
-                    onSave={async (nb) => {
-                        if (!user) return;
-                        await addDoc(collection(db, 'artifacts', platformAppId, 'public', 'data', 'books'), {
-                            ...nb,
-                            status: 'TBR',
-                            currentPage: 1,
-                            sessions: [],
-                            ownerId: user.uid,
-                            createdAt: serverTimestamp()
-                        });
-                        setIsAddingBook(false);
-                    }}
+       onSave={async (nb) => {
+    if (!user) return;
+    const bookData = {
+        ...nb,
+        status: 'TBR',
+        currentPage: 1,
+        sessions: [],
+        ownerId: user.uid,
+        createdAt: serverTimestamp()
+    };
+
+    // 1. Write to Legacy Collection
+    await addDoc(collection(db, 'artifacts', platformAppId, 'public', 'data', 'books'), bookData);
+
+    // 2. Write to New User-Centric Collection
+    // Note: We use the same data object to ensure parity
+    await addDoc(collection(db, 'users', user.uid, 'reading_lab', 'books'), bookData);
+
+    setIsAddingBook(false);
+}}
                 />
             )}
 
@@ -806,9 +823,9 @@ const BookGridItem = ({ book, onSelect, onDelete, palette, isLive }) => (
     <div className="relative">
         {/* PERSISTENT MOBILE DELETE BUTTON */}
         <button
-            onClick={(e) => { 
+            onClick={(e) => {
                 e.stopPropagation(); // Guardrail: Prevents triggering the card's main onSelect 
-                if(window.confirm("Permanently delete this subject?")) onDelete(book.id); 
+                if (window.confirm("Permanently delete this subject?")) onDelete(book.id);
             }}
             className="absolute -top-2 -right-2 w-8 h-8 bg-red-500 text-white rounded-full border-[3px] border-black flex items-center justify-center font-black text-xs shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] z-30 active:scale-75 transition-transform"
             aria-label="Delete Book"
@@ -820,12 +837,12 @@ const BookGridItem = ({ book, onSelect, onDelete, palette, isLive }) => (
             onClick={() => onSelect(book)}
             className={`relative w-full aspect-[1/1.25] border-black border-[4px] rounded-[35px] p-4 text-left flex flex-col justify-between transition-all active:scale-95 overflow-hidden 
                 ${isLive ? 'bg-white ring-4 ring-yellow-400 shadow-[8px_8px_0px_0px_#facc15]' :
-                book.status === 'FINISHED' ? 'bg-green-50 shadow-[8px_8px_0px_0px_#22c55e]' :
-                'bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]'}`}
+                    book.status === 'FINISHED' ? 'bg-green-50 shadow-[8px_8px_0px_0px_#22c55e]' :
+                        'bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]'}`}
         >
             {/* DNF Visual Overlay [cite: 6, 7] */}
             {book.status === 'DNF' && <div className="absolute inset-0 dnf-stripes z-0 opacity-10 pointer-events-none" />}
-            
+
             <div className="z-10">
                 <h3 className="font-['Londrina_Solid'] text-xl uppercase leading-none mb-1 line-clamp-2">{String(book.title)}</h3>
                 <p className="font-['Londrina_Solid'] text-xs opacity-40 uppercase truncate">{String(book.author)}</p>
