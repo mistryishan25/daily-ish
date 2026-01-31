@@ -1,8 +1,8 @@
 "use client";
 import React, { useState, useMemo } from 'react';
-import { 
-  doc, updateDoc, collection, addDoc, serverTimestamp, 
-  arrayUnion, deleteDoc, setDoc, getDocs, where, query, writeBatch 
+import {
+    doc, updateDoc, collection, addDoc, serverTimestamp,
+    arrayUnion, deleteDoc, setDoc, getDocs, where, query, writeBatch
 } from 'firebase/firestore';
 /**
  * ReadingLab.jsx 
@@ -20,12 +20,12 @@ export default function ReadingLab({
 }) {
 
     window.tempDb = db;
-window.tempUser = user;
+    window.tempUser = user;
     // Local state for the Gauntlet Tooltip
     const [showGauntletInfo, setShowGauntletInfo] = useState(false);
 
     // --- PERSONAL DATA FILTERING ---
-    const myBooks = useMemo(() => books.filter(b => b.ownerId === user?.uid), [books, user]);
+    const myBooks = books;
     const myReadingList = useMemo(() => myBooks.filter(b => b.status === 'READING'), [myBooks]);
     const myTbrPool = useMemo(() => myBooks.filter(b => b.status === 'TBR'), [myBooks]);
 
@@ -55,100 +55,99 @@ window.tempUser = user;
 
     const handleCancelSession = async (e, bookId) => {
         e.stopPropagation();
-        const oldRef = doc(db, 'artifacts', platformAppId, 'public', 'data', 'books', bookId);
-        const newRef = doc(db, 'users', user.uid, 'reading_lab', 'books', bookId);
-
-        await updateDoc(oldRef, { sessionStartedAt: null });
+        // const oldRef = doc(db, 'artifacts', platformAppId, 'public', 'data', 'books', bookId);
+        const newRef = doc(db, 'users', user.uid, 'labs', 'reading_lab', 'books', bookId);
+        // await updateDoc(oldRef, { sessionStartedAt: null });
         await updateDoc(newRef, { sessionStartedAt: null });
     };
 
     // --- Persistence Logic ---
-const handleSaveSession = async (sessionData) => {
-    if (!user || !focusedSubjectId) return;
+    const handleSaveSession = async (sessionData) => {
+        if (!user || !focusedSubjectId) return;
 
-    // 1. Define both references
-    // OLD: 6 segments in artifacts
-    // const oldRef = doc(db, 'artifacts', platformAppId, 'public', 'data', 'books', focusedSubjectId);
-    // NEW: 6 segments in user labs
-    const newRef = doc(db, 'users', user.uid, 'labs', 'reading_lab', 'books', focusedSubjectId);
+        // 1. Define both references
+        // OLD: 6 segments in artifacts
+        // const oldRef = doc(db, 'artifacts', platformAppId, 'public', 'data', 'books', focusedSubjectId);
+        // NEW: 6 segments in user labs
+        const newRef = doc(db, 'users', user.uid, 'labs', 'reading_lab', 'books', focusedSubjectId);
 
-    const updatePayload = {
-        sessions: arrayUnion({
-            ...sessionData,
-            timestamp: new Date().toISOString()
-        }),
-        currentPage: sessionData.endPage,
-        sessionStartedAt: null // Clear the timer in both places
+        const updatePayload = {
+            sessions: arrayUnion({
+                ...sessionData,
+                timestamp: new Date().toISOString()
+            }),
+            currentPage: sessionData.endPage,
+            sessionStartedAt: null // Clear the timer in both places
+        };
+
+        try {
+            // 2. Update Legacy Path
+            // await updateDoc(oldRef, updatePayload);
+
+            // 3. Update New User Path (Using setDoc + merge to ensure it creates the doc if missing)
+            await setDoc(newRef, updatePayload, { merge: true });
+
+            console.log("MIGRATION LOG: Session mirrored to new schema!");
+            setIsLogging(false);
+            setFocusedSubjectId(null);
+        } catch (err) {
+            console.error("Session Sync Error:", err);
+        }
     };
 
-    try {
-        // 2. Update Legacy Path
-        // await updateDoc(oldRef, updatePayload);
+    // 1. ADD THIS FUNCTION ABOVE YOUR RETURN
+    // const forceGlobalMigration = async () => {
+    //     console.log("⚠️ STARTING GLOBAL SYSTEM MIGRATION");
+    //     if (!db) {
+    //         alert("Database connection (db) not found!");
+    //         return;
+    //     }
 
-        // 3. Update New User Path (Using setDoc + merge to ensure it creates the doc if missing)
-        await setDoc(newRef, updatePayload, { merge: true });
-        
-        console.log("MIGRATION LOG: Session mirrored to new schema!");
-        setIsLogging(false);
-        setFocusedSubjectId(null);
-    } catch (err) {
-        console.error("Session Sync Error:", err);
-    }
-};
+    //     try {
+    //         // 1. Reference the legacy "Big Pile"
+    //         const oldColRef = collection(db, 'artifacts', platformAppId, 'public', 'data', 'books');
 
-// 1. ADD THIS FUNCTION ABOVE YOUR RETURN
-// const forceGlobalMigration = async () => {
-//     console.log("⚠️ STARTING GLOBAL SYSTEM MIGRATION");
-//     if (!db) {
-//         alert("Database connection (db) not found!");
-//         return;
-//     }
+    //         // 2. Fetch EVERY book in the system
+    //         const querySnapshot = await getDocs(oldColRef);
 
-//     try {
-//         // 1. Reference the legacy "Big Pile"
-//         const oldColRef = collection(db, 'artifacts', platformAppId, 'public', 'data', 'books');
-        
-//         // 2. Fetch EVERY book in the system
-//         const querySnapshot = await getDocs(oldColRef);
-        
-//         if (querySnapshot.empty) {
-//             alert("ℹ️ Old collection is already empty or path is wrong.");
-//             return;
-//         }
+    //         if (querySnapshot.empty) {
+    //             alert("ℹ️ Old collection is already empty or path is wrong.");
+    //             return;
+    //         }
 
-//         const batch = writeBatch(db);
-//         let count = 0;
+    //         const batch = writeBatch(db);
+    //         let count = 0;
 
-//         querySnapshot.forEach((oldDoc) => {
-//             const data = oldDoc.data();
-            
-//             // 3. Safety Check: If a book has no ownerId, we can't route it
-//             if (!data.ownerId) {
-//                 console.warn(`Skipping book ${oldDoc.id}: No ownerId found.`);
-//                 return;
-//             }
+    //         querySnapshot.forEach((oldDoc) => {
+    //             const data = oldDoc.data();
 
-//             // 4. Dynamic Routing: users/[ownerId]/labs/reading_lab/books/[bookId]
-//             const newDocRef = doc(db, 'users', data.ownerId, 'labs', 'reading_lab', 'books', oldDoc.id);
-            
-//             batch.set(newDocRef, { 
-//                 ...data, 
-//                 _migratedByAdmin: true,
-//                 _migratedAt: serverTimestamp() 
-//             }, { merge: true });
-            
-//             count++;
-//         });
+    //             // 3. Safety Check: If a book has no ownerId, we can't route it
+    //             if (!data.ownerId) {
+    //                 console.warn(`Skipping book ${oldDoc.id}: No ownerId found.`);
+    //                 return;
+    //             }
 
-//         // 5. Commit the entire move
-//         await batch.commit();
-//         alert(`🎉 GLOBAL SUCCESS! Moved ${count} books to their respective User Labs.`);
-        
-//     } catch (err) {
-//         console.error("Global Migration Error:", err);
-//         alert("Migration Failed: " + err.message);
-//     }
-// };
+    //             // 4. Dynamic Routing: users/[ownerId]/labs/reading_lab/books/[bookId]
+    //             const newDocRef = doc(db, 'users', data.ownerId, 'labs', 'reading_lab', 'books', oldDoc.id);
+
+    //             batch.set(newDocRef, { 
+    //                 ...data, 
+    //                 _migratedByAdmin: true,
+    //                 _migratedAt: serverTimestamp() 
+    //             }, { merge: true });
+
+    //             count++;
+    //         });
+
+    //         // 5. Commit the entire move
+    //         await batch.commit();
+    //         alert(`🎉 GLOBAL SUCCESS! Moved ${count} books to their respective User Labs.`);
+
+    //     } catch (err) {
+    //         console.error("Global Migration Error:", err);
+    //         alert("Migration Failed: " + err.message);
+    //     }
+    // };
 
     // Helper to render the main content based on state
     const renderMainContent = () => {
@@ -183,7 +182,7 @@ const handleSaveSession = async (sessionData) => {
                                         onFinishSession={() => { setFocusedSubjectId(b.id); setIsLogging(true); }}
                                         onSelect={(book) => { setSelectedBook(book); setActiveTab('review'); }}
                                         onDelete={async (id) => {
-                                            await deleteDoc(doc(db, 'artifacts', platformAppId, 'public', 'data', 'books', id));
+                                            await deleteDoc(doc(db, 'users', user.uid, 'labs', 'reading_lab', 'books', id));
                                         }}
                                         currentUserId={user?.uid}
                                     />
@@ -367,53 +366,43 @@ const handleSaveSession = async (sessionData) => {
             </div>
         );
     };
-// Add this inside your ReadingLab function, before the return statement
-React.useEffect(() => {
-    // const runAutoMigration = async () => {
-    //     if (!user || !db) return;
+    // Add this inside your ReadingLab function, before the return statement
+    React.useEffect(() => {
 
-    //     console.log("🛠️ Starting Auto-Migration check...");
-        
-    //     // 1. Get legacy books
-    //     const oldColRef = collection(db, 'artifacts', platformAppId, 'public', 'data', 'books');
-    //     const q = query(oldColRef, where("ownerId", "==", user.uid));
-    //     const querySnapshot = await getDocs(oldColRef); // Note: Simplified for the check
+        //     console.log("🛠️ Starting Auto-Migration check...");
 
-    //     const batch = writeBatch(db);
-    //     let count = 0;
+        //     // 1. Get legacy books
+        //     const oldColRef = collection(db, 'artifacts', platformAppId, 'public', 'data', 'books');
+        //     const q = query(oldColRef, where("ownerId", "==", user.uid));
+        //     const querySnapshot = await getDocs(oldColRef); // Note: Simplified for the check
 
-    //     querySnapshot.forEach((oldDoc) => {
-    //         if (oldDoc.data().ownerId === user.uid) {
-    //             const newDocRef = doc(db, 'users', user.uid, 'labs', 'reading_lab', 'books', oldDoc.id);
-    //             batch.set(newDocRef, { 
-    //                 ...oldDoc.data(), 
-    //                 _migrated: true,
-    //                 _migratedAt: serverTimestamp() 
-    //             }, { merge: true });
-    //             count++;
-    //         }
-    //     });
+        //     const batch = writeBatch(db);
+        //     let count = 0;
 
-    //     if (count > 0) {
-    //         await batch.commit();
-    //         console.log(`✅ Auto-Migrated ${count} books to the new 6-segment schema!`);
-    //     } else {
-    //         console.log("ℹ️ No legacy books found to migrate.");
-    //     }
-    // };
+        //     querySnapshot.forEach((oldDoc) => {
+        //         if (oldDoc.data().ownerId === user.uid) {
+        //             const newDocRef = doc(db, 'users', user.uid, 'labs', 'reading_lab', 'books', oldDoc.id);
+        //             batch.set(newDocRef, { 
+        //                 ...oldDoc.data(), 
+        //                 _migrated: true,
+        //                 _migratedAt: serverTimestamp() 
+        //             }, { merge: true });
+        //             count++;
+        //         }
+        //     });
 
-    // runAutoMigration();
-}, [user, db]); // Runs once when user/db are ready
+        //     if (count > 0) {
+        //         await batch.commit();
+        //         console.log(`✅ Auto-Migrated ${count} books to the new 6-segment schema!`);
+        //     } else {
+        //         console.log("ℹ️ No legacy books found to migrate.");
+        //     }
+        // };
+
+        // runAutoMigration();
+    }, [user, db]); // Runs once when user/db are ready
     return (
         <>
-
-        {/* TEMPORARY MIGRATION BUTTON
-        <button 
-            onClick={forceGlobalMigration}
-            className="fixed top-4 left-4 z-[9999] bg-red-600 text-white px-6 py-3 rounded-2xl font-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 transition-all"
-        >
-            🚀 RUN MIGRATION
-        </button> */}
 
             {renderMainContent()}
 
@@ -456,8 +445,7 @@ React.useEffect(() => {
                                         </p>
                                         <button
                                             onClick={async () => {
-                                                const bookRef = doc(db, 'artifacts', platformAppId, 'public', 'data', 'books', selectedBook.id);
-                                                await updateDoc(bookRef, {
+                                                const bookRef = doc(db, 'users', user.uid, 'labs', 'reading_lab', 'books', selectedBook.id); await updateDoc(bookRef, {
                                                     status: 'READING'
                                                 });
                                                 setSelectedBook(null); // Close modal to refresh the lab view
@@ -511,7 +499,7 @@ React.useEffect(() => {
                     genres={genres}
                     onCancel={() => setIsAddingBook(false)}
                     onSave={async (nb) => {
-                        if (!user) return;
+                        if (!user || !db) return; // Safety check for db
                         const bookData = {
                             ...nb,
                             status: 'TBR',
@@ -526,8 +514,8 @@ React.useEffect(() => {
                         // const oldDocRef = await addDoc(oldColRef, bookData);
 
                         // 2. Use that SAME ID for the new User-Centric path
-                        const newDocRef = doc(db, 'users', user.uid, 'labs', 'reading_lab', 'books', oldDocRef.id);
-                        await setDoc(newDocRef, bookData);
+                        const newUserBooksCol = collection(db, 'users', user.uid, 'labs', 'reading_lab', 'books');
+                        await addDoc(newUserBooksCol, bookData);
 
                         setIsAddingBook(false);
                     }}

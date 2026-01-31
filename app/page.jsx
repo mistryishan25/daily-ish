@@ -42,7 +42,7 @@ const palette = {
   Cool: '#779ECB',     // "That was sick"
   Peace: '#9370DB',    // Calm
   Meh: '#D3D3D3',      // Bored/Simple
-  
+
   // --- The Favorites/Status ---
   Smut: '#FF1493',     // Deep Pink
   Wonder: '#9370DB',
@@ -109,17 +109,21 @@ export default function App() {
   useEffect(() => {
     if (!user) return;
 
-    // Existing Listeners
-    const bSub = onSnapshot(collection(db, 'artifacts', platformAppId, 'public', 'data', 'books'), (snap) => setBooks(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
-    const dSub = onSnapshot(collection(db, 'artifacts', platformAppId, 'public', 'data', 'subjects'), (snap) => setDatingSubjects(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
+    // 1. POINT TO YOUR PRIVATE PATH (Fixes seeing other people's books)
+    const privateBooksRef = collection(db, 'users', user.uid, 'labs', 'reading_lab', 'books');
 
-    // ADD THIS LINE: Quest Listener
+    // 2. Updated Books Listener
+    const bSub = onSnapshot(privateBooksRef, (snap) => {
+      setBooks(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+
+    // Existing Listeners (We can move these to private later if needed)
+    const dSub = onSnapshot(collection(db, 'artifacts', platformAppId, 'public', 'data', 'subjects'), (snap) => setDatingSubjects(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
     const qSub = onSnapshot(collection(db, 'artifacts', platformAppId, 'public', 'data', 'quests'), (snap) => setQuests(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
     const tSub = onSnapshot(collection(db, 'artifacts', platformAppId, 'public', 'data', 'triathlon_logs'), (snap) => {
       setTriathlonLogs(snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(l => l.ownerId === user.uid));
     });
-    
-    // UPDATE THIS: Add qSub() to the cleanup
+
     return () => { bSub(); dSub(); qSub(); tSub(); };
   }, [user]);
 
@@ -154,15 +158,14 @@ export default function App() {
 
   const handleStartReading = async (book) => {
     if (!user || !book) return;
-    await updateDoc(doc(db, 'artifacts', platformAppId, 'public', 'data', 'books', book.id), { status: 'READING' });
-    setFocusedSubjectId(book.id);
+    await updateDoc(doc(db, 'users', user.uid, 'labs', 'reading_lab', 'books', book.id), { status: 'READING' }); setFocusedSubjectId(book.id);
     setAppState('manage'); setFinalWinner(null); setCurrentChamp(null);
   };
 
   const handleSaveSession = async (sessionData) => {
     if (!user || !focusedSubjectId) return;
     const pagesRead = Number(sessionData.endPage) - Number(sessionData.startPage);
-    await updateDoc(doc(db, 'artifacts', platformAppId, 'public', 'data', 'books', focusedSubjectId), {
+    await updateDoc(doc(db, 'users', user.uid, 'labs', 'reading_lab', 'books', focusedSubjectId), {
       status: sessionData.isFinished ? 'FINISHED' : 'READING',
       currentPage: Number(sessionData.endPage),
       sessionStartedAt: null,
@@ -173,15 +176,18 @@ export default function App() {
   };
 
   const handleStartSession = async (bookId) => {
-  const bookRef = doc(db, 'artifacts', platformAppId, 'public', 'data', 'books', bookId);
-  await updateDoc(bookRef, { sessionStartedAt: serverTimestamp() });
-};
+    // UPDATED PATH
+    const bookRef = doc(db, 'users', user.uid, 'labs', 'reading_lab', 'books', bookId);
+    await updateDoc(bookRef, { sessionStartedAt: serverTimestamp() });
+  };
 
-const handleCancelSession = async (e, bookId) => {
-  e.stopPropagation(); // Stops the card from opening
-  const bookRef = doc(db, 'artifacts', platformAppId, 'public', 'data', 'books', bookId);
-  await updateDoc(bookRef, { sessionStartedAt: null });
-};
+  const handleCancelSession = async (e, bookId) => {
+    e.stopPropagation();
+    // UPDATED PATH
+    const bookRef = doc(db, 'users', user.uid, 'labs', 'reading_lab', 'books', bookId);
+    await updateDoc(bookRef, { sessionStartedAt: null });
+  };
+
   const handleBattleChoice = (winner) => {
     if (!winner) return;
     setRoundWinnerId(winner.id);
@@ -293,5 +299,5 @@ const handleCancelSession = async (e, bookId) => {
     </div>
   );
 
-  
+
 }
