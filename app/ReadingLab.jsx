@@ -1,7 +1,9 @@
 "use client";
 import React, { useState, useMemo } from 'react';
-import { doc, updateDoc, collection, addDoc, serverTimestamp, arrayUnion, deleteDoc } from 'firebase/firestore';
-
+import { 
+  doc, updateDoc, collection, addDoc, serverTimestamp, 
+  arrayUnion, deleteDoc, setDoc, getDocs, where, query, writeBatch 
+} from 'firebase/firestore';
 /**
  * ReadingLab.jsx 
  * Handles: ReadingLab View, LibraryView, AddBookDrawer, ReadingDrawer, 
@@ -12,10 +14,13 @@ export default function ReadingLab({
     appState, setAppState, books, user, db, platformAppId, palette, genres,
     focusedSubjectId, setFocusedSubjectId, setIsLogging, isLogging,
     libraryMode, setLibraryMode, isAddingBook, setIsAddingBook,
-    handleStartReading, handleSaveSession, handleBattleChoice,
+    handleStartReading, handleBattleChoice,
     tbrPool, currentChamp, roundWinnerId, battleIdx, finalWinner,
     selectedBook, setSelectedBook, activeTab, setActiveTab
 }) {
+
+    window.tempDb = db;
+window.tempUser = user;
     // Local state for the Gauntlet Tooltip
     const [showGauntletInfo, setShowGauntletInfo] = useState(false);
 
@@ -26,14 +31,26 @@ export default function ReadingLab({
 
     // --- Persistence Logic ---
     const handleStartSession = async (bookId) => {
-        // 1. Old Path (Legacy)
-        const oldRef = doc(db, 'artifacts', platformAppId, 'public', 'data', 'books', bookId);
-        // 2. New Path (User-Centric)
+        console.log("MIGRATION LOG: Attempting Shadow Write...");
+        console.log("UID:", user?.uid);
+        console.log("Book ID:", bookId);
+
+        // const oldRef = doc(db, 'artifacts', platformAppId, 'public', 'data', 'books', bookId);
         const newRef = doc(db, 'users', user.uid, 'labs', 'reading_lab', 'books', bookId);
 
-        // Shadow Write to both
-        await updateDoc(oldRef, { sessionStartedAt: serverTimestamp() });
-        await updateDoc(newRef, { sessionStartedAt: serverTimestamp() });
+        // LOG THE FULL PATH STRING
+        // console.log("OLD PATH:", oldRef.path);
+        console.log("NEW PATH:", newRef.path);
+
+        try {
+            // await updateDoc(oldRef, { sessionStartedAt: serverTimestamp() });
+            // Use setDoc with {merge: true} here instead of updateDoc
+            // This forces Firestore to create the document if it doesn't exist yet!
+            await setDoc(newRef, { sessionStartedAt: serverTimestamp() }, { merge: true });
+            console.log("Shadow Write Successful!");
+        } catch (err) {
+            console.error("Shadow Write Error:", err);
+        }
     };
 
     const handleCancelSession = async (e, bookId) => {
@@ -44,6 +61,95 @@ export default function ReadingLab({
         await updateDoc(oldRef, { sessionStartedAt: null });
         await updateDoc(newRef, { sessionStartedAt: null });
     };
+
+    // --- Persistence Logic ---
+const handleSaveSession = async (sessionData) => {
+    if (!user || !focusedSubjectId) return;
+
+    // 1. Define both references
+    // OLD: 6 segments in artifacts
+    // const oldRef = doc(db, 'artifacts', platformAppId, 'public', 'data', 'books', focusedSubjectId);
+    // NEW: 6 segments in user labs
+    const newRef = doc(db, 'users', user.uid, 'labs', 'reading_lab', 'books', focusedSubjectId);
+
+    const updatePayload = {
+        sessions: arrayUnion({
+            ...sessionData,
+            timestamp: new Date().toISOString()
+        }),
+        currentPage: sessionData.endPage,
+        sessionStartedAt: null // Clear the timer in both places
+    };
+
+    try {
+        // 2. Update Legacy Path
+        // await updateDoc(oldRef, updatePayload);
+
+        // 3. Update New User Path (Using setDoc + merge to ensure it creates the doc if missing)
+        await setDoc(newRef, updatePayload, { merge: true });
+        
+        console.log("MIGRATION LOG: Session mirrored to new schema!");
+        setIsLogging(false);
+        setFocusedSubjectId(null);
+    } catch (err) {
+        console.error("Session Sync Error:", err);
+    }
+};
+
+// 1. ADD THIS FUNCTION ABOVE YOUR RETURN
+// const forceGlobalMigration = async () => {
+//     console.log("⚠️ STARTING GLOBAL SYSTEM MIGRATION");
+//     if (!db) {
+//         alert("Database connection (db) not found!");
+//         return;
+//     }
+
+//     try {
+//         // 1. Reference the legacy "Big Pile"
+//         const oldColRef = collection(db, 'artifacts', platformAppId, 'public', 'data', 'books');
+        
+//         // 2. Fetch EVERY book in the system
+//         const querySnapshot = await getDocs(oldColRef);
+        
+//         if (querySnapshot.empty) {
+//             alert("ℹ️ Old collection is already empty or path is wrong.");
+//             return;
+//         }
+
+//         const batch = writeBatch(db);
+//         let count = 0;
+
+//         querySnapshot.forEach((oldDoc) => {
+//             const data = oldDoc.data();
+            
+//             // 3. Safety Check: If a book has no ownerId, we can't route it
+//             if (!data.ownerId) {
+//                 console.warn(`Skipping book ${oldDoc.id}: No ownerId found.`);
+//                 return;
+//             }
+
+//             // 4. Dynamic Routing: users/[ownerId]/labs/reading_lab/books/[bookId]
+//             const newDocRef = doc(db, 'users', data.ownerId, 'labs', 'reading_lab', 'books', oldDoc.id);
+            
+//             batch.set(newDocRef, { 
+//                 ...data, 
+//                 _migratedByAdmin: true,
+//                 _migratedAt: serverTimestamp() 
+//             }, { merge: true });
+            
+//             count++;
+//         });
+
+//         // 5. Commit the entire move
+//         await batch.commit();
+//         alert(`🎉 GLOBAL SUCCESS! Moved ${count} books to their respective User Labs.`);
+        
+//     } catch (err) {
+//         console.error("Global Migration Error:", err);
+//         alert("Migration Failed: " + err.message);
+//     }
+// };
+
     // Helper to render the main content based on state
     const renderMainContent = () => {
         // --- Sub-View: Library / Battle Gauntlet ---
@@ -261,9 +367,54 @@ export default function ReadingLab({
             </div>
         );
     };
+// Add this inside your ReadingLab function, before the return statement
+React.useEffect(() => {
+    // const runAutoMigration = async () => {
+    //     if (!user || !db) return;
 
+    //     console.log("🛠️ Starting Auto-Migration check...");
+        
+    //     // 1. Get legacy books
+    //     const oldColRef = collection(db, 'artifacts', platformAppId, 'public', 'data', 'books');
+    //     const q = query(oldColRef, where("ownerId", "==", user.uid));
+    //     const querySnapshot = await getDocs(oldColRef); // Note: Simplified for the check
+
+    //     const batch = writeBatch(db);
+    //     let count = 0;
+
+    //     querySnapshot.forEach((oldDoc) => {
+    //         if (oldDoc.data().ownerId === user.uid) {
+    //             const newDocRef = doc(db, 'users', user.uid, 'labs', 'reading_lab', 'books', oldDoc.id);
+    //             batch.set(newDocRef, { 
+    //                 ...oldDoc.data(), 
+    //                 _migrated: true,
+    //                 _migratedAt: serverTimestamp() 
+    //             }, { merge: true });
+    //             count++;
+    //         }
+    //     });
+
+    //     if (count > 0) {
+    //         await batch.commit();
+    //         console.log(`✅ Auto-Migrated ${count} books to the new 6-segment schema!`);
+    //     } else {
+    //         console.log("ℹ️ No legacy books found to migrate.");
+    //     }
+    // };
+
+    // runAutoMigration();
+}, [user, db]); // Runs once when user/db are ready
     return (
         <>
+
+        {/* TEMPORARY MIGRATION BUTTON
+        <button 
+            onClick={forceGlobalMigration}
+            className="fixed top-4 left-4 z-[9999] bg-red-600 text-white px-6 py-3 rounded-2xl font-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 transition-all"
+        >
+            🚀 RUN MIGRATION
+        </button> */}
+
             {renderMainContent()}
 
             {/* --- Analysis Modal --- */}
@@ -370,12 +521,13 @@ export default function ReadingLab({
                             createdAt: serverTimestamp()
                         };
 
-                        // 1. Write to Legacy Collection
-                        await addDoc(collection(db, 'artifacts', platformAppId, 'public', 'data', 'books'), bookData);
+                        // 1. Create a document in the OLD path first to get a generated ID
+                        // const oldColRef = collection(db, 'artifacts', platformAppId, 'public', 'data', 'books');
+                        // const oldDocRef = await addDoc(oldColRef, bookData);
 
-                        // 2. Write to New User-Centric Collection
-                        // Note: We use the same data object to ensure parity
-                        await addDoc(collection(db, 'users', user.uid, 'reading_lab', 'books'), bookData);
+                        // 2. Use that SAME ID for the new User-Centric path
+                        const newDocRef = doc(db, 'users', user.uid, 'labs', 'reading_lab', 'books', oldDocRef.id);
+                        await setDoc(newDocRef, bookData);
 
                         setIsAddingBook(false);
                     }}
