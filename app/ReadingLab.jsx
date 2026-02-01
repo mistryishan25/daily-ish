@@ -19,8 +19,8 @@ export default function ReadingLab({
     selectedBook, setSelectedBook, activeTab, setActiveTab
 }) {
 
-    window.tempDb = db;
-    window.tempUser = user;
+    // window.tempDb = db;
+    // window.tempUser = user;
     // Local state for the Gauntlet Tooltip
     const [showGauntletInfo, setShowGauntletInfo] = useState(false);
 
