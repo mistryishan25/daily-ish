@@ -11,24 +11,62 @@ import {
  */
 
 export default function ReadingLab({
-    appState, setAppState, books, user, db, platformAppId, palette, genres,
+appState, setAppState, books, user, db, platformAppId, palette, genres,
     focusedSubjectId, setFocusedSubjectId, setIsLogging, isLogging,
     libraryMode, setLibraryMode, isAddingBook, setIsAddingBook,
-    handleStartReading, handleBattleChoice,
-    tbrPool, currentChamp, roundWinnerId, battleIdx, finalWinner,
     selectedBook, setSelectedBook, activeTab, setActiveTab
 }) {
 
-    // window.tempDb = db;
-    // window.tempUser = user;
-    // Local state for the Gauntlet Tooltip
-    const [showGauntletInfo, setShowGauntletInfo] = useState(false);
+  const readingList = useMemo(() => books.filter(b => b.status === 'READING'), [books]);
+    const tbrPool = useMemo(() => books.filter(b => b.status === 'TBR'), [books]);
 
+    // 2. SECOND: Define your states
+    const [showGauntletInfo, setShowGauntletInfo] = useState(false);
+    const [currentChamp, setCurrentChamp] = useState(null);
+    const [battleIdx, setBattleIdx] = useState(0);
+    const [roundWinnerId, setRoundWinnerId] = useState(null);
+    const [finalWinner, setFinalWinner] = useState(null);
+
+    // 3. THIRD: The Battle Logic Effect
+    React.useEffect(() => {
+        if (appState === 'library' && libraryMode === 'battle' && !finalWinner && tbrPool.length > 1) {
+            if (!currentChamp) {
+                setCurrentChamp(tbrPool[0]);
+                setBattleIdx(1);
+            }
+        }
+    }, [appState, libraryMode, finalWinner, tbrPool, currentChamp]);
+
+    // --- BATTLE INITIALIZATION ---
+    // This starts the battle by picking the first contender when you enter Battle mode
+    React.useEffect(() => {
+        if (appState === 'library' && libraryMode === 'battle' && !finalWinner && tbrPool.length > 1) {
+            if (!currentChamp) {
+                setCurrentChamp(tbrPool[0]);
+                setBattleIdx(1);
+            }
+        }
+    }, [appState, libraryMode, finalWinner, tbrPool, currentChamp]);
+
+    const handleBattleChoice = (winner) => {
+        if (!winner) return;
+        setRoundWinnerId(winner.id);
+        setTimeout(() => {
+            setRoundWinnerId(null);
+            // We use tbrPool.length to check if the gauntlet is over
+            if (battleIdx >= tbrPool.length - 1) {
+                setFinalWinner(winner);
+            } else {
+                setCurrentChamp(winner);
+                setBattleIdx(prev => prev + 1);
+            }
+        }, 800);
+    };
+
+    
     // --- PERSONAL DATA FILTERING ---
     const myBooks = books;
-    const myReadingList = useMemo(() => myBooks.filter(b => b.status === 'READING'), [myBooks]);
-    const myTbrPool = useMemo(() => myBooks.filter(b => b.status === 'TBR'), [myBooks]);
-
+    
     // --- Persistence Logic ---
     const handleStartSession = async (bookId) => {
         console.log("MIGRATION LOG: Attempting Shadow Write...");
@@ -140,7 +178,7 @@ export default function ReadingLab({
                         ) : (
                             <div className="col-span-2 relative text-black">
                                 {/* TOOLTIP TRIGGER - Top Right */}
-                                {!finalWinner && myTbrPool.length >= 2 && (
+                                {!finalWinner && tbrPool.length >= 2 && (
                                     <button
                                         onClick={() => setShowGauntletInfo(true)}
                                         className="absolute -top-6 -right-2 w-8 h-8 rounded-full border-2 border-black bg-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center font-black active:translate-y-0.5 transition-all z-30"
@@ -149,7 +187,7 @@ export default function ReadingLab({
                                     </button>
                                 )}
 
-                                {myTbrPool.length < 2 && !finalWinner ? (
+                                {tbrPool.length < 2 && !finalWinner ? (
                                     <div className="text-center py-20 font-['Londrina_Solid'] text-3xl opacity-30 uppercase text-black text-center">Min. 2 Subjects Required</div>
                                 ) : !finalWinner ? (
                                     <div className="space-y-2 text-center text-black text-center">
@@ -201,7 +239,7 @@ export default function ReadingLab({
                         </span>
                     </button>                </header>
                 <div className="flex-1 space-y-4 text-left">
-                    {myReadingList.map(book => {
+                    {readingList.map(book => {
                         const isBookLive = !!book.sessionStartedAt;
                         const isSelected = focusedSubjectId === book.id;
 

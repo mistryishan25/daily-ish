@@ -108,6 +108,10 @@ export default function App() {
   const [currentChamp, setCurrentChamp] = useState(null);
   const [finalWinner, setFinalWinner] = useState(null);
 
+
+
+  
+
   useEffect(() => { setHasMounted(true); }, []);
 
   useEffect(() => {
@@ -152,45 +156,47 @@ export default function App() {
   }, [user]);
 
   // --- 1. MEMOIZED DATA (Safe & Clean) ---
-  const readingList = useMemo(() => 
-    books.filter(b => b.status === 'READING'), 
-    [books]
-  );
+const readingList = useMemo(() => books.filter(b => b.status === 'READING'), [books]);
+    const tbrPool = useMemo(() => books.filter(b => b.status === 'TBR'), [books]);
 
-  const tbrPool = useMemo(() => {
-    if (!user || !user.uid) return [];
-    return books.filter(b => b.status === 'TBR' && b.ownerId === user.uid);
-  }, [books, user]);
+// const myTbrPool = useMemo(() => myBooks.filter(b => b.status === 'TBR'), [myBooks]);
 
-  const peopleMetCount = useMemo(() => 
-    datingSubjects.length + sedimentPile.length, 
-    [datingSubjects, sedimentPile]
-  );
-
+  // const peopleMetCount = useMemo(() => 
+  //   datingSubjects.length + sedimentPile.length, 
+  //   [datingSubjects, sedimentPile]
+  // );
+const peopleMetCount = useMemo(() => 
+  datingSubjects.length, 
+  [datingSubjects]
+);
   const emptySlots = useMemo(() => 
     activeSpecimens.filter(s => !s.codename).length, 
     [activeSpecimens]
   );
 
-  // --- 2. BATTLE LOGIC EFFECT ---
-  useEffect(() => {
-    if (appState === 'library' && libraryMode === 'battle' && !finalWinner && tbrPool.length > 1) {
-      if (!currentChamp) { 
-        setCurrentChamp(tbrPool[0]); 
-        setBattleIdx(1); 
-      }
-    }
-  }, [appState, libraryMode, finalWinner, tbrPool.length, currentChamp]);
+// --- 3. BATTLE LOGIC ---
+    React.useEffect(() => {
+        if (appState === 'library' && libraryMode === 'battle' && !finalWinner && tbrPool.length > 1) {
+            if (!currentChamp) {
+                setCurrentChamp(tbrPool[0]);
+                setBattleIdx(1);
+            }
+        }
+    }, [appState, libraryMode, finalWinner, tbrPool, currentChamp]);
 
-  // --- 3. PROTECTED HANDLERS (Safe from Null crashes) ---
-  const handleStartReading = async (book) => {
-    if (!user?.uid || !book) return;
-    await updateDoc(doc(db, 'users', user.uid, 'labs', 'reading_lab', 'books', book.id), { status: 'READING' }); 
-    setFocusedSubjectId(book.id);
-    setAppState('manage'); 
-    setFinalWinner(null); 
-    setCurrentChamp(null);
-  };
+    const handleBattleChoice = (winner) => {
+        if (!winner) return;
+        setRoundWinnerId(winner.id);
+        setTimeout(() => {
+            setRoundWinnerId(null);
+            if (battleIdx >= tbrPool.length - 1) {
+                setFinalWinner(winner);
+            } else {
+                setCurrentChamp(winner);
+                setBattleIdx(prev => prev + 1);
+            }
+        }, 800);
+    };
 
   const handleSaveSession = async (sessionData) => {
     if (!user?.uid || !focusedSubjectId) return;
@@ -360,7 +366,7 @@ export default function App() {
               appState, setAppState, books, user, db, platformAppId, palette, genres,
               focusedSubjectId, setFocusedSubjectId, setIsLogging, isLogging,
               libraryMode, setLibraryMode, isAddingBook, setIsAddingBook,
-              handleStartReading, handleSaveSession, handleBattleChoice,
+               handleSaveSession,
               tbrPool, currentChamp, roundWinnerId, battleIdx, finalWinner,
               selectedBook, setSelectedBook, activeTab, setActiveTab
             }}
