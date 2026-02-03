@@ -240,6 +240,33 @@ export default function App() {
     await updateDoc(doc(db, 'artifacts', platformAppId, 'public', 'data', 'featureRequests', id), { status });
   };
 
+  const handleCompleteRequest = async (req) => {
+    if (!user?.uid || user.uid !== ADMIN_UID) return;
+    
+    // Create the record for the official changelog
+    const newUpdate = {
+      title: `Deployed: ${req.lab}`,
+      description: req.description,
+      version: `v${(systemUpdates.length + 1).toFixed(1)}`, // Simple auto-versioning
+      date: Date.now()
+    };
+
+    try {
+      // 1. Add to official public changelog
+      const updatesRef = collection(db, 'artifacts', platformAppId, 'public', 'data', 'systemUpdates');
+      await addDoc(updatesRef, newUpdate);
+      
+      // 2. Delete the request from the public queue
+      const requestRef = doc(db, 'artifacts', platformAppId, 'public', 'data', 'featureRequests', req.id);
+      await deleteDoc(requestRef);
+      
+      return true; // Return true so modal knows it finished
+    } catch (e) {
+      console.error("Migration failed:", e);
+      throw e; // Rethrow so modal can catch it
+    }
+  };
+
   // --- 4. MASTER AUTH GUARD ---
   // Place this right here, after all hooks and handlers
   if (!user) {
@@ -358,6 +385,7 @@ export default function App() {
             isAdmin={user?.uid === ADMIN_UID}
             onSave={submitFeatureRequest}
             onApprove={updateRequestStatus}
+            onComplete={handleCompleteRequest}
             onCancel={() => setIsControlRoomOpen(false)}
           />
         )}
@@ -372,9 +400,32 @@ export default function App() {
 // ==========================================
 // 🛠️ CONTROL ROOM MODAL COMPONENT
 // ==========================================
-const ControlRoomModal = ({ user, requests, updates, onSave, onApprove, onComplete, onCancel, isAdmin }) => {
+
+const ControlRoomModal = ({ 
+  user, 
+  requests = [], 
+  updates = [], 
+  onSave, 
+  onApprove, 
+  onComplete, 
+  onCancel, 
+  isAdmin 
+}) => {
   const [tab, setTab] = useState('updates'); // 'updates' or 'request'
   const [priority, setPriority] = useState(3);
+  const [completingId, setCompletingId] = useState(null);
+
+  const handleDoneClick = async (req) => {
+    if (!onComplete) return;
+    setCompletingId(req.id);
+    try {
+      await onComplete(req);
+    } catch (err) {
+      console.error("Action failed", err);
+    } finally {
+      setCompletingId(null);
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-[500] flex items-center justify-center p-4 font-sans text-left" onClick={onCancel}>
@@ -386,12 +437,13 @@ const ControlRoomModal = ({ user, requests, updates, onSave, onApprove, onComple
         <button 
           onClick={onCancel} 
           className="absolute top-4 right-4 md:top-8 md:right-8 w-10 h-10 flex items-center justify-center text-3xl font-black bg-black text-white rounded-full md:bg-transparent md:text-black md:opacity-20 md:hover:opacity-100 transition-all z-[60]"
+          aria-label="Close"
         >
           ✕
         </button>
 
         <header className="p-6 md:p-8 border-b-4 border-black/5 text-left">
-          <h2 className="font-['Londrina_Solid'] text-4xl md:text-5xl uppercase font-black leading-none mb-6 pr-12">Control Room</h2>
+          <h2 className="font-['Londrina_Solid'] text-4xl md:text-5xl uppercase font-black leading-none mb-6 pr-12 text-black">Control Room</h2>
           
           {/* NAVIGATION TABS */}
           <div className="flex bg-black/5 p-1 rounded-[25px] border-2 border-black/10">
@@ -427,17 +479,17 @@ const ControlRoomModal = ({ user, requests, updates, onSave, onApprove, onComple
                   <div className="h-1 flex-1 bg-black/5 rounded-full" />
                 </div>
                 <div className="space-y-8">
-                  {updates.length > 0 ? updates.sort((a,b) => b.date - a.date).map(upd => (
+                  {updates && updates.length > 0 ? updates.sort((a,b) => b.date - a.date).map(upd => (
                     <div key={upd.id} className="relative pl-6 border-l-4 border-black text-left">
                       <div className="absolute -left-[10px] top-0 w-4 h-4 bg-black rounded-full border-4 border-[#FDFCF0]" />
-                      <span className="text-[10px] font-black opacity-30 uppercase">
+                      <span className="text-[10px] font-black opacity-30 uppercase text-black">
                         {upd.version || 'v1.0'} • {new Date(upd.date).toLocaleDateString()}
                       </span>
-                      <h4 className="font-['Londrina_Solid'] text-2xl uppercase font-black leading-tight mt-1">{upd.title}</h4>
-                      <p className="text-sm opacity-70 mt-1 leading-relaxed">{upd.description}</p>
+                      <h4 className="font-['Londrina_Solid'] text-2xl uppercase font-black leading-tight mt-1 text-black">{upd.title}</h4>
+                      <p className="text-sm opacity-70 mt-1 leading-relaxed text-black">{upd.description}</p>
                     </div>
                   )) : (
-                    <p className="italic opacity-30 text-center text-sm py-4">No system logs broadcasted.</p>
+                    <p className="italic opacity-30 text-center text-sm py-4 text-black">No system logs broadcasted.</p>
                   )}
                 </div>
               </section>
@@ -450,7 +502,7 @@ const ControlRoomModal = ({ user, requests, updates, onSave, onApprove, onComple
                   <div className="h-1 flex-1 bg-black/5 rounded-full" />
                 </div>
                 <div className="grid gap-4">
-                  {requests.filter(r => r.status === 'approved').length > 0 ? (
+                  {requests && requests.filter(r => r.status === 'approved').length > 0 ? (
                     requests.filter(r => r.status === 'approved').map(req => (
                       <div key={req.id} className="bg-white border-[3px] border-black p-5 rounded-[30px] shadow-[6px_6px_0px_0px_rgba(0,0,0,0.05)] flex flex-col md:flex-row md:items-center gap-4">
                         <div className="flex items-center gap-4 flex-1">
@@ -460,17 +512,20 @@ const ControlRoomModal = ({ user, requests, updates, onSave, onApprove, onComple
                               <span className="bg-black text-white text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest">{req.lab}</span>
                               <span className="text-[8px] font-black opacity-30 uppercase">Priority {req.priority}/5</span>
                             </div>
-                            <p className="text-sm font-bold leading-tight">"{req.description}"</p>
+                            <p className="text-sm font-bold leading-tight text-black">"{req.description}"</p>
                           </div>
                         </div>
                         
                         {/* ADMIN ONLY: DONE BUTTON */}
                         {isAdmin && (
                           <button 
-                            onClick={() => onComplete(req)} 
-                            className="bg-blue-500 text-white px-6 py-2 rounded-2xl border-2 border-black font-['Londrina_Solid'] text-xl uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-0.5 active:shadow-none transition-all"
+                            disabled={completingId === req.id}
+                            onClick={() => handleDoneClick(req)} 
+                            className={`px-6 py-2 rounded-2xl border-2 border-black font-['Londrina_Solid'] text-xl uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-0.5 active:shadow-none transition-all w-full md:w-auto ${
+                              completingId === req.id ? 'bg-slate-400 cursor-not-allowed' : 'bg-blue-500 text-white'
+                            }`}
                           >
-                            Done
+                            {completingId === req.id ? '...' : 'Done'}
                           </button>
                         )}
                       </div>
@@ -489,12 +544,14 @@ const ControlRoomModal = ({ user, requests, updates, onSave, onApprove, onComple
               <form onSubmit={(e) => {
                 e.preventDefault();
                 const fd = new FormData(e.target);
-                onSave({ lab: fd.get('lab'), description: fd.get('desc'), priority });
+                if (onSave) {
+                  onSave({ lab: fd.get('lab'), description: fd.get('desc'), priority });
+                }
                 setTab('updates');
               }} className="space-y-6 text-left">
                 <div className="bg-white border-4 border-black p-4 rounded-3xl">
-                  <label className="text-[9px] font-black uppercase opacity-40 block mb-2">Target Lab</label>
-                  <select name="lab" className="w-full bg-transparent font-['Londrina_Solid'] text-2xl uppercase focus:outline-none cursor-pointer">
+                  <label className="text-[9px] font-black uppercase opacity-40 block mb-2 text-black">Target Lab</label>
+                  <select name="lab" className="w-full bg-transparent font-['Londrina_Solid'] text-2xl uppercase focus:outline-none cursor-pointer text-black">
                     <option>Reading Lab</option>
                     <option>Love Lab</option>
                     <option>Quest Lab</option>
@@ -517,12 +574,12 @@ const ControlRoomModal = ({ user, requests, updates, onSave, onApprove, onComple
                 </div>
 
                 <div className="bg-white border-4 border-black p-4 rounded-3xl">
-                  <label className="text-[10px] font-black uppercase opacity-40 block mb-2">Requirement Description</label>
+                  <label className="text-[10px] font-black uppercase opacity-40 block mb-2 text-black">Requirement Description</label>
                   <textarea 
                     name="desc" 
                     required 
                     placeholder="What should we build?" 
-                    className="w-full bg-transparent text-sm h-32 focus:outline-none resize-none" 
+                    className="w-full bg-transparent text-sm h-32 focus:outline-none resize-none text-black" 
                   />
                 </div>
                 
@@ -534,17 +591,17 @@ const ControlRoomModal = ({ user, requests, updates, onSave, onApprove, onComple
               {/* ADMIN APPROVAL QUEUE */}
               {isAdmin && (
                 <div className="mt-12 pt-8 border-t-4 border-black/5">
-                  <h3 className="font-['Londrina_Solid'] text-xl uppercase mb-4 opacity-40">Admin Approval Queue</h3>
+                  <h3 className="font-['Londrina_Solid'] text-xl uppercase mb-4 opacity-40 text-black">Admin Approval Queue</h3>
                   <div className="space-y-4">
-                    {requests.filter(r => r.status === 'pending').length > 0 ? (
+                    {requests && requests.filter(r => r.status === 'pending').length > 0 ? (
                       requests.filter(r => r.status === 'pending').map(req => (
                         <div key={req.id} className="bg-white border-2 border-black p-4 rounded-2xl flex justify-between items-center">
                           <div className="text-left">
-                            <span className="text-[8px] font-black uppercase px-2 py-0.5 bg-slate-100 rounded">{req.lab}</span>
-                            <p className="text-xs font-bold mt-1">"{req.description}"</p>
+                            <span className="text-[8px] font-black uppercase px-2 py-0.5 bg-slate-100 rounded text-black">{req.lab}</span>
+                            <p className="text-xs font-bold mt-1 text-black">"{req.description}"</p>
                           </div>
                           <button 
-                            onClick={() => onApprove(req.id, 'approved')} 
+                            onClick={() => onApprove && onApprove(req.id, 'approved')} 
                             className="bg-green-500 text-white p-2 rounded-xl text-[10px] font-black uppercase border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-y-0.5 transition-all"
                           >
                             Approve
@@ -552,7 +609,7 @@ const ControlRoomModal = ({ user, requests, updates, onSave, onApprove, onComple
                         </div>
                       ))
                     ) : (
-                      <p className="text-center text-xs opacity-20 italic">Queue clear.</p>
+                      <p className="text-center text-xs opacity-20 italic text-black">Queue clear.</p>
                     )}
                   </div>
                 </div>
