@@ -2,8 +2,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
-import { getFirestore, collection, doc, updateDoc, onSnapshot, serverTimestamp, arrayUnion } from 'firebase/firestore';
-// import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { getFirestore, collection, doc, updateDoc, onSnapshot, serverTimestamp, arrayUnion, addDoc } from 'firebase/firestore';// import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 // LOCAL IMPORTS (Ensure files are in the same folder)
 import ReadingLab from './ReadingLab';
 import LoveLab from './LoveLab';
@@ -59,6 +58,16 @@ const SparklesIcon = ({ size = 24, className = "" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m12 3 1.912 5.813a2 2 0 0 0 1.275 1.275L21 12l-5.813 1.912a2 2 0 0 0-1.275 1.275L12 21l-1.912-5.813a2 2 0 0 0-1.275-1.275L3 12l5.813-1.912a2 2 0 0 0 1.275-1.275L12 3Z" /><path d="M5 3v4" /><path d="M19 17v4" /><path d="M3 5h4" /><path d="M17 19h4" /></svg>
 );
 
+const BellIcon = ({ size = 20, className = "" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+    <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+  </svg>
+);
+
+const TicketIcon = ({ size = 20, className = "" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z" /><path d="M13 5v2" /><path d="M13 17v2" /><path d="M13 11v2" /></svg>
+);
 // ==========================================
 // 2. MAIN APP DRIVER
 // ==========================================
@@ -78,12 +87,16 @@ export default function App() {
   const [focusedSubjectId, setFocusedSubjectId] = useState(null);
   const [quests, setQuests] = useState([]);
   const [triathlonLogs, setTriathlonLogs] = useState([]);
+  const [isControlRoomOpen, setIsControlRoomOpen] = useState(false);
+  const [featureRequests, setFeatureRequests] = useState([]);
+  const [systemUpdates, setSystemUpdates] = useState([]);
+  const ADMIN_UID = "6Zs8Wndk6pdTGsPmHrWcBsTbAqG2"; // Copy from the "Verified Researcher" label on your screen
 
   const [activeSpecimens, setActiveSpecimens] = useState([
-    { id: 1, codename: "Alpha", active: true }, { id: 2, codename: "Beta", active: true },
-    { id: 3, codename: "Gamma", active: true }, { id: 4, codename: "Delta", active: true },
-    { id: 5, codename: null }, { id: 6, codename: null },
-    { id: 7, codename: null }, { id: 8, codename: null }
+    { id: 1, codename: null, active: false }, { id: 2, codename: null, active: false },
+    { id: 3, codename: null, active: true }, { id: 4, codename: null, active: false },
+    { id: 5, codename: null, active: false }, { id: 6, codename: null, active: false },
+    { id: 7, codename: null, active: false }, { id: 8, codename: null, active: false }
   ]);
   const [fallingSpecimen, setFallingSpecimen] = useState(null);
   const [sedimentPile, setSedimentPile] = useState([]);
@@ -107,7 +120,8 @@ export default function App() {
   }, [hasMounted]);
 
   useEffect(() => {
-    if (!user) return;
+    // This is the "Hard Guard"
+    if (!user || !user.uid) return;
 
     // 1. POINT TO YOUR PRIVATE PATH (Fixes seeing other people's books)
     const privateBooksRef = collection(db, 'users', user.uid, 'labs', 'reading_lab', 'books');
@@ -121,92 +135,123 @@ export default function App() {
     const dSub = onSnapshot(collection(db, 'artifacts', platformAppId, 'public', 'data', 'subjects'), (snap) => setDatingSubjects(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
     const qSub = onSnapshot(collection(db, 'artifacts', platformAppId, 'public', 'data', 'quests'), (snap) => setQuests(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
     const tSub = onSnapshot(collection(db, 'artifacts', platformAppId, 'public', 'data', 'triathlon_logs'), (snap) => {
-      setTriathlonLogs(snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(l => l.ownerId === user.uid));
+      setTriathlonLogs(snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(l => l.ownerId === user?.uid));
     });
 
-    return () => { bSub(); dSub(); qSub(); tSub(); };
+    // Listen for Shared Feature Requests
+    const fSub = onSnapshot(collection(db, 'artifacts', platformAppId, 'public', 'data', 'featureRequests'), (snap) => {
+      setFeatureRequests(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+
+    // Listen for Shared System Updates
+    const uSub = onSnapshot(collection(db, 'artifacts', platformAppId, 'public', 'data', 'systemUpdates'), (snap) => {
+      setSystemUpdates(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+
+    return () => { bSub(); dSub(); qSub(); tSub(); fSub(); uSub(); };
   }, [user]);
 
-  const readingList = useMemo(() => books.filter(b => b.status === 'READING'), [books]);
-  const tbrPool = useMemo(() =>
-    books.filter(b => b.status === 'TBR' && b.ownerId === user?.uid),
-    [books, user]); const peopleMetCount = useMemo(() => datingSubjects.length + sedimentPile.length, [datingSubjects, sedimentPile]);
-  const emptySlots = useMemo(() => activeSpecimens.filter(s => !s.codename).length, [activeSpecimens]);
+  // --- 1. MEMOIZED DATA (Safe & Clean) ---
+  const readingList = useMemo(() => 
+    books.filter(b => b.status === 'READING'), 
+    [books]
+  );
 
+  const tbrPool = useMemo(() => {
+    if (!user || !user.uid) return [];
+    return books.filter(b => b.status === 'TBR' && b.ownerId === user.uid);
+  }, [books, user]);
+
+  const peopleMetCount = useMemo(() => 
+    datingSubjects.length + sedimentPile.length, 
+    [datingSubjects, sedimentPile]
+  );
+
+  const emptySlots = useMemo(() => 
+    activeSpecimens.filter(s => !s.codename).length, 
+    [activeSpecimens]
+  );
+
+  // --- 2. BATTLE LOGIC EFFECT ---
   useEffect(() => {
     if (appState === 'library' && libraryMode === 'battle' && !finalWinner && tbrPool.length > 1) {
-      if (!currentChamp) { setCurrentChamp(tbrPool[0]); setBattleIdx(1); }
+      if (!currentChamp) { 
+        setCurrentChamp(tbrPool[0]); 
+        setBattleIdx(1); 
+      }
     }
   }, [appState, libraryMode, finalWinner, tbrPool.length, currentChamp]);
 
-  // Shared Actions
-  const triggerSpecimenExpiration = (specimen) => {
-    if (fallingSpecimen || !specimen.codename) return;
-    setActiveSpecimens(prev => prev.map(s => s.id === specimen.id ? { ...s, codename: null } : s));
-    setFallingSpecimen({ ...specimen, rot: (Math.random() - 0.5) * 40, x: (Math.random() - 0.5) * 60 });
-    setTimeout(() => {
-      setSedimentPile(prev => [...prev, { ...specimen, rot: (Math.random() - 0.5) * 25, x: (Math.random() - 0.5) * 40 }]);
-      setFallingSpecimen(null);
-    }, 1200);
-  };
-
-  const handleAddPerson = (personData) => {
-    const emptySlot = activeSpecimens.find(s => !s.codename);
-    if (emptySlot) setActiveSpecimens(prev => prev.map(s => s.id === emptySlot.id ? { ...s, codename: personData.codename, active: true } : s));
-    setIsAddingPerson(false);
-  };
-
+  // --- 3. PROTECTED HANDLERS (Safe from Null crashes) ---
   const handleStartReading = async (book) => {
-    if (!user || !book) return;
-    await updateDoc(doc(db, 'users', user.uid, 'labs', 'reading_lab', 'books', book.id), { status: 'READING' }); setFocusedSubjectId(book.id);
-    setAppState('manage'); setFinalWinner(null); setCurrentChamp(null);
+    if (!user?.uid || !book) return;
+    await updateDoc(doc(db, 'users', user.uid, 'labs', 'reading_lab', 'books', book.id), { status: 'READING' }); 
+    setFocusedSubjectId(book.id);
+    setAppState('manage'); 
+    setFinalWinner(null); 
+    setCurrentChamp(null);
   };
 
   const handleSaveSession = async (sessionData) => {
-    if (!user || !focusedSubjectId) return;
+    if (!user?.uid || !focusedSubjectId) return;
     const pagesRead = Number(sessionData.endPage) - Number(sessionData.startPage);
     await updateDoc(doc(db, 'users', user.uid, 'labs', 'reading_lab', 'books', focusedSubjectId), {
       status: sessionData.isFinished ? 'FINISHED' : 'READING',
       currentPage: Number(sessionData.endPage),
       sessionStartedAt: null,
-      sessions: arrayUnion({ emotions: sessionData.emotions, intensities: sessionData.intensities, minutes: Number(sessionData.minutes), pagesRead: Number(pagesRead), date: new Date().toISOString(), mode: sessionData.mode }),
+      sessions: arrayUnion({ 
+        emotions: sessionData.emotions, 
+        intensities: sessionData.intensities, 
+        minutes: Number(sessionData.minutes), 
+        pagesRead: Number(pagesRead), 
+        date: new Date().toISOString(), 
+        mode: sessionData.mode 
+      }),
       review: sessionData.isFinished ? String(sessionData.conclusion) : ''
     });
     setIsLogging(false);
   };
 
   const handleStartSession = async (bookId) => {
-    // UPDATED PATH
+    if (!user?.uid) return;
     const bookRef = doc(db, 'users', user.uid, 'labs', 'reading_lab', 'books', bookId);
     await updateDoc(bookRef, { sessionStartedAt: serverTimestamp() });
   };
 
   const handleCancelSession = async (e, bookId) => {
+    if (!user?.uid) return;
     e.stopPropagation();
-    // UPDATED PATH
     const bookRef = doc(db, 'users', user.uid, 'labs', 'reading_lab', 'books', bookId);
     await updateDoc(bookRef, { sessionStartedAt: null });
   };
 
-  const handleBattleChoice = (winner) => {
-    if (!winner) return;
-    setRoundWinnerId(winner.id);
-
-    setTimeout(() => {
-      setRoundWinnerId(null);
-      // FIX: Use tbrPool.length (the filtered personal list) 
-      // instead of raw books array to ensure the winner screen triggers.
-      if (battleIdx >= tbrPool.length - 1) {
-        setFinalWinner(winner);
-        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-      } else {
-        setCurrentChamp(winner);
-        setBattleIdx(prev => prev + 1);
-      }
-    }, 800);
+  const submitFeatureRequest = async (data) => {
+    if (!user?.uid) return;
+    await addDoc(collection(db, 'artifacts', platformAppId, 'public', 'data', 'featureRequests'), {
+      ...data,
+      userId: user.uid,
+      status: 'pending',
+      createdAt: Date.now()
+    });
   };
 
-  if (!hasMounted) return null;
+  const updateRequestStatus = async (id, status) => {
+    if (!user?.uid || user.uid !== ADMIN_UID) return;
+    await updateDoc(doc(db, 'artifacts', platformAppId, 'public', 'data', 'featureRequests', id), { status });
+  };
+
+  // --- 4. MASTER AUTH GUARD ---
+  // Place this right here, after all hooks and handlers
+  if (!user) {
+    return (
+      <div className="h-screen w-full bg-[#FDFCF0] flex items-center justify-center font-sans">
+        <div className="text-center animate-pulse">
+          <div className="w-12 h-12 border-4 border-black border-t-rose-500 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="font-['Londrina_Solid'] text-2xl uppercase font-black opacity-40">Synchronizing Labs...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#FDFCF0] font-sans text-black overflow-x-hidden text-left">
@@ -236,13 +281,22 @@ export default function App() {
         {/* SHARED DASHBOARD */}
         {appState === 'garden' && (
           <div className="max-w-md mx-auto pt-10 animate-in fade-in duration-500">
-            <header className="mb-10 text-left">
-              <div className="inline-block bg-white border-[3px] border-black px-3 py-1 rounded-full mb-3 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] text-black">
-                <p className="font-['Londrina_Solid'] text-xs uppercase tracking-widest text-black">
-                  Verified Researcher: {String(user?.uid?.substring(0, 8))}
-                </p>
+            <header className="mb-10 flex justify-between items-start">
+              <div className="text-left">
+                <div className="inline-block bg-white border-[3px] border-black px-3 py-1 rounded-full mb-3 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] text-black">
+                  <p className="font-['Londrina_Solid'] text-xs uppercase tracking-widest text-black">
+                    Verified Researcher: {user ? String(user.uid.substring(0, 8)) : "Loading..."}                  </p>
+                </div>
+                <h1 className="font-['Londrina_Solid'] text-7xl uppercase leading-none font-black text-black">Pattern HQ</h1>
               </div>
-              <h1 className="font-['Londrina_Solid'] text-7xl uppercase leading-none font-black text-black">Pattern HQ</h1>
+
+              <button
+                onClick={() => setIsControlRoomOpen(true)}
+                className="mt-2 relative w-14 h-14 flex items-center justify-center border-[4px] border-black rounded-2xl bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 transition-all"
+              >
+                <BellIcon size={28} className="text-black" />
+                <div className="absolute -top-1 -right-1 w-4 h-4 bg-rose-500 border-2 border-black rounded-full" />
+              </button>
             </header>
 
             <div className="grid grid-cols-2 gap-5">
@@ -295,9 +349,125 @@ export default function App() {
             }}
           />
         )}
+
+        {isControlRoomOpen && (
+          <ControlRoomModal
+            user={user}
+            requests={featureRequests}
+            updates={systemUpdates}
+            isAdmin={user?.uid === ADMIN_UID}
+            onSave={submitFeatureRequest}
+            onApprove={updateRequestStatus}
+            onCancel={() => setIsControlRoomOpen(false)}
+          />
+        )}
+
+
+
       </div>
     </div>
   );
-
-
 }
+
+// ==========================================
+// 🛠️ CONTROL ROOM MODAL COMPONENT
+// ==========================================
+const ControlRoomModal = ({ user, requests, updates, onSave, onApprove, onCancel, isAdmin }) => {
+  const [tab, setTab] = useState('updates');
+  const [priority, setPriority] = useState(3);
+
+  return (
+    <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-[500] flex items-center justify-center p-4 font-sans text-left" onClick={onCancel}>
+      <div className="bg-[#FDFCF0] border-[6px] border-black rounded-[50px] w-full max-w-lg max-h-[85vh] flex flex-col overflow-hidden shadow-[20px_20px_0px_0px_rgba(0,0,0,1)] text-black" onClick={e => e.stopPropagation()}>
+
+<header className="p-8 border-b-4 border-black/5 text-left relative">
+  {/* Close Button - Top Right */}
+  <button onClick={onCancel} className="absolute top-8 right-8 text-4xl font-black opacity-20 hover:opacity-100 transition-opacity z-20">✕</button>
+
+  <h2 className="font-['Londrina_Solid'] text-5xl uppercase font-black leading-none mb-6">Control Room</h2>
+  
+  {/* NEW TAB SYSTEM */}
+  <div className="flex bg-black/5 p-1 rounded-[25px] border-2 border-black/10">
+    {['updates', 'request'].map((t) => (
+      <button
+        key={t}
+        onClick={() => setTab(t)}
+        className={`flex-1 py-3 rounded-[20px] font-['Londrina_Solid'] uppercase text-lg transition-all duration-200 ${
+          tab === t 
+            ? 'bg-black text-white shadow-lg' 
+            : 'text-black opacity-40 hover:opacity-100'
+        }`}
+      >
+        {t === 'updates' ? 'Changelog' : 'Submit Ticket'}
+      </button>
+    ))}
+  </div>
+</header>
+
+        <div className="flex-1 overflow-y-auto p-8 text-left">
+          {tab === 'updates' ? (
+            <div className="space-y-8 text-left">
+              {updates.length > 0 ? updates.sort((a, b) => b.date - a.date).map(upd => (
+                <div key={upd.id} className="relative pl-6 border-l-4 border-black/10 text-left">
+                  <div className="absolute -left-[10px] top-0 w-4 h-4 bg-black rounded-full border-4 border-[#FDFCF0]" />
+                  <span className="text-[10px] font-black opacity-30 uppercase text-black">{new Date(upd.date).toLocaleDateString()}</span>
+                  <h4 className="font-['Londrina_Solid'] text-2xl uppercase font-black leading-tight mt-1 text-black">{upd.title}</h4>
+                  <p className="text-sm opacity-70 mt-1 leading-relaxed text-black">{upd.description}</p>
+                </div>
+              )) : <p className="opacity-30 italic text-center text-black">No system updates logged yet.</p>}
+            </div>
+          ) : (
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              const fd = new FormData(e.target);
+              onSave({ lab: fd.get('lab'), description: fd.get('desc'), priority });
+              setTab('updates');
+            }} className="space-y-6 text-left text-black">
+              <div className="bg-white border-4 border-black p-4 rounded-3xl text-left">
+                <label className="text-[9px] font-black uppercase opacity-40 block mb-2 text-black text-left">Target Lab</label>
+                <select name="lab" className="w-full bg-transparent font-['Londrina_Solid'] text-2xl uppercase focus:outline-none text-black">
+                  <option>Reading Lab</option>
+                  <option>Love Lab</option>
+                  <option>Quest Lab</option>
+                  <option>Core System</option>
+                </select>
+              </div>
+
+              <div className="bg-white border-4 border-black p-6 rounded-[40px] text-left">
+                <div className="flex justify-between text-[10px] font-black uppercase mb-4 text-black">
+                  <span>Priority Magnitude</span>
+                  <span className="text-rose-500 font-black">{priority}/5</span>
+                </div>
+                <input type="range" min="1" max="5" value={priority} onChange={e => setPriority(parseInt(e.target.value))} className="w-full h-2 bg-black/10 rounded-full appearance-none accent-black cursor-pointer" />
+              </div>
+
+              <div className="bg-white border-4 border-black p-4 rounded-3xl text-left">
+                <label className="text-[10px] font-black uppercase opacity-40 block mb-2 text-black text-left">Requirement Description</label>
+                <textarea name="desc" required placeholder="What should we build?" className="w-full bg-transparent text-sm h-32 focus:outline-none resize-none text-black" />
+              </div>
+
+              <button type="submit" className="w-full bg-black text-white p-6 rounded-[35px] font-['Londrina_Solid'] text-3xl uppercase shadow-[6px_6px_0px_0px_rgba(0,0,0,0.3)] active:translate-y-1 transition-all text-center">Submit Ticket</button>
+            </form>
+          )}
+
+          {isAdmin && tab === 'request' && (
+            <div className="mt-12 pt-8 border-t-4 border-black/5 text-left">
+              <h3 className="font-['Londrina_Solid'] text-xl uppercase mb-4 opacity-40 text-black text-left">Admin Approval Queue</h3>
+              <div className="space-y-4 text-left">
+                {requests.filter(r => r.status === 'pending').map(req => (
+                  <div key={req.id} className="bg-white border-2 border-black p-4 rounded-2xl flex justify-between items-center text-left">
+                    <div className="text-left">
+                      <span className="text-[8px] font-black uppercase px-2 py-0.5 bg-slate-100 rounded text-black">{req.lab}</span>
+                      <p className="text-xs font-bold mt-1 text-black">"{req.description}"</p>
+                    </div>
+                    <button onClick={() => onApprove(req.id, 'approved')} className="bg-green-500 text-white p-2 rounded-xl text-[10px] font-black text-center">APPROVE</button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};

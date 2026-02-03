@@ -77,7 +77,10 @@ export default function ReadingLab({
                 timestamp: new Date().toISOString()
             }),
             currentPage: sessionData.endPage,
-            sessionStartedAt: null // Clear the timer in both places
+            sessionStartedAt: null,
+            // Add this line below to flip the status based on completion
+            status: sessionData.isFinished ? 'FINISHED' : 'READING',
+            rating: sessionData.isFinished ? sessionData.rating : (selectedBook?.rating || null)
         };
 
         try {
@@ -94,60 +97,6 @@ export default function ReadingLab({
             console.error("Session Sync Error:", err);
         }
     };
-
-    // 1. ADD THIS FUNCTION ABOVE YOUR RETURN
-    // const forceGlobalMigration = async () => {
-    //     console.log("⚠️ STARTING GLOBAL SYSTEM MIGRATION");
-    //     if (!db) {
-    //         alert("Database connection (db) not found!");
-    //         return;
-    //     }
-
-    //     try {
-    //         // 1. Reference the legacy "Big Pile"
-    //         const oldColRef = collection(db, 'artifacts', platformAppId, 'public', 'data', 'books');
-
-    //         // 2. Fetch EVERY book in the system
-    //         const querySnapshot = await getDocs(oldColRef);
-
-    //         if (querySnapshot.empty) {
-    //             alert("ℹ️ Old collection is already empty or path is wrong.");
-    //             return;
-    //         }
-
-    //         const batch = writeBatch(db);
-    //         let count = 0;
-
-    //         querySnapshot.forEach((oldDoc) => {
-    //             const data = oldDoc.data();
-
-    //             // 3. Safety Check: If a book has no ownerId, we can't route it
-    //             if (!data.ownerId) {
-    //                 console.warn(`Skipping book ${oldDoc.id}: No ownerId found.`);
-    //                 return;
-    //             }
-
-    //             // 4. Dynamic Routing: users/[ownerId]/labs/reading_lab/books/[bookId]
-    //             const newDocRef = doc(db, 'users', data.ownerId, 'labs', 'reading_lab', 'books', oldDoc.id);
-
-    //             batch.set(newDocRef, { 
-    //                 ...data, 
-    //                 _migratedByAdmin: true,
-    //                 _migratedAt: serverTimestamp() 
-    //             }, { merge: true });
-
-    //             count++;
-    //         });
-
-    //         // 5. Commit the entire move
-    //         await batch.commit();
-    //         alert(`🎉 GLOBAL SUCCESS! Moved ${count} books to their respective User Labs.`);
-
-    //     } catch (err) {
-    //         console.error("Global Migration Error:", err);
-    //         alert("Migration Failed: " + err.message);
-    //     }
-    // };
 
     // Helper to render the main content based on state
     const renderMainContent = () => {
@@ -559,6 +508,7 @@ const ReadingDrawer = ({ activeBook, onSave, onCancel, palette }) => {
         intensities: {},
         sessionCries: 0,
         conclusion: '',
+        rating: 4, // Add this: Default rating
         minutes: elapsedMinutes
     });
 
@@ -595,7 +545,7 @@ const ReadingDrawer = ({ activeBook, onSave, onCancel, palette }) => {
         e.preventDefault();
         const minutes = Number(session.minutes);
         if (!session.endPage || !activeBook || minutes <= 0) return;
-        onSave({ ...session, emotions: session.emotions, startPage, endPage: Number(session.endPage), minutes, isFinished });
+        onSave({ ...session, emotions: session.emotions, startPage, endPage: Number(session.endPage), minutes, isFinished, rating : Number(session.rating) });
     };
 
     return (
@@ -771,12 +721,34 @@ const ReadingDrawer = ({ activeBook, onSave, onCancel, palette }) => {
                         <label className="text-[10px] font-black opacity-30 uppercase block mb-1 text-black text-left text-left">Intensity (1-5)</label>
                         <input type="range" min="1" max="5" step="1" className="w-full accent-black text-black text-left" value={session.intensity} onChange={e => setSession({ ...session, intensity: e.target.value })} />
                     </div> */}
-                    {isFinished && (
-                        <div className="bg-white border-4 border-green-500 p-3 rounded-2xl animate-in slide-in-from-top text-black text-left text-left text-left">
-                            <label className="text-[10px] font-black text-green-700 uppercase block mb-1 text-left">Conclusion</label>
-                            <textarea required placeholder="Final experimental thoughts..." className="w-full bg-transparent font-sans text-sm focus:outline-none min-h-[60px] resize-none leading-tight text-black text-left text-left" value={session.conclusion} onChange={e => setSession({ ...session, conclusion: e.target.value })} />
-                        </div>
-                    )}
+{isFinished && (
+    <div className="space-y-4">
+        <div className="mb-4">
+            <div className="flex justify-between items-center mb-2">
+                <label className="text-[10px] font-black text-green-700 uppercase block">Final Rating</label>
+                <span className="font-['Londrina_Solid'] text-2xl text-green-700 font-black">{session.rating} / 5</span>
+            </div>
+            <input 
+                type="range" 
+                min="0" 
+                max="5" 
+                step="0.25" 
+                value={session.rating} 
+                onChange={e => setSession({ ...session, rating: e.target.value })}
+                className="w-full h-3 bg-green-100 rounded-full appearance-none cursor-pointer accent-green-600
+                [&::-webkit-slider-thumb]:appearance-none 
+                [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:h-6 
+                [&::-webkit-slider-thumb]:bg-green-500 [&::-webkit-slider-thumb]:border-2 
+                [&::-webkit-slider-thumb]:border-black [&::-webkit-slider-thumb]:rounded-full shadow-sm"
+            />
+        </div>
+
+        <div className="bg-white border-4 border-green-500 p-3 rounded-2xl animate-in slide-in-from-top text-black text-left text-left text-left">
+            <label className="text-[10px] font-black text-green-700 uppercase block mb-1 text-left">Conclusion</label>
+            <textarea required placeholder="Final experimental thoughts..." className="w-full bg-transparent font-sans text-sm focus:outline-none min-h-[60px] resize-none leading-tight text-black text-left text-left" value={session.conclusion} onChange={e => setSession({ ...session, conclusion: e.target.value })} />
+        </div>
+    </div>
+)}
 
                     <button type="submit" className="w-full bg-black text-white p-5 rounded-3xl font-['Londrina_Solid'] text-2xl uppercase font-black shadow-[6px_6px_0px_0px_rgba(100,100,100,1)] active:translate-y-1 text-center">Save Observation</button>
                 </form>
