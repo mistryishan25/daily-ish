@@ -26,7 +26,18 @@ appState, setAppState, books, user, db, platformAppId, palette, genres,
     const [battleIdx, setBattleIdx] = useState(0);
     const [roundWinnerId, setRoundWinnerId] = useState(null);
     const [finalWinner, setFinalWinner] = useState(null);
-
+// 3. DEFINE THE HANDLER LOCALLY (This fixes your button)
+    const handleStartReading = async (book) => {
+        if (!user?.uid || !book) return;
+        const bookRef = doc(db, 'users', user.uid, 'labs', 'reading_lab', 'books', book.id);
+        
+        await updateDoc(bookRef, { status: 'READING' }); 
+        
+        setFocusedSubjectId(book.id);
+        setAppState('manage'); // Back to station
+        setFinalWinner(null); 
+        setCurrentChamp(null);
+    };
     // 3. THIRD: The Battle Logic Effect
     React.useEffect(() => {
         if (appState === 'library' && libraryMode === 'battle' && !finalWinner && tbrPool.length > 1) {
