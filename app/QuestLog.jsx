@@ -13,12 +13,12 @@ import { collection, addDoc, updateDoc, doc, deleteDoc, serverTimestamp } from '
 
 export default function QuestLog({ quests, user, db, platformAppId }) {
     const [isAdding, setIsAdding] = useState(false);
-    const [activeQuestId, setActiveQuestId] = useState(null); 
-    const [newQuest, setNewQuest] = useState({ 
-        title: '', 
-        category: 'Skill', 
-        deadline: '', 
-        initialMilestone: 'Phase 1' 
+    const [activeQuestId, setActiveQuestId] = useState(null);
+    const [newQuest, setNewQuest] = useState({
+        title: '',
+        category: 'Skill',
+        deadline: '',
+        initialMilestone: 'Phase 1'
     });
 
     const activeQuest = quests.find(q => q.id === activeQuestId);
@@ -31,31 +31,32 @@ export default function QuestLog({ quests, user, db, platformAppId }) {
     };
 
     const handleAdd = async (e) => {
-        e.preventDefault();
-        if (!newQuest.title || !user) return;
-        
-        const initialMilestones = [
-            {
-                title: newQuest.initialMilestone || 'Phase 1',
-                steps: []
-            }
-        ];
+        e.preventDefault(); // Stop page refresh
+        if (!user?.uid) return;
 
-        await addDoc(collection(db, 'artifacts', platformAppId, 'public', 'data', 'quests'), {
+        const questCol = collection(db, 'users', user.uid, 'labs', 'quest_lab', 'quests');
+
+        await addDoc(questCol, {
             title: newQuest.title,
             category: newQuest.category,
             deadline: newQuest.deadline,
-            milestones: initialMilestones,
+            status: 'ACTIVE',
+            createdAt: serverTimestamp(),
             ownerId: user.uid,
-            createdAt: serverTimestamp()
+            milestones: [
+                { title: newQuest.initialMilestone, steps: [] }
+            ]
         });
-        
-        setNewQuest({ title: '', category: 'Skill', deadline: '', initialMilestone: 'Phase 1' });
+
         setIsAdding(false);
+        setNewQuest({ title: '', category: 'Skill', deadline: '', initialMilestone: 'Phase 1' });
     };
 
     const updateMilestones = async (questId, newMilestones) => {
-        await updateDoc(doc(db, 'artifacts', platformAppId, 'public', 'data', 'quests', questId), {
+        // Correct Private Path: users -> uid -> labs -> quest_lab -> quests
+        const questRef = doc(db, 'users', user.uid, 'labs', 'quest_lab', 'quests', questId);
+
+        await updateDoc(questRef, {
             milestones: newMilestones
         });
     };
@@ -80,14 +81,14 @@ export default function QuestLog({ quests, user, db, platformAppId }) {
     // UPDATED: Logic to delete step if text is empty
     const updateStepText = (quest, mIdx, sIdx, text) => {
         const next = [...(quest.milestones || [])];
-        
+
         if (text.trim() === '') {
             // Remove the step entirely if text is deleted
             next[mIdx].steps.splice(sIdx, 1);
         } else {
             next[mIdx].steps[sIdx].text = text;
         }
-        
+
         updateMilestones(quest.id, next);
     };
 
@@ -109,7 +110,7 @@ export default function QuestLog({ quests, user, db, platformAppId }) {
                     <h3 className="font-['Londrina_Solid'] text-5xl uppercase leading-none">Quest Board</h3>
                     <p className="font-['Londrina_Solid'] text-sm opacity-30 uppercase tracking-[0.2em] mt-2"> Twenty-twenty-siicckkk</p>
                 </div>
-                <button 
+                <button
                     onClick={() => setIsAdding(true)}
                     className="w-12 h-12 bg-black text-white rounded-full flex items-center justify-center text-3xl font-black active:translate-y-1 transition-all"
                 >
@@ -127,7 +128,7 @@ export default function QuestLog({ quests, user, db, platformAppId }) {
                         const progress = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
 
                         return (
-                            <div 
+                            <div
                                 key={quest.id}
                                 onClick={() => setActiveQuestId(quest.id)}
                                 className="border-[4px] border-black rounded-[35px] bg-[#FDFCF0] cursor-pointer text-left"
@@ -150,7 +151,7 @@ export default function QuestLog({ quests, user, db, platformAppId }) {
                                 </div>
                             </div>
                         );
-                })}
+                    })}
             </div>
 
             {/* QUEST LAB WORKSPACE - UPDATED CENTERING LOGIC */}
@@ -169,8 +170,8 @@ export default function QuestLog({ quests, user, db, platformAppId }) {
                                 </div>
                                 <h2 className="font-['Londrina_Solid'] text-7xl uppercase leading-none">{activeQuest.title}</h2>
                             </div>
-                            <button 
-                                onClick={() => setActiveQuestId(null)} 
+                            <button
+                                onClick={() => setActiveQuestId(null)}
                                 className="w-16 h-16 bg-white border-4 border-black rounded-3xl shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center text-3xl font-black active:translate-y-1 transition-all"
                             >
                                 ✕
@@ -184,15 +185,15 @@ export default function QuestLog({ quests, user, db, platformAppId }) {
                                         <div className="flex justify-between items-center mb-6">
                                             <div className="flex items-center gap-4 flex-1">
                                                 <div className="w-10 h-10 bg-black text-white rounded-xl flex items-center justify-center font-['Londrina_Solid'] text-2xl pt-1">{mIdx + 1}</div>
-                                                <input 
-                                                    className="font-['Londrina_Solid'] text-4xl uppercase focus:outline-none bg-transparent flex-1 border-b-4 border-dashed border-transparent focus:border-black/10"
+                                                <input
+                                                    className="font-['Londrina_Solid'] text-4xl font-black uppercase focus:outline-none bg-transparent flex-1 border-b-4 border-dashed border-transparent focus:border-black/10 transition-all"
                                                     value={milestone.title}
                                                     onChange={(e) => updateMilestoneTitle(activeQuest, mIdx, e.target.value)}
                                                 />
                                             </div>
-                                            <button 
-                                                onClick={() => deleteMilestone(activeQuest, mIdx)}
-                                                className="w-10 h-10 flex items-center justify-center opacity-0 group-hover:opacity-20 hover:!opacity-100 transition-opacity"
+                                            <button
+                                                onClick={() => { if (confirm('Remove this entire milestone?')) deleteMilestone(activeQuest, mIdx); }}
+                                                className="w-8 h-8 rounded-full border-2 border-black flex items-center justify-center bg-white text-black font-black text-xs shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-0.5 transition-all opacity-0 group-hover:opacity-100"
                                             >
                                                 ✕
                                             </button>
@@ -201,20 +202,20 @@ export default function QuestLog({ quests, user, db, platformAppId }) {
                                         <div className="space-y-4 ml-2">
                                             {(milestone.steps || []).map((step, sIdx) => (
                                                 <div key={sIdx} className="flex items-center gap-4">
-                                                    <button 
+                                                    <button
                                                         onClick={() => toggleStep(activeQuest, mIdx, sIdx)}
                                                         className={`w-10 h-10 border-4 border-black rounded-2xl flex items-center justify-center transition-all ${step.completed ? 'bg-black text-white' : 'bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-0.5'}`}
                                                     >
-                                                        {step.completed && <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                                                        {step.completed && <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>}
                                                     </button>
-                                                    <input 
-                                                        className={`flex-1 bg-transparent font-['Londrina_Solid'] text-2xl uppercase focus:outline-none transition-all ${step.completed ? 'opacity-20 line-through' : 'opacity-100'}`}
-                                                        value={step.text}
-                                                        onChange={(e) => updateStepText(activeQuest, mIdx, sIdx, e.target.value)}
-                                                    />
+                                               <input 
+    className={`flex-1 bg-transparent font-['Londrina_Solid'] text-2xl font-black uppercase focus:outline-none transition-all ${step.completed ? 'opacity-20 line-through' : 'opacity-100'}`}
+    value={step.text}
+    onChange={(e) => updateStepText(activeQuest, mIdx, sIdx, e.target.value)}
+/>
                                                 </div>
                                             ))}
-                                            <button 
+                                            <button
                                                 onClick={() => addStep(activeQuest, mIdx)}
                                                 className="flex items-center gap-3 mt-6 font-['Londrina_Solid'] text-xl uppercase opacity-30 hover:opacity-100 transition-opacity"
                                             >
@@ -225,16 +226,16 @@ export default function QuestLog({ quests, user, db, platformAppId }) {
                                     </div>
                                 ))}
 
-                                <button 
+                                <button
                                     onClick={() => addMilestone(activeQuest)}
                                     className="w-full py-10 border-[5px] border-dashed border-black/20 rounded-[45px] font-['Londrina_Solid'] text-4xl uppercase opacity-20 hover:opacity-100 hover:bg-white hover:border-black transition-all"
                                 >
                                     + Add New Milestone
                                 </button>
-                                
+
                                 <div className="pt-10 flex justify-center">
-                                    <button 
-                                        onClick={() => { if(confirm('Terminate this research objective?')) { deleteDoc(doc(db, 'artifacts', platformAppId, 'public', 'data', 'quests', activeQuest.id)); setActiveQuestId(null); } }}
+                                    <button
+                                        onClick={() => { if (confirm('Terminate this research objective?')) { deleteDoc(doc(db, 'artifacts', platformAppId, 'public', 'data', 'quests', activeQuest.id)); setActiveQuestId(null); } }}
                                         className="py-4 px-10 border-4 border-red-500 text-red-500 rounded-[30px] font-['Londrina_Solid'] uppercase text-xl hover:bg-red-500 hover:text-white transition-all"
                                     >
                                         Delete Quest Record
@@ -251,8 +252,8 @@ export default function QuestLog({ quests, user, db, platformAppId }) {
                 <div className="fixed inset-0 bg-black/60 z-[500] p-6 flex items-center justify-center text-black" onClick={() => setIsAdding(false)}>
                     <div className="bg-[#FDFCF0] border-[5px] border-black rounded-[45px] p-10 w-full max-w-lg shadow-[15px_15px_0px_0px_rgba(0,0,0,1)] relative" onClick={e => e.stopPropagation()}>
                         {/* CLOSE BUTTON */}
-                        <button 
-                            onClick={() => setIsAdding(false)} 
+                        <button
+                            onClick={() => setIsAdding(false)}
                             className="absolute top-6 right-8 text-2xl font-black opacity-30 hover:opacity-100 transition-opacity"
                         >
                             ✕
@@ -262,22 +263,27 @@ export default function QuestLog({ quests, user, db, platformAppId }) {
                         <form onSubmit={handleAdd} className="space-y-6 text-left">
                             <div className="bg-white border-4 border-black p-4 rounded-3xl shadow-[5px_5px_0px_0px_rgba(0,0,0,1)]">
                                 <label className="font-['Londrina_Solid'] text-xs uppercase font-black opacity-40 block mb-1">Quest Title</label>
-                                <input required className="w-full bg-transparent font-['Londrina_Solid'] text-2xl focus:outline-none" placeholder="e.g. ASL Performance" value={newQuest.title} onChange={e => setNewQuest({...newQuest, title: e.target.value})} />
+                                <input required className="w-full bg-transparent font-['Londrina_Solid'] text-2xl focus:outline-none" placeholder="e.g. ASL Performance" value={newQuest.title} onChange={e => setNewQuest({ ...newQuest, title: e.target.value })} />
                             </div>
 
                             <div className="bg-white border-4 border-black p-4 rounded-3xl shadow-[5px_5px_0px_0px_rgba(0,0,0,1)]">
                                 <label className="font-['Londrina_Solid'] text-xs uppercase font-black opacity-40 block mb-1">First Milestone</label>
-                                <input required className="w-full bg-transparent font-['Londrina_Solid'] text-2xl focus:outline-none" placeholder="e.g. Learn the Basics" value={newQuest.initialMilestone} onChange={e => setNewQuest({...newQuest, initialMilestone: e.target.value})} />
-                            </div>
-                            
+<input 
+    required 
+    className="w-full bg-transparent font-['Londrina_Solid'] text-2xl font-black focus:outline-none" 
+    placeholder="e.g. Learn the Basics" 
+    value={newQuest.initialMilestone} 
+    onChange={e => setNewQuest({...newQuest, initialMilestone: e.target.value})} 
+/>                            </div>
+
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="bg-white border-4 border-black p-4 rounded-3xl shadow-[5px_5px_0px_0px_rgba(0,0,0,1)]">
                                     <label className="font-['Londrina_Solid'] text-xs uppercase font-black opacity-40 block mb-1">Target Date</label>
-                                    <input type="date" className="w-full bg-transparent font-['Londrina_Solid'] text-sm focus:outline-none uppercase" value={newQuest.deadline} onChange={e => setNewQuest({...newQuest, deadline: e.target.value})} />
+                                    <input type="date" className="w-full bg-transparent font-['Londrina_Solid'] text-sm focus:outline-none uppercase" value={newQuest.deadline} onChange={e => setNewQuest({ ...newQuest, deadline: e.target.value })} />
                                 </div>
                                 <div className="bg-white border-4 border-black p-4 rounded-3xl shadow-[5px_5px_0px_0px_rgba(0,0,0,1)]">
                                     <label className="font-['Londrina_Solid'] text-xs uppercase font-black opacity-40 block mb-1">Category</label>
-                                    <select className="w-full bg-transparent font-['Londrina_Solid'] text-xl uppercase focus:outline-none" value={newQuest.category} onChange={e => setNewQuest({...newQuest, category: e.target.value})}>
+                                    <select className="w-full bg-transparent font-['Londrina_Solid'] text-xl uppercase focus:outline-none" value={newQuest.category} onChange={e => setNewQuest({ ...newQuest, category: e.target.value })}>
                                         {Object.keys(categories).map(cat => <option key={cat}>{cat}</option>)}
                                     </select>
                                 </div>

@@ -137,7 +137,6 @@ export default function App() {
 
     // Existing Listeners (We can move these to private later if needed)
     const dSub = onSnapshot(collection(db, 'artifacts', platformAppId, 'public', 'data', 'subjects'), (snap) => setDatingSubjects(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
-    const qSub = onSnapshot(collection(db, 'artifacts', platformAppId, 'public', 'data', 'quests'), (snap) => setQuests(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
     const tSub = onSnapshot(collection(db, 'artifacts', platformAppId, 'public', 'data', 'triathlon_logs'), (snap) => {
       setTriathlonLogs(snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(l => l.ownerId === user?.uid));
     });
@@ -152,7 +151,23 @@ export default function App() {
       setSystemUpdates(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     });
 
-    return () => { bSub(); dSub(); qSub(); tSub(); fSub(); uSub(); };
+    return () => { bSub(); dSub(); tSub(); fSub(); uSub(); };
+  }, [user]);
+
+useEffect(() => {
+    if (!user) return; 
+
+    // This matches the private path we set in QuestLog.jsx
+    const questCol = collection(db, 'users', user.uid, 'labs', 'quest_lab', 'quests');
+
+    const unsubscribe = onSnapshot(questCol, (snapshot) => {
+      const qData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setQuests(qData);
+    }, (err) => {
+      console.error("Quest sync error:", err);
+    });
+
+    return () => unsubscribe();
   }, [user]);
 
   // --- 1. MEMOIZED DATA (Safe & Clean) ---
