@@ -843,11 +843,11 @@ const AddBookDrawer = ({ onSave, onCancel, genres }) => {
                             </button>                      </div>
                     </div>
                     <div className="bg-white border-4 border-black p-3 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-left text-black text-left text-left"><label className="text-[10px] uppercase font-black opacity-40 text-left text-black text-left text-left">Title</label><input required className="w-full bg-transparent font-['Londrina_Solid'] text-2xl focus:outline-none font-black text-black text-left text-left" value={nb.title} onChange={e => setNb({ ...nb, title: e.target.value })} /></div>
-                    <div className="bg-white border-4 border-black p-3 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-left text-black text-left text-left"><label className="text-[10px] uppercase font-black opacity-40 text-left text-black text-left text-left">Author</label><input required className="w-full bg-transparent font-['Londrina_Solid'] text-2xl focus:outline-none font-black text-black text-left text-left" value={nb.author} onChange={e => setNb({ ...nb, author: e.target.value })} /></div>
+                    <div className="bg-white border-4 border-black p-3 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-left text-black text-left text-left"><label className="text-[10px] uppercase font-black opacity-40 text-left text-black text-left text-left">Author</label><input className="w-full bg-transparent font-['Londrina_Solid'] text-2xl focus:outline-none font-black text-black text-left text-left" value={nb.author} onChange={e => setNb({ ...nb, author: e.target.value })} /></div>
 
                     <div className="bg-white border-4 border-black p-3 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-left text-black text-left text-left text-left">
                         <label className="text-[10px] uppercase font-black opacity-40 text-left text-black text-left text-left text-left">Hypothesis (Intro)</label>
-                        <textarea required className="w-full bg-transparent text-sm h-20 resize-none font-black text-black text-left text-left" value={nb.introduction} onChange={e => setNb({ ...nb, introduction: e.target.value })} />
+                        <textarea  className="w-full bg-transparent text-sm h-20 resize-none font-black text-black text-left text-left" value={nb.introduction} onChange={e => setNb({ ...nb, introduction: e.target.value })} />
                     </div>
 
                     <div className="bg-white border-4 border-black p-3 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-left text-black text-left text-left text-left">
