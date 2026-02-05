@@ -110,7 +110,7 @@ export default function App() {
 
 
 
-  
+
 
   useEffect(() => { setHasMounted(true); }, []);
 
@@ -156,47 +156,47 @@ export default function App() {
   }, [user]);
 
   // --- 1. MEMOIZED DATA (Safe & Clean) ---
-const readingList = useMemo(() => books.filter(b => b.status === 'READING'), [books]);
-    const tbrPool = useMemo(() => books.filter(b => b.status === 'TBR'), [books]);
+  const readingList = useMemo(() => books.filter(b => b.status === 'READING'), [books]);
+  const tbrPool = useMemo(() => books.filter(b => b.status === 'TBR'), [books]);
 
-// const myTbrPool = useMemo(() => myBooks.filter(b => b.status === 'TBR'), [myBooks]);
+  // const myTbrPool = useMemo(() => myBooks.filter(b => b.status === 'TBR'), [myBooks]);
 
   // const peopleMetCount = useMemo(() => 
   //   datingSubjects.length + sedimentPile.length, 
   //   [datingSubjects, sedimentPile]
   // );
-const peopleMetCount = useMemo(() => 
-  datingSubjects.length, 
-  [datingSubjects]
-);
-  const emptySlots = useMemo(() => 
-    activeSpecimens.filter(s => !s.codename).length, 
+  const peopleMetCount = useMemo(() =>
+    datingSubjects.length,
+    [datingSubjects]
+  );
+  const emptySlots = useMemo(() =>
+    activeSpecimens.filter(s => !s.codename).length,
     [activeSpecimens]
   );
 
-// --- 3. BATTLE LOGIC ---
-    React.useEffect(() => {
-        if (appState === 'library' && libraryMode === 'battle' && !finalWinner && tbrPool.length > 1) {
-            if (!currentChamp) {
-                setCurrentChamp(tbrPool[0]);
-                setBattleIdx(1);
-            }
-        }
-    }, [appState, libraryMode, finalWinner, tbrPool, currentChamp]);
+  // --- 3. BATTLE LOGIC ---
+  React.useEffect(() => {
+    if (appState === 'library' && libraryMode === 'battle' && !finalWinner && tbrPool.length > 1) {
+      if (!currentChamp) {
+        setCurrentChamp(tbrPool[0]);
+        setBattleIdx(1);
+      }
+    }
+  }, [appState, libraryMode, finalWinner, tbrPool, currentChamp]);
 
-    const handleBattleChoice = (winner) => {
-        if (!winner) return;
-        setRoundWinnerId(winner.id);
-        setTimeout(() => {
-            setRoundWinnerId(null);
-            if (battleIdx >= tbrPool.length - 1) {
-                setFinalWinner(winner);
-            } else {
-                setCurrentChamp(winner);
-                setBattleIdx(prev => prev + 1);
-            }
-        }, 800);
-    };
+  const handleBattleChoice = (winner) => {
+    if (!winner) return;
+    setRoundWinnerId(winner.id);
+    setTimeout(() => {
+      setRoundWinnerId(null);
+      if (battleIdx >= tbrPool.length - 1) {
+        setFinalWinner(winner);
+      } else {
+        setCurrentChamp(winner);
+        setBattleIdx(prev => prev + 1);
+      }
+    }, 800);
+  };
 
   const handleSaveSession = async (sessionData) => {
     if (!user?.uid || !focusedSubjectId) return;
@@ -205,13 +205,13 @@ const peopleMetCount = useMemo(() =>
       status: sessionData.isFinished ? 'FINISHED' : 'READING',
       currentPage: Number(sessionData.endPage),
       sessionStartedAt: null,
-      sessions: arrayUnion({ 
-        emotions: sessionData.emotions, 
-        intensities: sessionData.intensities, 
-        minutes: Number(sessionData.minutes), 
-        pagesRead: Number(pagesRead), 
-        date: new Date().toISOString(), 
-        mode: sessionData.mode 
+      sessions: arrayUnion({
+        emotions: sessionData.emotions,
+        intensities: sessionData.intensities,
+        minutes: Number(sessionData.minutes),
+        pagesRead: Number(pagesRead),
+        date: new Date().toISOString(),
+        mode: sessionData.mode
       }),
       review: sessionData.isFinished ? String(sessionData.conclusion) : ''
     });
@@ -246,30 +246,23 @@ const peopleMetCount = useMemo(() =>
     await updateDoc(doc(db, 'artifacts', platformAppId, 'public', 'data', 'featureRequests', id), { status });
   };
 
+  // Locate this in your page.jsx functions
   const handleCompleteRequest = async (req) => {
     if (!user?.uid || user.uid !== ADMIN_UID) return;
-    
-    // Create the record for the official changelog
-    const newUpdate = {
-      title: `Deployed: ${req.lab}`,
-      description: req.description,
-      version: `v${(systemUpdates.length + 1).toFixed(1)}`, // Simple auto-versioning
-      date: Date.now()
-    };
 
     try {
-      // 1. Add to official public changelog
-      const updatesRef = collection(db, 'artifacts', platformAppId, 'public', 'data', 'systemUpdates');
-      await addDoc(updatesRef, newUpdate);
-      
-      // 2. Delete the request from the public queue
       const requestRef = doc(db, 'artifacts', platformAppId, 'public', 'data', 'featureRequests', req.id);
-      await deleteDoc(requestRef);
-      
-      return true; // Return true so modal knows it finished
+
+      // We update the existing doc. 
+      // completedAt must be a number (Date.now()) for sorting.
+      await updateDoc(requestRef, {
+        status: 'done',
+        completedAt: Date.now()
+      });
+
+      return true;
     } catch (e) {
-      console.error("Migration failed:", e);
-      throw e; // Rethrow so modal can catch it
+      console.error("Broadcast failed:", e);
     }
   };
 
@@ -366,7 +359,7 @@ const peopleMetCount = useMemo(() =>
               appState, setAppState, books, user, db, platformAppId, palette, genres,
               focusedSubjectId, setFocusedSubjectId, setIsLogging, isLogging,
               libraryMode, setLibraryMode, isAddingBook, setIsAddingBook,
-               handleSaveSession,
+              handleSaveSession,
               tbrPool, currentChamp, roundWinnerId, battleIdx, finalWinner,
               selectedBook, setSelectedBook, activeTab, setActiveTab
             }}
@@ -387,7 +380,18 @@ const peopleMetCount = useMemo(() =>
           <ControlRoomModal
             user={user}
             requests={featureRequests}
-            updates={systemUpdates}
+            updates={[
+              ...systemUpdates, // Manual broadcasts
+              ...featureRequests
+                .filter(r => r.status === 'done') // Only items you marked 'DONE'
+                .map(r => ({
+                  id: r.id,
+                  title: `Deployed: ${r.lab}`,
+                  description: r.description,
+                  date: r.completedAt || 0, // Must match the name 'date' for sorting
+                  version: 'Field Patch'
+                }))
+            ].sort((a, b) => b.date - a.date)} // Newest at the top
             isAdmin={user?.uid === ADMIN_UID}
             onSave={submitFeatureRequest}
             onApprove={updateRequestStatus}
@@ -407,15 +411,15 @@ const peopleMetCount = useMemo(() =>
 // 🛠️ CONTROL ROOM MODAL COMPONENT
 // ==========================================
 
-const ControlRoomModal = ({ 
-  user, 
-  requests = [], 
-  updates = [], 
-  onSave, 
-  onApprove, 
-  onComplete, 
-  onCancel, 
-  isAdmin 
+const ControlRoomModal = ({
+  user,
+  requests = [],
+  updates = [],
+  onSave,
+  onApprove,
+  onComplete,
+  onCancel,
+  isAdmin
 }) => {
   const [tab, setTab] = useState('updates'); // 'updates' or 'request'
   const [priority, setPriority] = useState(3);
@@ -435,13 +439,13 @@ const ControlRoomModal = ({
 
   return (
     <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-[500] flex items-center justify-center p-4 font-sans text-left" onClick={onCancel}>
-      <div 
-        className="bg-[#FDFCF0] border-[6px] border-black rounded-[40px] md:rounded-[50px] w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden shadow-[20px_20px_0px_0px_rgba(0,0,0,1)] text-black relative" 
+      <div
+        className="bg-[#FDFCF0] border-[6px] border-black rounded-[40px] md:rounded-[50px] w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden shadow-[20px_20px_0px_0px_rgba(0,0,0,1)] text-black relative"
         onClick={e => e.stopPropagation()}
       >
         {/* MOBILE-FRIENDLY CLOSE BUTTON */}
-        <button 
-          onClick={onCancel} 
+        <button
+          onClick={onCancel}
           className="absolute top-4 right-4 md:top-8 md:right-8 w-10 h-10 flex items-center justify-center text-3xl font-black bg-black text-white rounded-full md:bg-transparent md:text-black md:opacity-20 md:hover:opacity-100 transition-all z-[60]"
           aria-label="Close"
         >
@@ -450,22 +454,20 @@ const ControlRoomModal = ({
 
         <header className="p-6 md:p-8 border-b-4 border-black/5 text-left">
           <h2 className="font-['Londrina_Solid'] text-4xl md:text-5xl uppercase font-black leading-none mb-6 pr-12 text-black">Control Room</h2>
-          
+
           {/* NAVIGATION TABS */}
           <div className="flex bg-black/5 p-1 rounded-[25px] border-2 border-black/10">
             <button
               onClick={() => setTab('updates')}
-              className={`flex-1 py-3 rounded-[20px] font-['Londrina_Solid'] uppercase text-lg transition-all duration-200 ${
-                tab === 'updates' ? 'bg-black text-white shadow-lg' : 'text-black opacity-40 hover:opacity-100'
-              }`}
+              className={`flex-1 py-3 rounded-[20px] font-['Londrina_Solid'] uppercase text-lg transition-all duration-200 ${tab === 'updates' ? 'bg-black text-white shadow-lg' : 'text-black opacity-40 hover:opacity-100'
+                }`}
             >
               Status
             </button>
             <button
               onClick={() => setTab('request')}
-              className={`flex-1 py-3 rounded-[20px] font-['Londrina_Solid'] uppercase text-lg transition-all duration-200 ${
-                tab === 'request' ? 'bg-black text-white shadow-lg' : 'text-black opacity-40 hover:opacity-100'
-              }`}
+              className={`flex-1 py-3 rounded-[20px] font-['Londrina_Solid'] uppercase text-lg transition-all duration-200 ${tab === 'request' ? 'bg-black text-white shadow-lg' : 'text-black opacity-40 hover:opacity-100'
+                }`}
             >
               Submit Ticket
             </button>
@@ -476,31 +478,12 @@ const ControlRoomModal = ({
         <div className="flex-1 overflow-y-auto p-6 md:p-8 text-left scroll-smooth">
           {tab === 'updates' ? (
             <div className="space-y-12">
-              
-              {/* SECTION 1: SYSTEM CHANGELOG */}
-              <section>
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="h-1 flex-1 bg-black/5 rounded-full" />
-                  <h3 className="font-['Londrina_Solid'] text-sm uppercase opacity-40 tracking-[0.2em] whitespace-nowrap">System Changelog</h3>
-                  <div className="h-1 flex-1 bg-black/5 rounded-full" />
-                </div>
-                <div className="space-y-8">
-                  {updates && updates.length > 0 ? updates.sort((a,b) => b.date - a.date).map(upd => (
-                    <div key={upd.id} className="relative pl-6 border-l-4 border-black text-left">
-                      <div className="absolute -left-[10px] top-0 w-4 h-4 bg-black rounded-full border-4 border-[#FDFCF0]" />
-                      <span className="text-[10px] font-black opacity-30 uppercase text-black">
-                        {upd.version || 'v1.0'} • {new Date(upd.date).toLocaleDateString()}
-                      </span>
-                      <h4 className="font-['Londrina_Solid'] text-2xl uppercase font-black leading-tight mt-1 text-black">{upd.title}</h4>
-                      <p className="text-sm opacity-70 mt-1 leading-relaxed text-black">{upd.description}</p>
-                    </div>
-                  )) : (
-                    <p className="italic opacity-30 text-center text-sm py-4 text-black">No system logs broadcasted.</p>
-                  )}
-                </div>
-              </section>
 
-              {/* SECTION 2: APPROVED FIELD REQUESTS */}
+              {/* --- SECTION: ControlRoomModal Status Tab Content --- */}
+              <div className="space-y-12">
+
+
+                              {/* SECTION 2: APPROVED FIELD REQUESTS */}
               <section>
                 <div className="flex items-center gap-3 mb-6">
                   <div className="h-1 flex-1 bg-black/5 rounded-full" />
@@ -521,15 +504,14 @@ const ControlRoomModal = ({
                             <p className="text-sm font-bold leading-tight text-black">"{req.description}"</p>
                           </div>
                         </div>
-                        
+
                         {/* ADMIN ONLY: DONE BUTTON */}
                         {isAdmin && (
-                          <button 
+                          <button
                             disabled={completingId === req.id}
-                            onClick={() => handleDoneClick(req)} 
-                            className={`px-6 py-2 rounded-2xl border-2 border-black font-['Londrina_Solid'] text-xl uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-0.5 active:shadow-none transition-all w-full md:w-auto ${
-                              completingId === req.id ? 'bg-slate-400 cursor-not-allowed' : 'bg-blue-500 text-white'
-                            }`}
+                            onClick={() => handleDoneClick(req)}
+                            className={`px-6 py-2 rounded-2xl border-2 border-black font-['Londrina_Solid'] text-xl uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-0.5 active:shadow-none transition-all w-full md:w-auto ${completingId === req.id ? 'bg-slate-400 cursor-not-allowed' : 'bg-blue-500 text-white'
+                              }`}
                           >
                             {completingId === req.id ? '...' : 'Done'}
                           </button>
@@ -543,6 +525,27 @@ const ControlRoomModal = ({
                   )}
                 </div>
               </section>
+
+                {/* A: OFFICIAL SYSTEM LOGS (The big manual ones) */}
+                <section>
+                  <h3 className="font-['Londrina_Solid'] text-sm uppercase opacity-40 tracking-widest mb-6">Official Broadcasts</h3>
+                  <div className="space-y-8">
+                    {updates.map(upd => (
+                      <div key={upd.id} className="relative pl-6 border-l-4 border-black">
+                        <div className="absolute -left-[10px] top-0 w-4 h-4 bg-black rounded-full border-4 border-[#FDFCF0]" />
+                        <span className="text-[10px] font-black opacity-30 uppercase">{upd.version} • {new Date(upd.date).toLocaleDateString()}</span>
+                        <h4 className="font-['Londrina_Solid'] text-2xl uppercase font-black leading-tight mt-1">{upd.title}</h4>
+                        <p className="text-sm opacity-70 mt-1">{upd.description}</p>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+                {/* B: COMPLETED FIELD WORK (The ones marked 'done' in featureRequests) */}
+
+              </div>
+
+
             </div>
           ) : (
             /* SECTION 3: SUBMIT TICKET TAB */
@@ -564,31 +567,31 @@ const ControlRoomModal = ({
                     <option>Core System</option>
                   </select>
                 </div>
-                
+
                 <div className="bg-white border-4 border-black p-6 rounded-[40px]">
                   <div className="flex justify-between text-[10px] font-black uppercase mb-4 text-black">
                     <span>Priority Magnitude</span>
                     <span className="text-rose-500 font-black">{priority}/5</span>
                   </div>
-                  <input 
-                    type="range" 
-                    min="1" max="5" 
-                    value={priority} 
-                    onChange={e => setPriority(parseInt(e.target.value))} 
-                    className="w-full h-2 bg-black/10 rounded-full appearance-none accent-black cursor-pointer" 
+                  <input
+                    type="range"
+                    min="1" max="5"
+                    value={priority}
+                    onChange={e => setPriority(parseInt(e.target.value))}
+                    className="w-full h-2 bg-black/10 rounded-full appearance-none accent-black cursor-pointer"
                   />
                 </div>
 
                 <div className="bg-white border-4 border-black p-4 rounded-3xl">
                   <label className="text-[10px] font-black uppercase opacity-40 block mb-2 text-black">Requirement Description</label>
-                  <textarea 
-                    name="desc" 
-                    required 
-                    placeholder="What should we build?" 
-                    className="w-full bg-transparent text-sm h-32 focus:outline-none resize-none text-black" 
+                  <textarea
+                    name="desc"
+                    required
+                    placeholder="What should we build?"
+                    className="w-full bg-transparent text-sm h-32 focus:outline-none resize-none text-black"
                   />
                 </div>
-                
+
                 <button type="submit" className="w-full bg-black text-white p-6 rounded-[35px] font-['Londrina_Solid'] text-3xl uppercase shadow-[6px_6px_0px_0px_rgba(0,0,0,0.3)] active:translate-y-1 transition-all font-black">
                   Submit Ticket
                 </button>
@@ -606,8 +609,8 @@ const ControlRoomModal = ({
                             <span className="text-[8px] font-black uppercase px-2 py-0.5 bg-slate-100 rounded text-black">{req.lab}</span>
                             <p className="text-xs font-bold mt-1 text-black">"{req.description}"</p>
                           </div>
-                          <button 
-                            onClick={() => onApprove && onApprove(req.id, 'approved')} 
+                          <button
+                            onClick={() => onApprove && onApprove(req.id, 'approved')}
                             className="bg-green-500 text-white p-2 rounded-xl text-[10px] font-black uppercase border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-y-0.5 transition-all"
                           >
                             Approve
