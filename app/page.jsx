@@ -90,6 +90,9 @@ export default function App() {
   const [isControlRoomOpen, setIsControlRoomOpen] = useState(false);
   const [featureRequests, setFeatureRequests] = useState([]);
   const [systemUpdates, setSystemUpdates] = useState([]);
+  const [isAddingInteraction, setIsAddingInteraction] = useState(false);
+  const [interactions, setInteractions] = useState([]);
+const [specimens, setSpecimens] = useState([]); // Adding this to match your new LoveLab schema
   const ADMIN_UID = "6Zs8Wndk6pdTGsPmHrWcBsTbAqG2"; // Copy from the "Verified Researcher" label on your screen
 
   const [activeSpecimens, setActiveSpecimens] = useState([
@@ -109,7 +112,7 @@ export default function App() {
   const [finalWinner, setFinalWinner] = useState(null);
 
 
-
+const activeSpecimensFiltered = specimens.filter(s => s.status === 'active');
 
 
   useEffect(() => { setHasMounted(true); }, []);
@@ -151,7 +154,19 @@ export default function App() {
       setSystemUpdates(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     });
 
-    return () => { bSub(); dSub(); tSub(); fSub(); uSub(); };
+    // --- Listener for Specimens (People) ---
+  const sRef = collection(db, 'users', user.uid, 'labs', 'lovelab', 'specimens');
+  const unsubS = onSnapshot(sRef, (snap) => {
+    setSpecimens(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+  });
+
+  // --- Listener for Interactions (Pulses/Logs) ---
+  const iRef = collection(db, 'users', user.uid, 'labs', 'lovelab', 'interactions');
+  const unsubI = onSnapshot(iRef, (snap) => {
+    setInteractions(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+  }, (err) => console.error("Interaction fetch error:", err));
+
+    return () => { bSub(); dSub(); tSub(); fSub(); uSub(); unsubS(); unsubI(); };
   }, [user]);
 
 useEffect(() => {
@@ -188,6 +203,7 @@ useEffect(() => {
     activeSpecimens.filter(s => !s.codename).length,
     [activeSpecimens]
   );
+
 
   // --- 3. BATTLE LOGIC ---
   React.useEffect(() => {
@@ -245,6 +261,37 @@ useEffect(() => {
     const bookRef = doc(db, 'users', user.uid, 'labs', 'reading_lab', 'books', bookId);
     await updateDoc(bookRef, { sessionStartedAt: null });
   };
+// --- SECTION: Love Lab Handlers (Add to page.jsx) ---
+const handleAddPerson = async (data) => {
+  if (!user?.uid) return;
+  try {
+    const colRef = collection(db, 'users', user.uid, 'labs', 'lovelab', 'specimens');
+    await addDoc(colRef, {
+      ...data,
+      status: 'active',
+      createdAt: Date.now(),
+      logDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase()
+    });
+    setIsAddingPerson(false);
+  } catch (err) { console.error("Error adding specimen:", err); }
+};
+
+const triggerSpecimenExpiration = async (s) => {
+  if (!user?.uid) return;
+  try {
+    const docRef = doc(db, 'users', user.uid, 'labs', 'lovelab', 'specimens', s.id);
+    await updateDoc(docRef, { status: 'expired' });
+  } catch (err) { console.error("Error updating status:", err); }
+};
+
+const handleRecordInteraction = async (data) => {
+  if (!user?.uid) return;
+  try {
+    const colRef = collection(db, 'users', user.uid, 'labs', 'lovelab', 'interactions');
+    await addDoc(colRef, { ...data, timestamp: Date.now() });
+    setIsAddingInteraction(false);
+  } catch (err) { console.error("Error logging pulse:", err); }
+};
 
   const submitFeatureRequest = async (data) => {
     if (!user?.uid) return;
@@ -293,6 +340,8 @@ useEffect(() => {
       </div>
     );
   }
+
+  
 
   return (
     <div className="min-h-screen bg-[#FDFCF0] font-sans text-black overflow-x-hidden text-left">
@@ -381,16 +430,24 @@ useEffect(() => {
           />
         )}
 
-        {(appState === 'dating_hub' || appState === 'dating_bloom' || ['dating_garden', 'dating_lab', 'dating_playbook'].includes(appState)) && (
-          <LoveLab
-            {...{
-              appState, setAppState, emptySlots, activeSpecimens, sedimentPile,
-              setIsAddingPerson, isAddingPerson, handleAddPerson, SettingsIcon,
-              triggerSpecimenExpiration, fallingSpecimen, SparklesIcon
-            }}
-          />
-        )}
-
+   {(appState === 'dating_hub' || appState === 'dating_bloom' || ['dating_garden', 'dating_lab', 'dating_playbook'].includes(appState)) && (
+  <LoveLab
+    {...{
+      appState, setAppState, emptySlots, 
+      activeSpecimens: activeSpecimensFiltered, // Use the filtered list
+      sedimentPile,
+      setIsAddingPerson, isAddingPerson, 
+      handleAddPerson,
+      SettingsIcon, SparklesIcon,
+      triggerSpecimenExpiration, 
+      handleRecordInteraction, 
+      isAddingInteraction,     
+      setIsAddingInteraction,  
+      interactions,            // This fixed the error!
+      likedSubjects: specimens // Pass all specimens for the Archive/Bloom view
+    }}
+  />
+)}
         {isControlRoomOpen && (
           <ControlRoomModal
             user={user}
