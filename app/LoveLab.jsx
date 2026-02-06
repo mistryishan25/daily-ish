@@ -198,8 +198,8 @@ export default function App() {
 // 🧪 LOVE LAB MAIN UI
 // ==========================================
 function LoveLab({
-user, appState, setAppState, activeSpecimens,
-  setIsAddingPerson, isAddingPerson, 
+  user, appState, setAppState, activeSpecimens,
+  setIsAddingPerson, isAddingPerson,
   isAddingInteraction, setIsAddingInteraction, // Add these
   handleAddPerson, handleRecordInteraction,    // Add this
   triggerSpecimenExpiration, likedSubjects, interactions // Add interactions
@@ -454,66 +454,6 @@ user, appState, setAppState, activeSpecimens,
       );
     }
 
-    // --- STATION: DAILY BLOOM ---
-    if (appState === 'dating_bloom') {
-      const todayStr = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase();
-      const currentDayLikes = likedSubjects.filter(l => l.logDate === (selectedDate === "TODAY" ? todayStr : selectedDate));
-
-      return (
-        <div className="fixed inset-0 bg-[#FDFCF0] z-50 flex flex-col animate-in slide-in-from-right duration-500 overflow-hidden text-black text-left font-sans text-left">
-          <header className="bg-[#1a1c2c] border-b-[6px] border-black px-10 py-8 flex justify-between items-center text-white relative shadow-xl shrink-0 text-left">
-            <button onClick={() => isDateActive ? setIsDateActive(false) : setAppState('dating_hub')} className="font-['Londrina_Solid'] text-xl uppercase opacity-40 hover:opacity-100 transition-opacity font-bold text-white text-left">
-              {isDateActive ? 'BACK TO ARCHIVE' : 'EXIT LOG'}
-            </button>
-            <h2 className="font-['Londrina_Solid'] text-4xl uppercase font-black text-white text-center text-left">{isDateActive ? selectedDate : 'Daily Bloom'}</h2>
-            <div className="w-10" />
-          </header>
-
-          {!isDateActive ? (
-            <div className="flex-1 p-8 overflow-y-auto text-left">
-              <div className="mb-8 text-left"><h3 className="font-['Londrina_Solid'] text-5xl uppercase leading-none text-black text-left">Record Archive</h3></div>
-              <div className="grid grid-cols-2 gap-4 max-w-md mx-auto text-left text-left">
-                {dateTabs.map((date) => (
-                  <button key={date} onClick={() => { setSelectedDate(date); setIsDateActive(true); }} className={`py-6 px-4 border-[4px] border-black rounded-[35px] font-['Londrina_Solid'] text-2xl uppercase transition-all shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-0.5 ${selectedDate === date ? 'bg-[#ff748c]' : 'bg-[#FFD1DC]'} text-left text-left`}>
-                    <span className="opacity-40 text-[10px] font-black tracking-widest uppercase text-left"></span>{date}
-                  </button>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="flex-1 relative overflow-y-auto bg-white/5 p-8 pb-32 animate-in slide-in-from-bottom duration-300 text-left text-left text-left">
-              <div className="grid grid-cols-2 gap-y-12 gap-x-8 justify-items-center text-left text-left text-left text-left">
-                {[...Array(8)].map((_, i) => {
-                  const subject = currentDayLikes[i];
-                  return (
-                    <div key={subject?.id || i} className="flex flex-col items-center text-left text-left">
-                      <button
-                        onClick={() => subject ? setViewingSubject(subject) : (selectedDate === "TODAY" && setIsAddingPerson(true))}
-                        className="transition-transform active:scale-95 text-left text-left text-left"
-                      >
-                        <MLMHeart id={`bloom-${i}`} isPlaceholder={!subject} />
-                      </button>
-                      {subject ? (
-                        <div className="mt-4 text-center cursor-pointer text-left text-left text-left" onClick={() => setViewingSubject(subject)}>
-                          <p className="font-['Londrina_Solid'] text-2xl uppercase font-black text-black leading-none text-center text-left">{subject.name}</p>
-                          <div className="mt-1 bg-black text-white px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tight text-center text-left">Open Case File ➔</div>
-                        </div>
-                      ) : selectedDate === "TODAY" && (
-                        <button onClick={() => setIsAddingPerson(true)} className="bg-black text-white px-4 py-1.5 rounded-xl border-2 border-black font-['Londrina_Solid'] text-[10px] uppercase mt-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-0.5 text-left text-left">Register</button>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-              <div className="bg-black p-6 border-t-[6px] border-black text-center text-white font-black uppercase text-xs fixed bottom-0 left-0 right-0 z-50 flex justify-between px-10 text-left">
-                <span>Cycle: {selectedDate}</span><span>Likes Registered: {currentDayLikes.length}</span>
-              </div>
-            </div>
-          )}
-        </div>
-      );
-    }
-
     // --- HUB ---
     return (
       <div className="fixed inset-0 bg-[#FDFCF0] z-50 flex flex-col animate-in slide-in-from-bottom duration-500 overflow-hidden text-black text-left font-sans text-left text-left">
@@ -529,11 +469,24 @@ user, appState, setAppState, activeSpecimens,
         </header>
 
         <div className="flex-1 relative overflow-y-auto p-8 pb-40 text-left text-left text-left text-left">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto w-full">
+            {/* Left Button: For brand new people */}
+            <button
+              onClick={() => setIsAddingPerson(true)}
+              className="bg-black text-white border-[5px] border-black rounded-[45px] p-8 shadow-[8px_8px_0_0_rgba(100,100,100,0.5)] active:translate-y-1 transition-all flex items-center justify-center text-3xl font-['Londrina_Solid'] uppercase font-black tracking-tight text-center"
+            >
+              New Like
+            </button>
+
+            {/* Right Button: For existing people in your garden */}
+            <button
+              onClick={() => setIsAddingInteraction(true)}
+              className="bg-rose-500 text-white border-[5px] border-black rounded-[45px] p-8 shadow-[8px_8px_0_0_rgba(255,100,100,0.2)] active:translate-y-1 transition-all flex items-center justify-center text-3xl font-['Londrina_Solid'] uppercase font-black tracking-tight text-center"
+            >
+              Log Pulse
+            </button>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto w-full mb-10 text-left text-left text-left text-left">
-            <BentoButton title="Daily Bloom" bg="bg-[#FFD1DC]" onClick={() => setAppState('dating_bloom')}>
-              <p className="font-['Londrina_Solid'] text-2xl text-black font-black leading-none text-left text-left text-left text-left">Impressions Log</p>
-              <p className="font-['Londrina_Solid'] text-xl text-black opacity-40 font-bold mt-1 text-left text-left text-left text-left">Archive Engine</p>
-            </BentoButton>
             <BentoButton title="Active Garden" bg="bg-[#C1E1C1]" onClick={() => setAppState('dating_garden')}>
               <p className="font-['Londrina_Solid'] text-2xl text-black font-black leading-none text-left text-left text-left text-left">Dynamics Map</p>
               <p className="font-['Londrina_Solid'] text-xl text-black opacity-40 font-bold mt-1 text-left text-left text-left text-left">Live Orbit Map</p>
@@ -547,61 +500,44 @@ user, appState, setAppState, activeSpecimens,
               <p className="font-['Londrina_Solid'] text-xl text-black opacity-40 font-bold mt-1 text-left text-left text-left text-left text-left">Standard Interventions</p>
             </BentoButton>
           </div>
-{/* Replace the old single button with this grid container */}
-<div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto w-full">
-  {/* Left Button: For brand new people */}
-  <button 
-    onClick={() => setIsAddingPerson(true)} 
-    className="bg-black text-white border-[5px] border-black rounded-[45px] p-8 shadow-[8px_8px_0_0_rgba(100,100,100,0.5)] active:translate-y-1 transition-all flex items-center justify-center text-3xl font-['Londrina_Solid'] uppercase font-black tracking-tight text-center"
-  >
-    New Like
-  </button>
-
-  {/* Right Button: For existing people in your garden */}
-  <button 
-    onClick={() => setIsAddingInteraction(true)} 
-    className="bg-rose-500 text-white border-[5px] border-black rounded-[45px] p-8 shadow-[8px_8px_0_0_rgba(255,100,100,0.2)] active:translate-y-1 transition-all flex items-center justify-center text-3xl font-['Londrina_Solid'] uppercase font-black tracking-tight text-center"
-  >
-    Log Pulse
-  </button>
-</div>        </div>
+        </div>
       </div>
     );
   };
 
-// This usually starts around line 350 or near the end of the LoveLab function
-return (
-  <>
-    {renderCurrentView()}
-    {isAddingPerson && (
-      <SubjectRegistryModal 
-        handleAddPerson={handleAddPerson} 
-        onCancel={() => setIsAddingPerson(false)} 
-      />
-    )}
-    {/* Ensure this line uses the exact names from your signature */}
-    {isAddingInteraction && (
-      <InteractionRegistryModal 
-        specimens={activeSpecimens} 
-        handleAdd={handleRecordInteraction} 
-        onCancel={() => setIsAddingInteraction(false)} 
-      />
-    )}
-    {viewingSubject && (
-      <SubjectCaseFileModal 
-        subject={viewingSubject} 
-        interactions={interactions.filter(i => i.specimenId === viewingSubject.id)} 
-        onCancel={() => setViewingSubject(null)} 
-      />
-    )}
-  </>
-);
+  // This usually starts around line 350 or near the end of the LoveLab function
+  return (
+    <>
+      {renderCurrentView()}
+      {isAddingPerson && (
+        <SubjectRegistryModal
+          handleAddPerson={handleAddPerson}
+          onCancel={() => setIsAddingPerson(false)}
+        />
+      )}
+      {/* Ensure this line uses the exact names from your signature */}
+      {isAddingInteraction && (
+        <InteractionRegistryModal
+          specimens={activeSpecimens}
+          handleAdd={handleRecordInteraction}
+          onCancel={() => setIsAddingInteraction(false)}
+        />
+      )}
+      {viewingSubject && (
+        <SubjectCaseFileModal
+          subject={viewingSubject}
+          interactions={interactions.filter(i => i.specimenId === viewingSubject.id)}
+          onCancel={() => setViewingSubject(null)}
+        />
+      )}
+    </>
+  );
 }
 
 // ==========================================
 // 📄 CASE FILE MODAL (Detailed Analysis)
 // ==========================================
-const SubjectCaseFileModal = ({ subject,interactions, onCancel }) => (
+const SubjectCaseFileModal = ({ subject, interactions, onCancel }) => (
   <div className="fixed inset-0 bg-black/90 backdrop-blur-lg z-[300] flex items-center justify-center p-6 font-sans text-left text-left text-left text-left text-left" onClick={onCancel}>
     <div className="bg-[#FDFCF0] border-[6px] border-black rounded-[50px] p-10 w-full max-w-md overflow-y-auto text-black shadow-[25px_25px_0px_0px_rgba(0,0,0,1)] animate-in zoom-in-95 duration-200 text-left text-left text-left text-left text-left text-left" onClick={e => e.stopPropagation()}>
       <header className="mb-8 flex justify-between items-start text-left text-left text-left text-left text-left text-left">
@@ -619,19 +555,19 @@ const SubjectCaseFileModal = ({ subject,interactions, onCancel }) => (
         </div>
 
         <div className="bg-white border-4 border-black p-6 rounded-[35px] text-left">
-              <label className="text-[10px] font-black uppercase opacity-40 block mb-4 flex items-center gap-2 text-black"><ActivityIcon size={12}/> Interaction Timeline</label>
-              <div className="space-y-4 max-h-48 overflow-y-auto pr-2">
-                 {interactions.length > 0 ? interactions.sort((a,b) => b.timestamp - a.timestamp).map(i => (
-                    <div key={i.id} className="border-l-4 border-rose-500 pl-4 py-1">
-                       <div className="flex justify-between items-start">
-                          <span className="font-black uppercase text-[10px] text-black">{MARKOV_STATES.find(m => m.id === i.type)?.label}</span>
-                          <span className="text-[8px] opacity-30 font-black text-black">{new Date(i.timestamp).toLocaleDateString()}</span>
-                       </div>
-                       <p className="text-xs font-medium leading-snug mt-1 text-black italic">"{i.notes}"</p>
-                    </div>
-                 )) : <p className="text-[10px] italic opacity-30 text-black">No pulses recorded yet.</p>}
+          <label className="text-[10px] font-black uppercase opacity-40 block mb-4 flex items-center gap-2 text-black"><ActivityIcon size={12} /> Interaction Timeline</label>
+          <div className="space-y-4 max-h-48 overflow-y-auto pr-2">
+            {interactions.length > 0 ? interactions.sort((a, b) => b.timestamp - a.timestamp).map(i => (
+              <div key={i.id} className="border-l-4 border-rose-500 pl-4 py-1">
+                <div className="flex justify-between items-start">
+                  <span className="font-black uppercase text-[10px] text-black">{MARKOV_STATES.find(m => m.id === i.type)?.label}</span>
+                  <span className="text-[8px] opacity-30 font-black text-black">{new Date(i.timestamp).toLocaleDateString()}</span>
+                </div>
+                <p className="text-xs font-medium leading-snug mt-1 text-black italic">"{i.notes}"</p>
               </div>
-           </div>
+            )) : <p className="text-[10px] italic opacity-30 text-black">No pulses recorded yet.</p>}
+          </div>
+        </div>
 
         <div className="grid grid-cols-1 gap-4 text-left text-left text-left text-left text-left text-left text-left">
           <div className="bg-white border-2 border-black p-5 rounded-3xl space-y-4 text-left text-left text-left text-left text-left text-left">
@@ -877,35 +813,35 @@ const InteractionRegistryModal = ({ specimens, handleAdd, onCancel }) => {
   const filtered = specimens.filter(s => s.name.toLowerCase().includes(search.toLowerCase()));
   return (
     <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-[250] flex items-end justify-center p-6 font-sans text-left" onClick={onCancel}>
-       <div className="bg-[#FDFCF0] border-[5px] border-black rounded-[45px] p-8 w-full max-sm max-h-[90vh] overflow-y-auto text-black shadow-[15px_15px_0_0_rgba(0,0,0,1)]" onClick={e => e.stopPropagation()}>
-          <header className="flex justify-between items-start mb-8 text-black text-left">
-             <div><h2 className="font-['Londrina_Solid'] text-5xl uppercase font-black leading-none">Record Pulse</h2><p className="opacity-40 uppercase font-['Londrina_Solid'] text-xl font-bold mt-1">System Update</p></div>
-             <button onClick={onCancel} className="text-3xl opacity-30 font-bold p-2 text-black">✕</button>
-          </header>
-          <form onSubmit={(e) => {
-            e.preventDefault(); if (!selectedId) return;
-            handleAdd({ specimenId: selectedId, type: selectedType, intensity, notes: new FormData(e.target).get('notes') });
-          }} className="space-y-8 text-left">
-             <div className="bg-white border-4 border-black p-4 rounded-3xl shadow-[4px_4px_0_0_rgba(0,0,0,1)] text-left">
-                <label className="text-[9px] uppercase font-black opacity-40 block mb-2 text-black">1. Select Subject</label>
-                <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search..." className="w-full bg-slate-50 p-2 rounded-xl text-xs font-bold border-2 border-black/5 mb-3 text-black" />
-                <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">{filtered.map(s => (<button key={s.id} type="button" onClick={() => setSelectedId(s.id)} className={`px-3 py-1.5 rounded-xl border-2 border-black text-[10px] font-black uppercase ${selectedId === s.id ? 'bg-black text-white' : 'bg-white text-black opacity-50'}`}>{s.name}</button>))}</div>
-             </div>
-             <div className="bg-[#FFD1DC] border-4 border-black p-6 rounded-[40px] shadow-[6px_6px_0_0_rgba(0,0,0,1)]">
-                <label className="text-[10px] font-black opacity-40 block mb-4 text-black text-left">2. Markov State Transition</label>
-                <div className="grid grid-cols-2 gap-2">{MARKOV_STATES.map(m => (<button key={m.id} type="button" onClick={() => setSelectedType(m.id)} className={`px-2 py-2 rounded-xl border-2 border-black text-[9px] font-black uppercase ${selectedType === m.id ? 'bg-black text-white' : 'bg-white text-black opacity-40'}`}>{m.label}</button>))}</div>
-             </div>
-             <div className="bg-white border-4 border-black p-6 rounded-[40px] text-left text-black shadow-[6px_6px_0_0_rgba(0,0,0,1)]">
-                <div className="flex justify-between text-[10px] font-black uppercase mb-4 text-left"><span>3. Energy ROI</span><span>{intensity}/10</span></div>
-                <input type="range" min="1" max="10" value={intensity} onChange={e => setIntensity(parseInt(e.target.value))} className="w-full h-2 accent-black cursor-pointer" />
-             </div>
-             <div className="bg-white border-4 border-black p-5 rounded-3xl text-left text-black shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
-                <label className="text-[10px] font-black uppercase opacity-40 block mb-2">4. Observation Notes</label>
-                <textarea required name="notes" className="w-full text-sm font-medium h-24 focus:outline-none bg-transparent text-black" placeholder="Flow check..." />
-             </div>
-             <button type="submit" className="w-full bg-black text-white p-7 rounded-[45px] font-['Londrina_Solid'] text-3xl uppercase shadow-[8px_8px_0_0_rgba(0,0,0,0.3)] active:translate-y-1 text-center">Inject Pulse</button>
-          </form>
-       </div>
+      <div className="bg-[#FDFCF0] border-[5px] border-black rounded-[45px] p-8 w-full max-sm max-h-[90vh] overflow-y-auto text-black shadow-[15px_15px_0_0_rgba(0,0,0,1)]" onClick={e => e.stopPropagation()}>
+        <header className="flex justify-between items-start mb-8 text-black text-left">
+          <div><h2 className="font-['Londrina_Solid'] text-5xl uppercase font-black leading-none">Record Pulse</h2><p className="opacity-40 uppercase font-['Londrina_Solid'] text-xl font-bold mt-1">System Update</p></div>
+          <button onClick={onCancel} className="text-3xl opacity-30 font-bold p-2 text-black">✕</button>
+        </header>
+        <form onSubmit={(e) => {
+          e.preventDefault(); if (!selectedId) return;
+          handleAdd({ specimenId: selectedId, type: selectedType, intensity, notes: new FormData(e.target).get('notes') });
+        }} className="space-y-8 text-left">
+          <div className="bg-white border-4 border-black p-4 rounded-3xl shadow-[4px_4px_0_0_rgba(0,0,0,1)] text-left">
+            <label className="text-[9px] uppercase font-black opacity-40 block mb-2 text-black">1. Select Subject</label>
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search..." className="w-full bg-slate-50 p-2 rounded-xl text-xs font-bold border-2 border-black/5 mb-3 text-black" />
+            <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">{filtered.map(s => (<button key={s.id} type="button" onClick={() => setSelectedId(s.id)} className={`px-3 py-1.5 rounded-xl border-2 border-black text-[10px] font-black uppercase ${selectedId === s.id ? 'bg-black text-white' : 'bg-white text-black opacity-50'}`}>{s.name}</button>))}</div>
+          </div>
+          <div className="bg-[#FFD1DC] border-4 border-black p-6 rounded-[40px] shadow-[6px_6px_0_0_rgba(0,0,0,1)]">
+            <label className="text-[10px] font-black opacity-40 block mb-4 text-black text-left">2. Markov State Transition</label>
+            <div className="grid grid-cols-2 gap-2">{MARKOV_STATES.map(m => (<button key={m.id} type="button" onClick={() => setSelectedType(m.id)} className={`px-2 py-2 rounded-xl border-2 border-black text-[9px] font-black uppercase ${selectedType === m.id ? 'bg-black text-white' : 'bg-white text-black opacity-40'}`}>{m.label}</button>))}</div>
+          </div>
+          <div className="bg-white border-4 border-black p-6 rounded-[40px] text-left text-black shadow-[6px_6px_0_0_rgba(0,0,0,1)]">
+            <div className="flex justify-between text-[10px] font-black uppercase mb-4 text-left"><span>3. Energy ROI</span><span>{intensity}/10</span></div>
+            <input type="range" min="1" max="10" value={intensity} onChange={e => setIntensity(parseInt(e.target.value))} className="w-full h-2 accent-black cursor-pointer" />
+          </div>
+          <div className="bg-white border-4 border-black p-5 rounded-3xl text-left text-black shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
+            <label className="text-[10px] font-black uppercase opacity-40 block mb-2">4. Observation Notes</label>
+            <textarea required name="notes" className="w-full text-sm font-medium h-24 focus:outline-none bg-transparent text-black" placeholder="Flow check..." />
+          </div>
+          <button type="submit" className="w-full bg-black text-white p-7 rounded-[45px] font-['Londrina_Solid'] text-3xl uppercase shadow-[8px_8px_0_0_rgba(0,0,0,0.3)] active:translate-y-1 text-center">Inject Pulse</button>
+        </form>
+      </div>
     </div>
   );
 };
