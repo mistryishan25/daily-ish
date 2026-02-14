@@ -84,8 +84,17 @@ const MARKOV_STATES = [
   { id: 'entropy', label: 'Fade / Ghost', category: 'Decay', weight: -15 }
 ];
 
-const ARCHETYPES = ['Wordsmith', 'Visualist', 'Academic', 'Traveler', 'Enigma', 'Corporate', 'Outdoorsy', 'Creative'];
-
+const ARCHETYPE_DEFINITIONS = {
+  Wordsmith: "Focuses on verbal wit, depth of prompts, and conversational flow.",
+  Visualist: "High aesthetic standards; values photography, art, and style.",
+  Academic: "Values intellectual discourse, research, and lifelong learning.",
+  Traveler: "Exploratory spirit; values cultural curiosity and mobility.",
+  Enigma: "Mysterious or layered profile; high 'deciphering' interest.",
+  Corporate: "High ambition; professional focus and organized lifestyle.",
+  Outdoorsy: "Active and nature-oriented; values physical exploration.",
+  Creative: "Non-traditional thinker; values artistic expression and novelty.",
+  Simple : "Minimalist profile; values clarity, honesty, and straightforwardness."
+};
 const APPS = [
   { id: 'hinge', name: 'Hinge', icon: <img src="/hinge.svg" className="w-12 h-12 object-contain" />, color: '#6e44ff' },
   { id: 'bumble', name: 'Bumble', icon: '🐝', color: '#ffc800' },
@@ -141,7 +150,7 @@ export default function App() {
       const colRef = collection(db, 'users', user.uid, 'labs', 'lovelab', 'specimens');
       await addDoc(colRef, {
         ...data,
-        status: 'active',
+        status: 'pending',
         createdAt: Date.now(),
         logDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase()
       });
@@ -160,8 +169,10 @@ export default function App() {
   const handleRecordInteraction = async (data) => {
     if (!user) return;
     try {
-      const colRef = collection(db, 'users', user.uid, 'labs', 'lovelab', 'interactions');
-      await addDoc(colRef, { ...data, timestamp: Date.now() });
+      if (data.type === 'matched') {
+        const docRef = doc(db, 'users', user.uid, 'labs', 'lovelab', 'specimens', data.specimenId);
+        await updateDoc(docRef, { status: 'active' });
+      }
       setIsAddingInteraction(false);
     } catch (err) { console.error("Error logging pulse:", err); }
   };
@@ -457,20 +468,21 @@ function LoveLab({
     // --- HUB ---
     return (
       <div className="fixed inset-0 bg-[#FDFCF0] z-50 flex flex-col animate-in slide-in-from-bottom duration-500 overflow-hidden text-black text-left font-sans text-left text-left">
-        <header className="bg-[#1a1c2c] border-b-[6px] border-black px-10 py-8 flex justify-between items-center text-white relative shadow-xl shrink-0 text-left text-left text-left">
-          <button onClick={() => setAppState('garden')} className="font-['Londrina_Solid'] text-xl uppercase opacity-40 hover:opacity-100 transition-opacity font-bold text-white text-left text-left text-left">EXIT LAB</button>
-          <h2 className="font-['Londrina_Solid'] text-4xl uppercase leading-none tracking-tight font-black text-white text-center text-left text-left text-left">The Love Jar</h2>
-          <div className="flex gap-2 text-left text-left">
-            <div className="text-[8px] font-black opacity-30 text-white uppercase text-right leading-none self-center text-right text-left text-left">LAB USER:<br />{user.uid.substring(0, 8)}</div>
-            <button className="w-10 h-10 flex items-center justify-center border-4 border-white/20 rounded-xl bg-white/5 text-white text-left text-left text-left">
-              <SettingsIcon size={20} />
-            </button>
+        <header className="flex justify-between items-start mb-10 pt-8 px-2 text-black">
+          <div className="text-left">
+            <h2 className="font-['Londrina_Solid'] text-6xl uppercase leading-none tracking-tight font-black text-black">Love Lab</h2>
+            <p className="font-['Londrina_Solid'] text-xl opacity-30 uppercase font-bold text-black mt-1">Research Hub</p>
           </div>
+          <button
+            onClick={() => setAppState('garden')}
+            className="w-14 h-14 flex items-center justify-center border-[4px] border-black rounded-2xl bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 transition-all"
+          >
+            <span className="text-3xl font-black opacity-30">✕</span>
+          </button>
         </header>
 
         <div className="flex-1 relative overflow-y-auto p-8 pb-40 text-left text-left text-left text-left">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto w-full">
-            {/* Left Button: For brand new people */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto w-full mb-10">            {/* Left Button: For brand new people */}
             <button
               onClick={() => setIsAddingPerson(true)}
               className="bg-black text-white border-[5px] border-black rounded-[45px] p-8 shadow-[8px_8px_0_0_rgba(100,100,100,0.5)] active:translate-y-1 transition-all flex items-center justify-center text-3xl font-['Londrina_Solid'] uppercase font-black tracking-tight text-center"
@@ -481,8 +493,7 @@ function LoveLab({
             {/* Right Button: For existing people in your garden */}
             <button
               onClick={() => setIsAddingInteraction(true)}
-              className="bg-rose-500 text-white border-[5px] border-black rounded-[45px] p-8 shadow-[8px_8px_0_0_rgba(255,100,100,0.2)] active:translate-y-1 transition-all flex items-center justify-center text-3xl font-['Londrina_Solid'] uppercase font-black tracking-tight text-center"
-            >
+className="bg-rose-500 text-white border-[5px] border-black rounded-[45px] p-8 shadow-[8px_8px_0_0_rgba(0,0,0,1)] active:translate-y-1 transition-all flex items-center justify-center text-3xl font-['Londrina_Solid'] uppercase font-black tracking-tight text-center"            >
               Log Pulse
             </button>
           </div>
@@ -495,7 +506,7 @@ function LoveLab({
               <p className="font-['Londrina_Solid'] text-2xl text-black font-black leading-none text-left text-left text-left text-left">Bio Split Testing</p>
               <p className="font-['Londrina_Solid'] text-xl text-black opacity-40 font-bold mt-1 text-left text-left text-left text-left text-left">Conversion Stats</p>
             </BentoButton>
-            <BentoButton title="Playbook" bg="bg-[#FFFACD]" onClick={() => setAppState('dating_playbook')} className="rotate-[-1deg]">
+            <BentoButton title="Playbook" bg="bg-[#FFFACD]" onClick={() => setAppState('dating_playbook')}>
               <p className="font-['Londrina_Solid'] text-2xl text-black font-black leading-none text-left text-left text-left text-left">Tactical Notes</p>
               <p className="font-['Londrina_Solid'] text-xl text-black opacity-40 font-bold mt-1 text-left text-left text-left text-left text-left">Standard Interventions</p>
             </BentoButton>
@@ -518,7 +529,7 @@ function LoveLab({
       {/* Ensure this line uses the exact names from your signature */}
       {isAddingInteraction && (
         <InteractionRegistryModal
-          specimens={activeSpecimens}
+          specimens={likedSubjects}
           handleAdd={handleRecordInteraction}
           onCancel={() => setIsAddingInteraction(false)}
         />
@@ -631,6 +642,7 @@ const SubjectRegistryModal = ({ handleAddPerson, onCancel }) => {
   const [probability, setProbability] = useState(5);
   const [matchDesire, setMatchDesire] = useState(5);
   const [investmentLevel, setInvestmentLevel] = useState(5);
+  const [showInfo, setShowInfo] = useState(false);
 
   const toggleArchetype = (a) => {
     const existingIndex = selectedArchetypes.findIndex(item => item.id === a);
@@ -710,9 +722,37 @@ const SubjectRegistryModal = ({ handleAddPerson, onCancel }) => {
           </div>
 
           <div className="bg-[#FFD1DC] border-4 border-black p-6 rounded-[40px] shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left">
-            <label className="text-[10px] uppercase font-black opacity-40 block mb-3 text-black text-left tracking-widest text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left">Ranked Archetypes (Top 3)</label>
-            <div className="flex flex-wrap gap-2 mb-6 text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left">
-              {ARCHETYPES.map(a => {
+{/* --- WRAP THE LABEL IN THIS FLEX DIV --- */}
+<div className="flex justify-between items-center mb-3 relative">
+  <label className="text-[10px] uppercase font-black opacity-40 text-black tracking-widest">
+    Ranked Archetypes (Top 3)
+  </label>
+  
+  {/* THE TRIGGER BUTTON */}
+  <button 
+    type="button"
+    onClick={() => setShowInfo(!showInfo)}
+    className="w-5 h-5 rounded-full border-2 border-black flex items-center justify-center text-[10px] font-black hover:bg-black hover:text-white transition-all"
+  >
+    i
+  </button>
+
+  {/* THE TOOLTIP BOX (Step 4 code goes right here) */}
+  {showInfo && (
+    <div className="absolute top-8 right-0 w-64 bg-white text-black p-4 rounded-2xl z-[300] shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] text-left animate-in fade-in zoom-in-95 duration-200 border-2 border-4 border-black">
+      <div className="space-y-3">
+        {Object.entries(ARCHETYPE_DEFINITIONS).map(([name, def]) => (
+          <div key={name}>
+            <span className="font-black uppercase text-[9px] text-rose-600">{name}:</span>
+            <p className="text-[10px] leading-tight opacity-80">{def}</p>
+          </div>
+        ))}
+      </div>
+      <button onClick={() => setShowInfo(false)} className="mt-3 w-full text-[8px] font-black uppercase tracking-widest opacity-40 border-t border-black/10 pt-2 text-center">Close Info</button>
+    </div>
+  )}
+</div>            <div className="flex flex-wrap gap-2 mb-6 text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left">
+              {Object.keys(ARCHETYPE_DEFINITIONS).map(a => {
                 const rankIndex = selectedArchetypes.findIndex(item => item.id === a);
                 return (
                   <button
