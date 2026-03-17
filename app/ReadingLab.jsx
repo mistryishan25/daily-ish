@@ -612,8 +612,7 @@ const ReadingDrawer = ({ activeBook, onSave, onCancel, palette }) => {
             onClick={onCancel}
         >
             <div
-                className="bg-[#FDFCF0] border-[5px] border-black rounded-[40px] p-8 w-full max-sm shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] overflow-y-auto max-h-[95vh] text-black"
-                onClick={(e) => e.stopPropagation()}
+                className="bg-[#FDFCF0] border-[5px] border-black rounded-t-[40px] p-8 w-full max-w-md shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] flex flex-col max-h-[92vh] text-black overflow-hidden relative" onClick={(e) => e.stopPropagation()}
             >
                 <header className="flex justify-between mb-8 text-black">
                     <div>
