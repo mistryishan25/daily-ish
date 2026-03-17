@@ -622,6 +622,7 @@ const ReadingDrawer = ({ activeBook, onSave, onCancel, palette }) => {
                     <button onClick={onCancel} className="text-2xl font-black text-black text-left">✕</button>
                 </header>
 
+<div className="flex-1 overflow-y-auto pr-2 -mr-2 custom-scrollbar">
                 <form onSubmit={handleSubmit} className="space-y-5 text-left text-black text-left">
                     {
                         <div className="flex bg-white border-4 border-black p-1 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mb-6">
@@ -825,6 +826,7 @@ const ReadingDrawer = ({ activeBook, onSave, onCancel, palette }) => {
 
                     <button type="submit" className="w-full bg-black text-white p-5 rounded-3xl font-['Londrina_Solid'] text-2xl uppercase font-black shadow-[6px_6px_0px_0px_rgba(100,100,100,1)] active:translate-y-1 text-center">Save Observation</button>
                 </form>
+                </div>
             </div>
         </div>
     );
