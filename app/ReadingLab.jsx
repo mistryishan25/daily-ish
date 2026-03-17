@@ -10,14 +10,22 @@ import {
  * BattleCard, BookGridItem, SedimentaryRecord, StratifiedBookFlow
  */
 
+const EMOTIONS_27 = [
+    "Admiration", "Adoration", "Appreciation", "Amusement", "Anger", "Anxiety",
+    "Awe", "Awkwardness", "Boredom", "Calmness", "Confusion", "Craving",
+    "Disgust", "Empathy", "Entrancement", "Excitement", "Fear", "Horror",
+    "Interest", "Joy", "Nostalgia", "Relief", "Romance", "Sadness",
+    "Satisfaction", "Desire", "Surprise"
+];
+
 export default function ReadingLab({
-appState, setAppState, books, user, db, platformAppId, palette, genres,
+    appState, setAppState, books, user, db, platformAppId, palette, genres,
     focusedSubjectId, setFocusedSubjectId, setIsLogging, isLogging,
     libraryMode, setLibraryMode, isAddingBook, setIsAddingBook,
     selectedBook, setSelectedBook, activeTab, setActiveTab
 }) {
 
-  const readingList = useMemo(() => books.filter(b => b.status === 'READING'), [books]);
+    const readingList = useMemo(() => books.filter(b => b.status === 'READING'), [books]);
     const tbrPool = useMemo(() => books.filter(b => b.status === 'TBR'), [books]);
 
     // 2. SECOND: Define your states
@@ -26,16 +34,16 @@ appState, setAppState, books, user, db, platformAppId, palette, genres,
     const [battleIdx, setBattleIdx] = useState(0);
     const [roundWinnerId, setRoundWinnerId] = useState(null);
     const [finalWinner, setFinalWinner] = useState(null);
-// 3. DEFINE THE HANDLER LOCALLY (This fixes your button)
+    // 3. DEFINE THE HANDLER LOCALLY (This fixes your button)
     const handleStartReading = async (book) => {
         if (!user?.uid || !book) return;
         const bookRef = doc(db, 'users', user.uid, 'labs', 'reading_lab', 'books', book.id);
-        
-        await updateDoc(bookRef, { status: 'READING' }); 
-        
+
+        await updateDoc(bookRef, { status: 'READING' });
+
         setFocusedSubjectId(book.id);
         setAppState('manage'); // Back to station
-        setFinalWinner(null); 
+        setFinalWinner(null);
         setCurrentChamp(null);
     };
     // 3. THIRD: The Battle Logic Effect
@@ -74,10 +82,10 @@ appState, setAppState, books, user, db, platformAppId, palette, genres,
         }, 800);
     };
 
-    
+
     // --- PERSONAL DATA FILTERING ---
     const myBooks = books;
-    
+
     // --- Persistence Logic ---
     const handleStartSession = async (bookId) => {
         console.log("MIGRATION LOG: Attempting Shadow Write...");
@@ -560,6 +568,7 @@ const ReadingDrawer = ({ activeBook, onSave, onCancel, palette }) => {
         rating: 4, // Add this: Default rating
         minutes: elapsedMinutes
     });
+    const [emotionSearch, setEmotionSearch] = useState("");
 
     const toggleEmotion = (emo) => {
         setSession(prev => {
@@ -594,7 +603,7 @@ const ReadingDrawer = ({ activeBook, onSave, onCancel, palette }) => {
         e.preventDefault();
         const minutes = Number(session.minutes);
         if (!session.endPage || !activeBook || minutes <= 0) return;
-        onSave({ ...session, emotions: session.emotions, startPage, endPage: Number(session.endPage), minutes, isFinished, rating : Number(session.rating) });
+        onSave({ ...session, emotions: session.emotions, startPage, endPage: Number(session.endPage), minutes, isFinished, rating: Number(session.rating) });
     };
 
     return (
@@ -696,26 +705,42 @@ const ReadingDrawer = ({ activeBook, onSave, onCancel, palette }) => {
                     </div>
 
                     {/* Expressive Emotion Selection */}
-                    <div className="flex flex-wrap gap-2 mb-4">
-                        {['Warmth', 'Joy', 'Sad', 'Intrigue', 'Funny', 'Smut', 'Fast', 'Scared', 'Cool', 'Peace', 'Meh'].map(emo => {
-                            const rank = (session.emotions || []).indexOf(emo) + 1;
-                            return (
-                                <button
-                                    key={emo}
-                                    type="button"
-                                    onClick={() => toggleEmotion(emo)}
-                                    className={`relative px-4 py-2 border-2 border-black rounded-xl text-[10px] font-black uppercase transition-all ${rank > 0 ? 'bg-black text-white scale-105' : 'bg-white opacity-40 text-black'
-                                        }`}
-                                >
-                                    {emo}
-                                    {rank > 0 && (
-                                        <div className="absolute -top-2 -right-2 w-5 h-5 bg-yellow-400 text-black border-2 border-black rounded-full flex items-center justify-center text-[10px] font-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-                                            {rank}
-                                        </div>
-                                    )}
-                                </button>
-                            );
-                        })}
+                    <div className="bg-white border-4 border-black p-4 rounded-[30px] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                        <label className="text-[10px] font-black uppercase opacity-40 block mb-2 text-black">
+                            Emotional Resonance Matrix
+                        </label>
+
+                        {/* Search Input for the 27 emotions */}
+                        <input
+                            type="text"
+                            placeholder="Filter emotions (e.g. Joy, Awe...)"
+                            className="w-full bg-slate-50 border-2 border-black/5 rounded-xl p-2 text-xs mb-3 focus:outline-none font-bold text-black"
+                            value={emotionSearch}
+                            onChange={(e) => setEmotionSearch(e.target.value)}
+                        />
+
+                        {/* The Scrollable Tag Cloud */}
+                        <div className="flex flex-wrap gap-1.5 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
+                            {EMOTIONS_27.filter(e => e.toLowerCase().includes(emotionSearch.toLowerCase())).map(emo => {
+                                const rank = (session.emotions || []).indexOf(emo) + 1;
+                                return (
+                                    <button
+                                        key={emo}
+                                        type="button"
+                                        onClick={() => toggleEmotion(emo)}
+                                        className={`relative px-2.5 py-1 rounded-lg border-2 border-black text-[9px] font-black uppercase transition-all ${rank > 0 ? 'bg-black text-white scale-105' : 'bg-white opacity-40 text-black'
+                                            }`}
+                                    >
+                                        {emo}
+                                        {rank > 0 && (
+                                            <div className="absolute -top-2 -right-2 w-4 h-4 bg-yellow-400 text-black border-2 border-black rounded-full flex items-center justify-center text-[8px] font-black">
+                                                {rank}
+                                            </div>
+                                        )}
+                                    </button>
+                                );
+                            })}
+                        </div>
                     </div>
 
                     {/* Consolidated Intensity Lab Card */}
@@ -770,34 +795,34 @@ const ReadingDrawer = ({ activeBook, onSave, onCancel, palette }) => {
                         <label className="text-[10px] font-black opacity-30 uppercase block mb-1 text-black text-left text-left">Intensity (1-5)</label>
                         <input type="range" min="1" max="5" step="1" className="w-full accent-black text-black text-left" value={session.intensity} onChange={e => setSession({ ...session, intensity: e.target.value })} />
                     </div> */}
-{isFinished && (
-    <div className="space-y-4">
-        <div className="mb-4">
-            <div className="flex justify-between items-center mb-2">
-                <label className="text-[10px] font-black text-green-700 uppercase block">Final Rating</label>
-                <span className="font-['Londrina_Solid'] text-2xl text-green-700 font-black">{session.rating} / 5</span>
-            </div>
-            <input 
-                type="range" 
-                min="0" 
-                max="5" 
-                step="0.25" 
-                value={session.rating} 
-                onChange={e => setSession({ ...session, rating: e.target.value })}
-                className="w-full h-3 bg-green-100 rounded-full appearance-none cursor-pointer accent-green-600
+                    {isFinished && (
+                        <div className="space-y-4">
+                            <div className="mb-4">
+                                <div className="flex justify-between items-center mb-2">
+                                    <label className="text-[10px] font-black text-green-700 uppercase block">Final Rating</label>
+                                    <span className="font-['Londrina_Solid'] text-2xl text-green-700 font-black">{session.rating} / 5</span>
+                                </div>
+                                <input
+                                    type="range"
+                                    min="0"
+                                    max="5"
+                                    step="0.25"
+                                    value={session.rating}
+                                    onChange={e => setSession({ ...session, rating: e.target.value })}
+                                    className="w-full h-3 bg-green-100 rounded-full appearance-none cursor-pointer accent-green-600
                 [&::-webkit-slider-thumb]:appearance-none 
                 [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:h-6 
                 [&::-webkit-slider-thumb]:bg-green-500 [&::-webkit-slider-thumb]:border-2 
                 [&::-webkit-slider-thumb]:border-black [&::-webkit-slider-thumb]:rounded-full shadow-sm"
-            />
-        </div>
+                                />
+                            </div>
 
-        <div className="bg-white border-4 border-green-500 p-3 rounded-2xl animate-in slide-in-from-top text-black text-left text-left text-left">
-            <label className="text-[10px] font-black text-green-700 uppercase block mb-1 text-left">Conclusion</label>
-            <textarea required placeholder="Final experimental thoughts..." className="w-full bg-transparent font-sans text-sm focus:outline-none min-h-[60px] resize-none leading-tight text-black text-left text-left" value={session.conclusion} onChange={e => setSession({ ...session, conclusion: e.target.value })} />
-        </div>
-    </div>
-)}
+                            <div className="bg-white border-4 border-green-500 p-3 rounded-2xl animate-in slide-in-from-top text-black text-left text-left text-left">
+                                <label className="text-[10px] font-black text-green-700 uppercase block mb-1 text-left">Conclusion</label>
+                                <textarea required placeholder="Final experimental thoughts..." className="w-full bg-transparent font-sans text-sm focus:outline-none min-h-[60px] resize-none leading-tight text-black text-left text-left" value={session.conclusion} onChange={e => setSession({ ...session, conclusion: e.target.value })} />
+                            </div>
+                        </div>
+                    )}
 
                     <button type="submit" className="w-full bg-black text-white p-5 rounded-3xl font-['Londrina_Solid'] text-2xl uppercase font-black shadow-[6px_6px_0px_0px_rgba(100,100,100,1)] active:translate-y-1 text-center">Save Observation</button>
                 </form>
@@ -847,7 +872,7 @@ const AddBookDrawer = ({ onSave, onCancel, genres }) => {
 
                     <div className="bg-white border-4 border-black p-3 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-left text-black text-left text-left text-left">
                         <label className="text-[10px] uppercase font-black opacity-40 text-left text-black text-left text-left text-left">Hypothesis (Intro)</label>
-                        <textarea  className="w-full bg-transparent text-sm h-20 resize-none font-black text-black text-left text-left" value={nb.introduction} onChange={e => setNb({ ...nb, introduction: e.target.value })} />
+                        <textarea className="w-full bg-transparent text-sm h-20 resize-none font-black text-black text-left text-left" value={nb.introduction} onChange={e => setNb({ ...nb, introduction: e.target.value })} />
                     </div>
 
                     <div className="bg-white border-4 border-black p-3 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-left text-black text-left text-left text-left">
