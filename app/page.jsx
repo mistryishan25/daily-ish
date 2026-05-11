@@ -7,6 +7,7 @@ import { getFirestore, collection, doc, updateDoc, onSnapshot, serverTimestamp, 
 import ReadingLab from './ReadingLab';
 import LoveLab from './LoveLab';
 import QuestLog from './QuestLog';
+import AuthGate from '../components/AuthGate';
 import EnduranceLab from './EnduranceLab';
 
 // ==========================================
@@ -115,16 +116,20 @@ const [specimens, setSpecimens] = useState([]); // Adding this to match your new
 const activeSpecimensFiltered = specimens.filter(s => s.status === 'active');
 
 
-  useEffect(() => { setHasMounted(true); }, []);
+useEffect(() => { setHasMounted(true); }, []);
 
-  useEffect(() => {
-    if (!hasMounted) return;
-    const unsubscribe = onAuthStateChanged(auth, async (u) => {
-      if (u) setUser(u);
-      else await signInAnonymously(auth);
-    });
-    return () => unsubscribe();
-  }, [hasMounted]);
+useEffect(() => {
+  if (!hasMounted) return;
+  const unsubscribe = onAuthStateChanged(auth, (u) => {
+    // Only set the user if they are NOT anonymous
+    if (u && !u.isAnonymous) {
+      setUser(u);
+    } else {
+      setUser(null);
+    }
+  });
+  return () => unsubscribe();
+}, [hasMounted]);
 
   useEffect(() => {
     // This is the "Hard Guard"
@@ -204,6 +209,13 @@ useEffect(() => {
     [activeSpecimens]
   );
 
+  if (!hasMounted) {
+  return <div className="h-screen bg-[#FDFCF0]" />; // Stay on blank paper while mounting
+}
+  // --- ADD THE GATE HERE ---
+  if (!user) {
+    return <AuthGate />;
+  }
 
   // --- 3. BATTLE LOGIC ---
   React.useEffect(() => {
