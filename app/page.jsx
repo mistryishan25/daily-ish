@@ -235,8 +235,8 @@ export default function App() {
   // --- ONE-TIME MIGRATION HANDLER ---
   const handleMigrateOldData = async () => {
     // 1. EXACT OLD USER DOCUMENT ID FROM FIRESTORE
-    const OLD_USER_ID = "CL7gVqOvdmUiMlLlzpqOqYjjCBs2";
-    const NEW_USER_ID = user?.uid;
+    const OLD_USER_ID = "M7JlpBtDYfXbMN1niJiMePPraCw2";
+    const NEW_USER_ID = "2RuyY0rf6AbM2phvo8Spq0AOk6u1";
 
     if (!NEW_USER_ID) {
       alert("Please log in with Google first!");
@@ -499,12 +499,12 @@ export default function App() {
             )}
 
             {/* TEMPORARY MIGRATION BUTTON */}
-            {/* <button
+            <button
       onClick={handleMigrateOldData}
       className="w-full mb-6 bg-amber-400 text-black border-[3px] border-black py-3 px-4 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-sm font-['Londrina_Solid'] uppercase font-black active:translate-y-0.5 transition-all"
     >
       ⚡ Migrate Old Data to This Google Account
-    </button> */}
+    </button>
 
             {/* LINK GOOGLE ACCOUNT BUTTON} */}
             {user?.isAnonymous && (
