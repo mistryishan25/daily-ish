@@ -1,9 +1,8 @@
 "use client";
 import React, { useState, useEffect, useMemo } from 'react';
 import { initializeApp } from 'firebase/app';
-import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
-import { getFirestore, collection, doc, updateDoc, onSnapshot, serverTimestamp, arrayUnion, addDoc } from 'firebase/firestore';// import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
-// LOCAL IMPORTS (Ensure files are in the same folder)
+import { getAuth, signInAnonymously, onAuthStateChanged, linkWithPopup, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { getFirestore, collection, doc, getDoc, updateDoc, onSnapshot, serverTimestamp, arrayUnion, addDoc, setDoc, getDocs } from 'firebase/firestore';// LOCAL IMPORTS (Ensure files are in the same folder)
 import ReadingLab from './ReadingLab';
 import LoveLab from './LoveLab';
 import QuestLog from './QuestLog';
@@ -93,7 +92,7 @@ export default function App() {
   const [systemUpdates, setSystemUpdates] = useState([]);
   const [isAddingInteraction, setIsAddingInteraction] = useState(false);
   const [interactions, setInteractions] = useState([]);
-const [specimens, setSpecimens] = useState([]); // Adding this to match your new LoveLab schema
+  const [specimens, setSpecimens] = useState([]); // Adding this to match your new LoveLab schema
   const ADMIN_UID = "6Zs8Wndk6pdTGsPmHrWcBsTbAqG2"; // Copy from the "Verified Researcher" label on your screen
 
   const [activeSpecimens, setActiveSpecimens] = useState([
@@ -113,23 +112,24 @@ const [specimens, setSpecimens] = useState([]); // Adding this to match your new
   const [finalWinner, setFinalWinner] = useState(null);
 
 
-const activeSpecimensFiltered = specimens.filter(s => s.status === 'active');
+  const activeSpecimensFiltered = specimens.filter(s => s.status === 'active');
 
+  // =========================================================
+  // 2. ALL useEffect HOOKS (Auth & Database Listeners)
+  // =========================================================
 
-useEffect(() => { setHasMounted(true); }, []);
+  useEffect(() => { setHasMounted(true); }, []);
 
-useEffect(() => {
-  if (!hasMounted) return;
-  const unsubscribe = onAuthStateChanged(auth, (u) => {
-    // Only set the user if they are NOT anonymous
-    if (u && !u.isAnonymous) {
-      setUser(u);
-    } else {
-      setUser(null);
-    }
-  });
-  return () => unsubscribe();
-}, [hasMounted]);
+  useEffect(() => {
+    if (!hasMounted) return;
+
+    // Pure Google Auth Listener
+    const unsubscribe = onAuthStateChanged(auth, (u) => {
+      setUser(u); // Sets user if logged in with Google, otherwise sets null
+    });
+
+    return () => unsubscribe();
+  }, [hasMounted]);
 
   useEffect(() => {
     // This is the "Hard Guard"
@@ -160,22 +160,22 @@ useEffect(() => {
     });
 
     // --- Listener for Specimens (People) ---
-  const sRef = collection(db, 'users', user.uid, 'labs', 'lovelab', 'specimens');
-  const unsubS = onSnapshot(sRef, (snap) => {
-    setSpecimens(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-  });
+    const sRef = collection(db, 'users', user.uid, 'labs', 'lovelab', 'specimens');
+    const unsubS = onSnapshot(sRef, (snap) => {
+      setSpecimens(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    });
 
-  // --- Listener for Interactions (Pulses/Logs) ---
-  const iRef = collection(db, 'users', user.uid, 'labs', 'lovelab', 'interactions');
-  const unsubI = onSnapshot(iRef, (snap) => {
-    setInteractions(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-  }, (err) => console.error("Interaction fetch error:", err));
+    // --- Listener for Interactions (Pulses/Logs) ---
+    const iRef = collection(db, 'users', user.uid, 'labs', 'lovelab', 'interactions');
+    const unsubI = onSnapshot(iRef, (snap) => {
+      setInteractions(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    }, (err) => console.error("Interaction fetch error:", err));
 
     return () => { bSub(); dSub(); tSub(); fSub(); uSub(); unsubS(); unsubI(); };
   }, [user]);
 
-useEffect(() => {
-    if (!user) return; 
+  useEffect(() => {
+    if (!user) return;
 
     // This matches the private path we set in QuestLog.jsx
     const questCol = collection(db, 'users', user.uid, 'labs', 'quest_lab', 'quests');
@@ -190,34 +190,22 @@ useEffect(() => {
     return () => unsubscribe();
   }, [user]);
 
-  // --- 1. MEMOIZED DATA (Safe & Clean) ---
+
+  // =========================================================
+  // 3. MEMOIZED DATA (MUST BE DEFINED BEFORE BATTLE LOGIC!)
+  // =========================================================
+
   const readingList = useMemo(() => books.filter(b => b.status === 'READING'), [books]);
   const tbrPool = useMemo(() => books.filter(b => b.status === 'TBR'), [books]);
+  const peopleMetCount = useMemo(() => datingSubjects.length, [datingSubjects]);
+  const emptySlots = useMemo(() => activeSpecimens.filter(s => !s.codename).length, [activeSpecimens]);
 
-  // const myTbrPool = useMemo(() => myBooks.filter(b => b.status === 'TBR'), [myBooks]);
 
-  // const peopleMetCount = useMemo(() => 
-  //   datingSubjects.length + sedimentPile.length, 
-  //   [datingSubjects, sedimentPile]
-  // );
-  const peopleMetCount = useMemo(() =>
-    datingSubjects.length,
-    [datingSubjects]
-  );
-  const emptySlots = useMemo(() =>
-    activeSpecimens.filter(s => !s.codename).length,
-    [activeSpecimens]
-  );
 
-  if (!hasMounted) {
-  return <div className="h-screen bg-[#FDFCF0]" />; // Stay on blank paper while mounting
-}
-  // --- ADD THE GATE HERE ---
-  if (!user) {
-    return <AuthGate />;
-  }
+  // =========================================================
+  // 4. BATTLE LOGIC useEffect (NOW SAFE TO USE tbrPool!)
+  // =========================================================
 
-  // --- 3. BATTLE LOGIC ---
   React.useEffect(() => {
     if (appState === 'library' && libraryMode === 'battle' && !finalWinner && tbrPool.length > 1) {
       if (!currentChamp) {
@@ -226,6 +214,86 @@ useEffect(() => {
       }
     }
   }, [appState, libraryMode, finalWinner, tbrPool, currentChamp]);
+
+  // =========================================================
+  // 5. HELPER FUNCTIONS & HANDLERS
+  // =========================================================
+
+  // Pure Google Sign-In
+  const handleGoogleAuth = async () => {
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
+
+    try {
+      const result = await signInWithPopup(auth, provider);
+      setUser(result.user);
+    } catch (error) {
+      console.error("Google Auth error:", error);
+    }
+  };
+
+  // --- ONE-TIME MIGRATION HANDLER ---
+  const handleMigrateOldData = async () => {
+    // 1. EXACT OLD USER DOCUMENT ID FROM FIRESTORE
+    const OLD_USER_ID = "CL7gVqOvdmUiMlLlzpqOqYjjCBs2";
+    const NEW_USER_ID = user?.uid;
+
+    if (!NEW_USER_ID) {
+      alert("Please log in with Google first!");
+      return;
+    }
+
+
+    console.log(`Starting migration from ${OLD_USER_ID} -> ${NEW_USER_ID}...`);
+
+    try {
+      // 2. EXPLICITLY CREATE TOP-LEVEL USER DOCUMENT
+      const oldUserDocRef = doc(db, 'users', OLD_USER_ID);
+      const oldUserSnap = await getDoc(oldUserDocRef);
+
+      const newUserDocRef = doc(db, 'users', NEW_USER_ID);
+      if (oldUserSnap.exists()) {
+        await setDoc(newUserDocRef, oldUserSnap.data(), { merge: true });
+      } else {
+        // If the old parent doc didn't have top-level fields, create a basic user record
+        await setDoc(newUserDocRef, {
+          email: user.email || "",
+          uid: NEW_USER_ID,
+          createdAt: Date.now()
+        }, { merge: true });
+      }
+
+      // 3. COPY ALL SUBCOLLECTIONS
+      const subcollections = [
+        { lab: 'reading_lab', col: 'books' },
+        { lab: 'lovelab', col: 'specimens' },
+        { lab: 'lovelab', col: 'interactions' },
+        { lab: 'quest_lab', col: 'quests' }
+      ];
+
+      let totalMigrated = 0;
+
+      for (const item of subcollections) {
+        const oldColRef = collection(db, 'users', OLD_USER_ID, 'labs', item.lab, item.col);
+        const snapshot = await getDocs(oldColRef);
+
+        console.log(`Found ${snapshot.docs.length} docs in ${item.lab}/${item.col}`);
+
+        for (const document of snapshot.docs) {
+          const newDocRef = doc(db, 'users', NEW_USER_ID, 'labs', item.lab, item.col, document.id);
+          await setDoc(newDocRef, document.data());
+          totalMigrated++;
+        }
+      }
+
+      alert(`Migration finished! Successfully moved ${totalMigrated} items to your Google profile.`);
+      window.location.reload();
+
+    } catch (err) {
+      console.error("Migration failed with error:", err);
+      alert(`Migration error: ${err.message}`);
+    }
+  };
 
   const handleBattleChoice = (winner) => {
     if (!winner) return;
@@ -273,37 +341,37 @@ useEffect(() => {
     const bookRef = doc(db, 'users', user.uid, 'labs', 'reading_lab', 'books', bookId);
     await updateDoc(bookRef, { sessionStartedAt: null });
   };
-// --- SECTION: Love Lab Handlers (Add to page.jsx) ---
-const handleAddPerson = async (data) => {
-  if (!user?.uid) return;
-  try {
-    const colRef = collection(db, 'users', user.uid, 'labs', 'lovelab', 'specimens');
-    await addDoc(colRef, {
-      ...data,
-      status: 'active',
-      createdAt: Date.now(),
-      logDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase()
-    });
-    setIsAddingPerson(false);
-  } catch (err) { console.error("Error adding specimen:", err); }
-};
+  // --- SECTION: Love Lab Handlers (Add to page.jsx) ---
+  const handleAddPerson = async (data) => {
+    if (!user?.uid) return;
+    try {
+      const colRef = collection(db, 'users', user.uid, 'labs', 'lovelab', 'specimens');
+      await addDoc(colRef, {
+        ...data,
+        status: 'active',
+        createdAt: Date.now(),
+        logDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase()
+      });
+      setIsAddingPerson(false);
+    } catch (err) { console.error("Error adding specimen:", err); }
+  };
 
-const triggerSpecimenExpiration = async (s) => {
-  if (!user?.uid) return;
-  try {
-    const docRef = doc(db, 'users', user.uid, 'labs', 'lovelab', 'specimens', s.id);
-    await updateDoc(docRef, { status: 'expired' });
-  } catch (err) { console.error("Error updating status:", err); }
-};
+  const triggerSpecimenExpiration = async (s) => {
+    if (!user?.uid) return;
+    try {
+      const docRef = doc(db, 'users', user.uid, 'labs', 'lovelab', 'specimens', s.id);
+      await updateDoc(docRef, { status: 'expired' });
+    } catch (err) { console.error("Error updating status:", err); }
+  };
 
-const handleRecordInteraction = async (data) => {
-  if (!user?.uid) return;
-  try {
-    const colRef = collection(db, 'users', user.uid, 'labs', 'lovelab', 'interactions');
-    await addDoc(colRef, { ...data, timestamp: Date.now() });
-    setIsAddingInteraction(false);
-  } catch (err) { console.error("Error logging pulse:", err); }
-};
+  const handleRecordInteraction = async (data) => {
+    if (!user?.uid) return;
+    try {
+      const colRef = collection(db, 'users', user.uid, 'labs', 'lovelab', 'interactions');
+      await addDoc(colRef, { ...data, timestamp: Date.now() });
+      setIsAddingInteraction(false);
+    } catch (err) { console.error("Error logging pulse:", err); }
+  };
 
   const submitFeatureRequest = async (data) => {
     if (!user?.uid) return;
@@ -340,6 +408,18 @@ const handleRecordInteraction = async (data) => {
     }
   };
 
+  // =========================================================
+  // 6. GUARDS & EARLY RETURNS (AFTER ALL HOOKS & FUNCTIONS!)
+  // =========================================================
+
+  if (!hasMounted) {
+    return <div className="h-screen bg-[#FDFCF0]" />;
+  }
+
+  if (!user) {
+    return <AuthGate />;
+  }
+
   // --- 4. MASTER AUTH GUARD ---
   // Place this right here, after all hooks and handlers
   if (!user) {
@@ -353,7 +433,7 @@ const handleRecordInteraction = async (data) => {
     );
   }
 
-  
+
 
   return (
     <div className="min-h-screen bg-[#FDFCF0] font-sans text-black overflow-x-hidden text-left">
@@ -401,12 +481,54 @@ const handleRecordInteraction = async (data) => {
               </button>
             </header>
 
+            {/* SIGN OUT BUTTON */}
+            {user && (
+              <div className="mb-6 flex items-center justify-between bg-white border-[3px] border-black p-3 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                <div className="text-left truncate mr-2">
+                  <p className="text-[10px] font-black uppercase opacity-40 leading-none">Logged In As</p>
+                  <p className="text-sm font-black truncate text-black">{user.email || user.displayName || "Google Account"}</p>
+                </div>
+
+                <button
+                  onClick={() => auth.signOut()}
+                  className="shrink-0 bg-rose-500 text-white border-2 border-black px-4 py-1.5 rounded-xl font-['Londrina_Solid'] text-sm uppercase font-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-0.5 active:shadow-none transition-all"
+                >
+                  Sign Out
+                </button>
+              </div>
+            )}
+
+            {/* TEMPORARY MIGRATION BUTTON */}
+            {/* <button
+      onClick={handleMigrateOldData}
+      className="w-full mb-6 bg-amber-400 text-black border-[3px] border-black py-3 px-4 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-sm font-['Londrina_Solid'] uppercase font-black active:translate-y-0.5 transition-all"
+    >
+      ⚡ Migrate Old Data to This Google Account
+    </button> */}
+
+            {/* LINK GOOGLE ACCOUNT BUTTON} */}
+            {user?.isAnonymous && (
+              <button
+                onClick={handleGoogleAuth}
+                className="w-full mb-6 flex items-center justify-center gap-3 bg-white border-[3px] border-black py-3 px-4 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-sm font-['Londrina_Solid'] uppercase font-black active:translate-y-0.5 active:shadow-none transition-all text-black"
+              >
+                <svg className="w-5 h-5" viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                </svg>
+                <span>Link Google Account</span>
+              </button>
+            )}
+
             <div className="grid grid-cols-2 gap-5">
               {/* TOP ROW: Reading and Dating */}
               <button onClick={() => setAppState('manage')} className="bg-[#AEC6CF] h-[155px] border-[5px] border-black rounded-[45px] p-5 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] text-left flex flex-col justify-between active:translate-y-1 transition-all text-black">
                 <span className="font-['Londrina_Solid'] text-2xl uppercase font-bold">Reading</span>
-                <div className="text-4xl font-['Londrina_Solid']">{books.filter(b => b.ownerId === user?.uid).length}</div>
-              </button>
+                <div className="text-4xl font-['Londrina_Solid']">
+                  {books.length}
+                </div>              </button>
 
               <button onClick={() => setAppState('dating_hub')} className="bg-[#FFD1DC] h-[155px] border-[5px] border-black rounded-[45px] p-5 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] text-left flex flex-col justify-between active:translate-y-1 transition-all text-black">
                 <span className="font-['Londrina_Solid'] text-2xl uppercase font-bold">Dating</span>
@@ -442,24 +564,24 @@ const handleRecordInteraction = async (data) => {
           />
         )}
 
-   {(appState === 'dating_hub' || appState === 'dating_bloom' || ['dating_garden', 'dating_lab', 'dating_playbook'].includes(appState)) && (
-  <LoveLab
-    {...{
-      appState, setAppState, emptySlots, 
-      activeSpecimens: activeSpecimensFiltered, // Use the filtered list
-      sedimentPile,
-      setIsAddingPerson, isAddingPerson, 
-      handleAddPerson,
-      SettingsIcon, SparklesIcon,
-      triggerSpecimenExpiration, 
-      handleRecordInteraction, 
-      isAddingInteraction,     
-      setIsAddingInteraction,  
-      interactions,            // This fixed the error!
-      likedSubjects: specimens // Pass all specimens for the Archive/Bloom view
-    }}
-  />
-)}
+        {(appState === 'dating_hub' || appState === 'dating_bloom' || ['dating_garden', 'dating_lab', 'dating_playbook'].includes(appState)) && (
+          <LoveLab
+            {...{
+              appState, setAppState, emptySlots,
+              activeSpecimens: activeSpecimensFiltered, // Use the filtered list
+              sedimentPile,
+              setIsAddingPerson, isAddingPerson,
+              handleAddPerson,
+              SettingsIcon, SparklesIcon,
+              triggerSpecimenExpiration,
+              handleRecordInteraction,
+              isAddingInteraction,
+              setIsAddingInteraction,
+              interactions,            // This fixed the error!
+              likedSubjects: specimens // Pass all specimens for the Archive/Bloom view
+            }}
+          />
+        )}
         {isControlRoomOpen && (
           <ControlRoomModal
             user={user}
@@ -567,48 +689,48 @@ const ControlRoomModal = ({
               <div className="space-y-12">
 
 
-                              {/* SECTION 2: APPROVED FIELD REQUESTS */}
-              <section>
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="h-1 flex-1 bg-black/5 rounded-full" />
-                  <h3 className="font-['Londrina_Solid'] text-sm uppercase opacity-40 tracking-[0.2em] whitespace-nowrap text-green-600">Approved Field Requests</h3>
-                  <div className="h-1 flex-1 bg-black/5 rounded-full" />
-                </div>
-                <div className="grid gap-4">
-                  {requests && requests.filter(r => r.status === 'approved').length > 0 ? (
-                    requests.filter(r => r.status === 'approved').map(req => (
-                      <div key={req.id} className="bg-white border-[3px] border-black p-5 rounded-[30px] shadow-[6px_6px_0px_0px_rgba(0,0,0,0.05)] flex flex-col md:flex-row md:items-center gap-4">
-                        <div className="flex items-center gap-4 flex-1">
-                          <div className="w-10 h-10 rounded-full bg-green-100 border-2 border-black flex items-center justify-center shrink-0">✅</div>
-                          <div>
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="bg-black text-white text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest">{req.lab}</span>
-                              <span className="text-[8px] font-black opacity-30 uppercase">Priority {req.priority}/5</span>
+                {/* SECTION 2: APPROVED FIELD REQUESTS */}
+                <section>
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="h-1 flex-1 bg-black/5 rounded-full" />
+                    <h3 className="font-['Londrina_Solid'] text-sm uppercase opacity-40 tracking-[0.2em] whitespace-nowrap text-green-600">Approved Field Requests</h3>
+                    <div className="h-1 flex-1 bg-black/5 rounded-full" />
+                  </div>
+                  <div className="grid gap-4">
+                    {requests && requests.filter(r => r.status === 'approved').length > 0 ? (
+                      requests.filter(r => r.status === 'approved').map(req => (
+                        <div key={req.id} className="bg-white border-[3px] border-black p-5 rounded-[30px] shadow-[6px_6px_0px_0px_rgba(0,0,0,0.05)] flex flex-col md:flex-row md:items-center gap-4">
+                          <div className="flex items-center gap-4 flex-1">
+                            <div className="w-10 h-10 rounded-full bg-green-100 border-2 border-black flex items-center justify-center shrink-0">✅</div>
+                            <div>
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="bg-black text-white text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest">{req.lab}</span>
+                                <span className="text-[8px] font-black opacity-30 uppercase">Priority {req.priority}/5</span>
+                              </div>
+                              <p className="text-sm font-bold leading-tight text-black">"{req.description}"</p>
                             </div>
-                            <p className="text-sm font-bold leading-tight text-black">"{req.description}"</p>
                           </div>
-                        </div>
 
-                        {/* ADMIN ONLY: DONE BUTTON */}
-                        {isAdmin && (
-                          <button
-                            disabled={completingId === req.id}
-                            onClick={() => handleDoneClick(req)}
-                            className={`px-6 py-2 rounded-2xl border-2 border-black font-['Londrina_Solid'] text-xl uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-0.5 active:shadow-none transition-all w-full md:w-auto ${completingId === req.id ? 'bg-slate-400 cursor-not-allowed' : 'bg-blue-500 text-white'
-                              }`}
-                          >
-                            {completingId === req.id ? '...' : 'Done'}
-                          </button>
-                        )}
+                          {/* ADMIN ONLY: DONE BUTTON */}
+                          {isAdmin && (
+                            <button
+                              disabled={completingId === req.id}
+                              onClick={() => handleDoneClick(req)}
+                              className={`px-6 py-2 rounded-2xl border-2 border-black font-['Londrina_Solid'] text-xl uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-0.5 active:shadow-none transition-all w-full md:w-auto ${completingId === req.id ? 'bg-slate-400 cursor-not-allowed' : 'bg-blue-500 text-white'
+                                }`}
+                            >
+                              {completingId === req.id ? '...' : 'Done'}
+                            </button>
+                          )}
+                        </div>
+                      ))
+                    ) : (
+                      <div className="border-4 border-dashed border-black/5 p-8 rounded-[40px] text-center opacity-20 uppercase font-['Londrina_Solid']">
+                        No approved requests.
                       </div>
-                    ))
-                  ) : (
-                    <div className="border-4 border-dashed border-black/5 p-8 rounded-[40px] text-center opacity-20 uppercase font-['Londrina_Solid']">
-                      No approved requests.
-                    </div>
-                  )}
-                </div>
-              </section>
+                    )}
+                  </div>
+                </section>
 
                 {/* A: OFFICIAL SYSTEM LOGS (The big manual ones) */}
                 <section>

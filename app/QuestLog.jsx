@@ -120,7 +120,6 @@ export default function QuestLog({ quests, user, db, platformAppId }) {
 
             <div className="space-y-6 overflow-y-auto pr-2 custom-scrollbar">
                 {quests
-                    .filter((q) => q.ownerId === user?.uid) // Privacy Filter
                     .map((quest) => {
                         const allSteps = (quest.milestones || []).flatMap(m => m.steps || []);
                         const totalSteps = allSteps.length;
@@ -235,7 +234,7 @@ export default function QuestLog({ quests, user, db, platformAppId }) {
 
                                 <div className="pt-10 flex justify-center">
                                     <button
-                                        onClick={() => { if (confirm('Terminate this research objective?')) { deleteDoc(doc(db, 'artifacts', platformAppId, 'public', 'data', 'quests', activeQuest.id)); setActiveQuestId(null); } }}
+                                        onClick={() => { if (confirm('Terminate this research objective?')) { deleteDoc(doc(db, 'users', user.uid, 'labs', 'quest_lab', 'quests', activeQuest.id));; setActiveQuestId(null); } }}
                                         className="py-4 px-10 border-4 border-red-500 text-red-500 rounded-[30px] font-['Londrina_Solid'] uppercase text-xl hover:bg-red-500 hover:text-white transition-all"
                                     >
                                         Delete Quest Record
