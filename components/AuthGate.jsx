@@ -12,10 +12,22 @@ export default function AuthGate() {
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: "select_account" });
 
+    // Check if the user is on a mobile browser
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
     try {
-      await signInWithPopup(auth, provider);
+      if (isMobile) {
+        // Mobile browsers handle full-page redirects much better than popups
+        await signInWithRedirect(auth, provider);
+      } else {
+        await signInWithPopup(auth, provider);
+      }
     } catch (err) {
       console.error("Google sign-in error:", err);
+      // If popup was blocked on desktop, fallback to redirect
+      if (err.code === "auth/popup-blocked") {
+        await signInWithRedirect(auth, provider);
+      }
     } finally {
       setLoading(false);
     }
