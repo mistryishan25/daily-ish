@@ -28,27 +28,54 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const platformAppId = "reading_lab_v1";
 
-
+// 📍 Around Line 35 in app/page.jsx
 const palette = {
-  // --- Rudimentary Emotions ---
-  Warmth: '#FFB347',   // Cozy
-  Joy: '#FFD700',      // Happy
-  Sad: '#AEC6CF',      // Crying
-  Scared: '#2F4F4F',   // Spooky
-  Fast: '#FF1493',     // Page-turner
-  Funny: '#FDFD96',    // Laughing
-  Angry: '#FF6961',    // Character-hate
-  Cool: '#779ECB',     // "That was sick"
-  Peace: '#9370DB',    // Calm
-  Meh: '#D3D3D3',      // Bored/Simple
+  // --- HIGHLIGHTED EMOTIONS (Updated for high contrast) ---
+  Warmth: '#FF7F00',     // Deep Cozy Amber / Warm Orange
+  Peace: '#8A2BE2',      // Deep Royal Violet / Calm Purple
+  Funny: '#CCFF00',      // Electric Lime / Laughing Yellow-Green
+  Fast: '#FF007F',       // Neon Racing Pink / High-Energy Magenta
+  Sad: '#1E3A8A',        // Deep Slate Marine Blue (Crisp & Dark)
 
-  // --- The Favorites/Status ---
-  Smut: '#FF1493',     // Deep Pink
-  Wonder: '#9370DB',
+  // --- 27 EXTENDED EMOTIONAL STRATA ---
+  Admiration: '#00D2FF',   // Bright Cyan
+  Adoration: '#FF69B4',    // Hot Pink
+  Appreciation: '#10B981', // Emerald Green
+  Amusement: '#F59E0B',    // Bright Amber
+  Anger: '#EF4444',        // Pure Red
+  Anxiety: '#6B7280',      // Cool Gray
+  Awe: '#7C3AED',          // Violet Indigo
+  Awkwardness: '#D97706',  // Ochre / Copper
+  Boredom: '#475569',      // Dark Slate
+  Calmness: '#06B6D4',     // Cyan Blue
+  Confusion: '#A855F7',    // Lavender Purple
+  Craving: '#F97316',      // Bright Orange
+  Disgust: '#4D7C0F',      // Forest Olive Green
+  Empathy: '#14B8A6',      // Teal
+  Entrancement: '#312E81', // Midnight Dark Violet
+  Excitement: '#EC4899',   // Electric Pink
+  Fear: '#1F2937',         // Charcoal Almost-Black
+  Horror: '#881337',       // Deep Crimson Burgundy
+  Interest: '#0284C7',     // Sky Blue
+  Joy: '#FACC15',          // Canary Yellow
+  Nostalgia: '#B45309',    // Cinnamon Brown
+  Relief: '#34D399',       // Mint Green
+  Romance: '#F472B6',      // Soft Coral Pink
+  Sadness: '#2563EB',       // Cobalt Royal Blue
+  Satisfaction: '#059669', // Dark Emerald
+  Desire: '#DC2626',       // Vivid Crimson
+  Surprise: '#E11D48',     // Magenta Rose
+
+  // Fallbacks & Status Colors
+  Cool: '#3B82F6',
+  Meh: '#9CA3AF',
+  Smut: '#FF1493',
+  Wonder: '#8B5CF6',
   Active: '#FFD1DC',
-  DNF: '#FFB347'
+  DNF: '#F59E0B'
 };
-const genres = ["Fantasy", "Sci-Fi", "Literary", "Non-Fiction", "Romance", "Thriller", "Horror", "Memoir", "Poetry"];
+
+const genres = ["Fantasy", "Sci-Fi", "Literary","Humor","Fiction", "History", "Non-Fiction", "Romance", "Thriller", "Horror", "Memoir", "Poetry"];
 
 // Helper Icons
 const SettingsIcon = ({ size = 24, className = "" }) => (
@@ -341,6 +368,30 @@ export default function App() {
     const bookRef = doc(db, 'users', user.uid, 'labs', 'reading_lab', 'books', bookId);
     await updateDoc(bookRef, { sessionStartedAt: null });
   };
+
+const handleAddBook = async (bookData) => {
+    if (!user?.uid) return;
+    try {
+      const booksColRef = collection(db, 'users', user.uid, 'labs', 'reading_lab', 'books');
+      await addDoc(booksColRef, {
+        title: bookData.title,
+        author: bookData.author || '',
+        genre: bookData.genre || 'Fantasy',
+        totalPages: Number(bookData.totalPages) || 0,
+        currentPage: 0,
+        status: bookData.status || 'TBR', // 'READING', 'TBR', 'FINISHED'
+        coverUrl: bookData.coverUrl || '',
+        createdAt: Date.now(),
+        ownerId: user.uid,
+        sessions: []
+      });
+      setIsAddingBook(false);
+    } catch (err) {
+      console.error("Error adding book:", err);
+      alert(`Failed to add book: ${err.message}`);
+    }
+  };
+
   // --- SECTION: Love Lab Handlers (Add to page.jsx) ---
   const handleAddPerson = async (data) => {
     if (!user?.uid) return;
@@ -557,12 +608,23 @@ export default function App() {
               appState, setAppState, books, user, db, platformAppId, palette, genres,
               focusedSubjectId, setFocusedSubjectId, setIsLogging, isLogging,
               libraryMode, setLibraryMode, isAddingBook, setIsAddingBook,
-              handleSaveSession,
+              handleSaveSession,handleAddBook,
               tbrPool, currentChamp, roundWinnerId, battleIdx, finalWinner,
               selectedBook, setSelectedBook, activeTab, setActiveTab
             }}
           />
         )}
+
+        {/* ENDURANCE LAB VIEW */}
+{appState === 'endurance_lab' && (
+  <EnduranceLab
+    user={user}
+    db={db}
+    appState={appState}
+    setAppState={setAppState}
+    triathlonLogs={triathlonLogs}
+  />
+)}
 
         {(appState === 'dating_hub' || appState === 'dating_bloom' || ['dating_garden', 'dating_lab', 'dating_playbook'].includes(appState)) && (
           <LoveLab

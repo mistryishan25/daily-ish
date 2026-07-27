@@ -1,12 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactCompiler: true,
-  // Add '127.0.0.1' explicitly since the logs specifically flag it
+  
+  // Hostnames ONLY (Do not include :3000 or http://)
   allowedDevOrigins: [
-    'localhost:3000',
-    '127.0.0.1:3000',
-    'localhost:3001',
-    '127.0.0.1:3001',
+    'localhost',
+    '127.0.0.1',
+    '*.loca.lt',      // Allows phone access via localtunnel
   ],
   
   async headers() {
