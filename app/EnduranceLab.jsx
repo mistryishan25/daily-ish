@@ -131,8 +131,7 @@ export default function EnduranceLab({
     return (
 <div className="max-w-5xl mx-auto pt-4 md:pt-6 pl-1 pr-2 md:px-4 animate-in fade-in pb-20 relative text-left">
             {/* HEADER */}
-            <header className="flex justify-between items-center mb-8 pr-24 md:pr-36">
-                <div>
+<header className="flex justify-between items-center mb-6 md:mb-8 pr-20 md:pr-36">                <div>
                     <h2 className="font-['Londrina_Solid'] text-6xl uppercase text-black leading-none">
                         Endurance Lab
                     </h2>
