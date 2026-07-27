@@ -585,7 +585,7 @@ const handleAddBook = async (bookData) => {
                 <span className="font-['Londrina_Solid'] text-2xl uppercase font-bold">Dating</span>
                 <div className="text-4xl font-['Londrina_Solid'] text-right">{Number(peopleMetCount)}</div>
               </button>
-              <button onClick={() => setAppState('triathlon_lab')} className="bg-[#E2F0CB] h-[155px] border-[5px] border-black rounded-[45px] p-5 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] text-left flex flex-col justify-between active:translate-y-1 transition-all">
+              <button onClick={() => setAppState('endurance_lab')} className="bg-[#E2F0CB] h-[155px] border-[5px] border-black rounded-[45px] p-5 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] text-left flex flex-col justify-between active:translate-y-1 transition-all">
                 <span className="font-['Londrina_Solid'] text-2xl uppercase font-bold">Endurance</span>
                 <div className="text-4xl font-['Londrina_Solid']">{triathlonLogs.length} Trials</div>
               </button>
