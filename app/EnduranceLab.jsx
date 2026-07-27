@@ -130,7 +130,7 @@ export default function EnduranceLab({
 
     return (
         <div className="max-w-5xl mx-auto pt-6 px-4 animate-in fade-in pb-20 relative text-left">
-            
+
             {/* HEADER */}
             <header className="flex justify-between items-center mb-8 pr-24 md:pr-36">
                 <div>
@@ -191,25 +191,22 @@ export default function EnduranceLab({
             {/* ========================================================= */}
             {selectedStation && (
                 <div className="flex gap-6 items-start relative min-h-[80vh]">
-                    
+
                     {/* LEFT CONTENT AREA: BENTO BOXES & CHEAT SHEET */}
-                    <div className="flex-1 space-y-4 md:space-y-6 pr-12 md:pr-36">
-                        
+                    <div className="flex-1 space-y-4 md:space-y-6 pr-20 md:pr-36">
                         {/* VIEW MODE SWITCHER TABS */}
                         <div className="flex bg-white border-[4px] border-black p-1 rounded-[25px] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                             <button
                                 onClick={() => setViewMode('protocol')}
-                                className={`flex-1 py-2.5 rounded-[18px] font-['Londrina_Solid'] uppercase text-lg transition-all ${
-                                    viewMode === 'protocol' ? 'bg-black text-white shadow-md' : 'text-black opacity-40 hover:opacity-100'
-                                }`}
+                                className={`flex-1 py-2.5 rounded-[18px] font-['Londrina_Solid'] uppercase text-lg transition-all ${viewMode === 'protocol' ? 'bg-black text-white shadow-md' : 'text-black opacity-40 hover:opacity-100'
+                                    }`}
                             >
                                 📋 Goal & Plan
                             </button>
                             <button
                                 onClick={() => setViewMode('poolside')}
-                                className={`flex-1 py-2.5 rounded-[18px] font-['Londrina_Solid'] uppercase text-lg transition-all ${
-                                    viewMode === 'poolside' ? 'bg-blue-500 text-white shadow-md' : 'text-black opacity-40 hover:opacity-100'
-                                }`}
+                                className={`flex-1 py-2.5 rounded-[18px] font-['Londrina_Solid'] uppercase text-lg transition-all ${viewMode === 'poolside' ? 'bg-blue-500 text-white shadow-md' : 'text-black opacity-40 hover:opacity-100'
+                                    }`}
                             >
                                 🏊 Poolside Mode
                             </button>
@@ -269,11 +266,10 @@ export default function EnduranceLab({
                                                         >
                                                             <div>
                                                                 <div className="flex items-center gap-2 mb-1">
-                                                                    <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-md border border-black ${
-                                                                        tool.type === 'distance' ? 'bg-blue-100' :
-                                                                        tool.type === 'gear' ? 'bg-amber-100' :
-                                                                        tool.type === 'volume' ? 'bg-green-100' : 'bg-rose-100'
-                                                                    }`}>
+                                                                    <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-md border border-black ${tool.type === 'distance' ? 'bg-blue-100' :
+                                                                            tool.type === 'gear' ? 'bg-amber-100' :
+                                                                                tool.type === 'volume' ? 'bg-green-100' : 'bg-rose-100'
+                                                                        }`}>
                                                                         {tool.type}
                                                                     </span>
                                                                     <span className="font-['Londrina_Solid'] text-xl uppercase font-black leading-none">
@@ -332,22 +328,19 @@ export default function EnduranceLab({
                                                 <div
                                                     key={tool.id}
                                                     onClick={() => toggleToolCompletion(tool.id)}
-                                                    className={`border-[3px] border-black p-4 rounded-[25px] cursor-pointer transition-all flex items-center justify-between active:scale-98 ${
-                                                        isDone
+                                                    className={`border-[3px] border-black p-4 rounded-[25px] cursor-pointer transition-all flex items-center justify-between active:scale-98 ${isDone
                                                             ? 'bg-slate-100 opacity-40 shadow-none translate-y-0.5'
                                                             : 'bg-[#FDFCF0] shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] hover:bg-white'
-                                                    }`}
+                                                        }`}
                                                 >
                                                     <div className="flex items-center gap-3">
-                                                        <div className={`w-8 h-8 rounded-xl border-2 border-black flex items-center justify-center font-black text-xl transition-colors ${
-                                                            isDone ? 'bg-green-500 text-white' : 'bg-white'
-                                                        }`}>
+                                                        <div className={`w-8 h-8 rounded-xl border-2 border-black flex items-center justify-center font-black text-xl transition-colors ${isDone ? 'bg-green-500 text-white' : 'bg-white'
+                                                            }`}>
                                                             {isDone ? '✓' : ''}
                                                         </div>
                                                         <div>
-                                                            <span className={`font-['Londrina_Solid'] text-2xl uppercase font-black block leading-none ${
-                                                                isDone ? 'line-through' : ''
-                                                            }`}>
+                                                            <span className={`font-['Londrina_Solid'] text-2xl uppercase font-black block leading-none ${isDone ? 'line-through' : ''
+                                                                }`}>
                                                                 {tool.label}
                                                             </span>
                                                             <span className="text-xs font-bold opacity-60 uppercase mt-1 block">
@@ -382,12 +375,12 @@ export default function EnduranceLab({
                     {/* UNBOXED VERTICAL STREAK BAR (Right Edge)                   */}
                     {/* ========================================================= */}
                     <div className="absolute right-0 top-0 bottom-0 flex flex-col items-center justify-between py-2 z-20">
-                        
-                        {/* Track line */}
-<div className="absolute top-6 bottom-6 w-[10px] md:w-[16px] bg-[#E5E5E5] rounded-full border-[2px] md:border-[3px] border-black z-0" />
 
-{/* Progress line */}
-<div className="absolute bottom-6 w-[10px] md:w-[16px] bg-gradient-to-t from-[#FF4B4B] via-[#FF9600] to-[#FFC800] rounded-full z-0 border-[2px] md:border-[3px] border-black transition-all duration-500" />
+                        {/* Track line */}
+                        <div className="absolute top-6 bottom-6 w-[10px] md:w-[16px] bg-[#E5E5E5] rounded-full border-[2px] md:border-[3px] border-black z-0" />
+
+                        {/* Progress line */}
+                        <div className="absolute bottom-6 w-[10px] md:w-[16px] bg-gradient-to-t from-[#FF4B4B] via-[#FF9600] to-[#FFC800] rounded-full z-0 border-[2px] md:border-[3px] border-black transition-all duration-500" />
 
                         {/* STREAK MILESTONE SQUARE CALENDAR BADGES */}
                         <div className="flex flex-col justify-between items-center h-full w-full relative z-10 py-4">
@@ -397,7 +390,7 @@ export default function EnduranceLab({
 
                                 return (
                                     <div key={val} className="relative group flex items-center justify-center my-3">
-                                        
+
                                         {/* 🗓️ SQUARE CALENDAR PAGE BADGE */}
                                         <div className="w-9 h-9 md:w-16 md:h-16 rounded-lg md:rounded-2xl border-[2px] md:border-[3.5px] border-black flex flex-col justify-between overflow-hidden relative shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] md:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-all cursor-pointer">
                                             {/* TOP BINDER PEGS */}
@@ -405,24 +398,22 @@ export default function EnduranceLab({
                                             <div className="absolute top-1 right-2.5 w-1.5 h-1.5 rounded-full bg-black z-30" />
 
                                             {/* CALENDAR BANNER STRIPE */}
-                                            <div className={`h-4.5 w-full border-b-[2.5px] border-black flex items-center justify-center shrink-0 ${
-                                                isCurrentTarget || isReached ? 'bg-[#FF4B4B]' : 'bg-slate-300'
-                                            }`}>
+                                            <div className={`h-4.5 w-full border-b-[2.5px] border-black flex items-center justify-center shrink-0 ${isCurrentTarget || isReached ? 'bg-[#FF4B4B]' : 'bg-slate-300'
+                                                }`}>
                                                 <span className="text-[7px] font-black uppercase text-white tracking-widest">
                                                     {isReached ? '✓' : '•'}
                                                 </span>
                                             </div>
 
                                             {/* CALENDAR MAIN NUMBER */}
-                                            <div className={`flex-1 flex items-center justify-center font-['Londrina_Solid'] text-sm md:text-3xl font-black leading-none ${
-    isCurrentTarget
-        ? 'bg-[#FF9600] text-white'
-        : isReached
-        ? 'bg-[#FFC800] text-black'
-        : 'bg-white text-black/40'
-}`}>
-    {val}
-</div>
+                                            <div className={`flex-1 flex items-center justify-center font-['Londrina_Solid'] text-sm md:text-3xl font-black leading-none ${isCurrentTarget
+                                                    ? 'bg-[#FF9600] text-white'
+                                                    : isReached
+                                                        ? 'bg-[#FFC800] text-black'
+                                                        : 'bg-white text-black/40'
+                                                }`}>
+                                                {val}
+                                            </div>
                                         </div>
 
                                         {/* PR INDICATOR TAG */}
