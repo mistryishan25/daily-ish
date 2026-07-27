@@ -129,8 +129,7 @@ export default function EnduranceLab({
     ];
 
     return (
-        <div className="max-w-5xl mx-auto pt-6 px-4 animate-in fade-in pb-20 relative text-left">
-
+<div className="max-w-5xl mx-auto pt-4 md:pt-6 pl-1 pr-2 md:px-4 animate-in fade-in pb-20 relative text-left">
             {/* HEADER */}
             <header className="flex justify-between items-center mb-8 pr-24 md:pr-36">
                 <div>
