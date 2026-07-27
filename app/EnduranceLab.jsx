@@ -193,7 +193,7 @@ export default function EnduranceLab({
                 <div className="flex gap-6 items-start relative min-h-[80vh]">
                     
                     {/* LEFT CONTENT AREA: BENTO BOXES & CHEAT SHEET */}
-                    <div className="flex-1 space-y-6 pr-24 md:pr-36">
+                    <div className="flex-1 space-y-4 md:space-y-6 pr-12 md:pr-36">
                         
                         {/* VIEW MODE SWITCHER TABS */}
                         <div className="flex bg-white border-[4px] border-black p-1 rounded-[25px] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
@@ -383,14 +383,11 @@ export default function EnduranceLab({
                     {/* ========================================================= */}
                     <div className="absolute right-0 top-0 bottom-0 flex flex-col items-center justify-between py-2 z-20">
                         
-                        {/* Thicker Background Central Track Line (16px) */}
-                        <div className="absolute top-6 bottom-6 w-[16px] bg-[#E5E5E5] rounded-full border-[3px] border-black z-0" />
+                        {/* Track line */}
+<div className="absolute top-6 bottom-6 w-[10px] md:w-[16px] bg-[#E5E5E5] rounded-full border-[2px] md:border-[3px] border-black z-0" />
 
-                        {/* Thicker Active Filled Progress Bar (Gradient Flame Hues) */}
-                        <div 
-                            className="absolute bottom-6 w-[16px] bg-gradient-to-t from-[#FF4B4B] via-[#FF9600] to-[#FFC800] rounded-full z-0 border-[3px] border-black transition-all duration-500"
-                            style={{ height: '52%' }}
-                        />
+{/* Progress line */}
+<div className="absolute bottom-6 w-[10px] md:w-[16px] bg-gradient-to-t from-[#FF4B4B] via-[#FF9600] to-[#FFC800] rounded-full z-0 border-[2px] md:border-[3px] border-black transition-all duration-500" />
 
                         {/* STREAK MILESTONE SQUARE CALENDAR BADGES */}
                         <div className="flex flex-col justify-between items-center h-full w-full relative z-10 py-4">
@@ -402,15 +399,7 @@ export default function EnduranceLab({
                                     <div key={val} className="relative group flex items-center justify-center my-3">
                                         
                                         {/* 🗓️ SQUARE CALENDAR PAGE BADGE */}
-                                        <div
-                                            className={`w-14 h-14 md:w-16 md:h-16 rounded-2xl border-[3.5px] border-black flex flex-col justify-between overflow-hidden relative shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-all cursor-pointer ${
-                                                isCurrentTarget
-                                                    ? 'scale-110 ring-4 ring-[#FF4B4B] animate-pulse z-20'
-                                                    : isReached
-                                                    ? 'scale-100 z-10'
-                                                    : 'opacity-60 z-10'
-                                            }`}
-                                        >
+                                        <div className="w-9 h-9 md:w-16 md:h-16 rounded-lg md:rounded-2xl border-[2px] md:border-[3.5px] border-black flex flex-col justify-between overflow-hidden relative shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] md:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-all cursor-pointer">
                                             {/* TOP BINDER PEGS */}
                                             <div className="absolute top-1 left-2.5 w-1.5 h-1.5 rounded-full bg-black z-30" />
                                             <div className="absolute top-1 right-2.5 w-1.5 h-1.5 rounded-full bg-black z-30" />
@@ -425,15 +414,15 @@ export default function EnduranceLab({
                                             </div>
 
                                             {/* CALENDAR MAIN NUMBER */}
-                                            <div className={`flex-1 flex items-center justify-center font-['Londrina_Solid'] text-2xl md:text-3xl font-black leading-none ${
-                                                isCurrentTarget
-                                                    ? 'bg-[#FF9600] text-white'
-                                                    : isReached
-                                                    ? 'bg-[#FFC800] text-black'
-                                                    : 'bg-white text-black/40'
-                                            }`}>
-                                                {val}
-                                            </div>
+                                            <div className={`flex-1 flex items-center justify-center font-['Londrina_Solid'] text-sm md:text-3xl font-black leading-none ${
+    isCurrentTarget
+        ? 'bg-[#FF9600] text-white'
+        : isReached
+        ? 'bg-[#FFC800] text-black'
+        : 'bg-white text-black/40'
+}`}>
+    {val}
+</div>
                                         </div>
 
                                         {/* PR INDICATOR TAG */}
