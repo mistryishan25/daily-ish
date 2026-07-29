@@ -2,8 +2,7 @@
 import React, { useState } from 'react';
 
 /**
- * EnduranceLab.jsx
- * 2-Step Station Navigation with Bento Protocols & Unboxed Edge PR Streak Spine
+ * EnduranceLab.jsx - Fixed Non-Overlapping Bento + Unboxed Right PR Bar Layout
  */
 
 export default function EnduranceLab({
@@ -14,12 +13,11 @@ export default function EnduranceLab({
     triathlonLogs = [],
     onBack
 }) {
-    // 1. Initial State starts at null (4 Main Bento Cards Menu)
     const [selectedStation, setSelectedStation] = useState(null);
     const [viewMode, setViewMode] = useState('protocol'); // 'protocol' or 'poolside'
     const [isAddingTool, setIsAddingTool] = useState(false);
 
-    // Active PR value & Milestones (Top-to-Bottom: Highest target to lowest)
+    // Active PR value & Milestones (Top-to-Bottom)
     const currentStreakValue = 15;
     const streakMilestones = [50, 30, 15, 7, 1];
 
@@ -59,7 +57,6 @@ export default function EnduranceLab({
 
     const activeSwimGoal = goals.find(g => g.station === 'Swim') || goals[0];
 
-    // Back button behavior: Station page -> 4-card menu -> Main HQ Dashboard
     const handleClose = () => {
         if (selectedStation) {
             setSelectedStation(null);
@@ -129,20 +126,22 @@ export default function EnduranceLab({
     ];
 
     return (
-<div className="max-w-5xl mx-auto pt-4 md:pt-6 pl-1 pr-2 md:px-4 animate-in fade-in pb-20 relative text-left">
+        <div className="max-w-5xl mx-auto pt-4 md:pt-6 px-2 md:px-4 animate-in fade-in pb-20 relative text-left">
+
             {/* HEADER */}
-<header className="flex justify-between items-center mb-6 md:mb-8 pr-20 md:pr-36">                <div>
-                    <h2 className="font-['Londrina_Solid'] text-6xl uppercase text-black leading-none">
+            <header className={`flex justify-between items-center mb-6 md:mb-8 ${selectedStation ? 'mr-16 md:mr-24' : ''}`}>
+                <div>
+                    <h2 className="font-['Londrina_Solid'] text-4xl md:text-6xl uppercase text-black leading-none">
                         Endurance Lab
                     </h2>
-                    <p className="font-['Londrina_Solid'] text-lg opacity-40 uppercase tracking-tight font-bold">
-                        {selectedStation ? `${selectedStation} Station Protocol` : 'Physical Conditioning HQ'}
+                    <p className="font-['Londrina_Solid'] text-sm md:text-lg opacity-40 uppercase tracking-tight font-bold">
+                        {selectedStation ? `${selectedStation} Protocol` : 'Physical Conditioning HQ'}
                     </p>
                 </div>
 
                 <button
                     onClick={handleClose}
-                    className="w-12 h-12 bg-white border-4 border-black rounded-2xl font-black text-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 transition-all text-black flex items-center justify-center shrink-0"
+                    className="w-10 h-10 md:w-12 md:h-12 bg-white border-3 md:border-4 border-black rounded-2xl font-black text-xl md:text-2xl shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 transition-all text-black flex items-center justify-center shrink-0"
                 >
                     ✕
                 </button>
@@ -153,23 +152,23 @@ export default function EnduranceLab({
             {/* ========================================================= */}
             {!selectedStation && (
                 <div className="space-y-6 max-w-md mx-auto">
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-3 md:gap-4">
                         {stations.map((s) => (
                             <div
                                 key={s.name}
                                 onClick={() => setSelectedStation(s.name)}
-                                className="bg-white border-[4px] border-black rounded-[35px] p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:scale-[1.02] active:translate-y-1 transition-all cursor-pointer relative overflow-hidden"
+                                className="bg-white border-[3.5px] md:border-[4px] border-black rounded-[28px] md:rounded-[35px] p-5 md:p-6 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] hover:scale-[1.02] active:translate-y-1 transition-all cursor-pointer relative overflow-hidden"
                             >
-                                <div className="text-4xl mb-3">{s.icon}</div>
-                                <h3 className="font-['Londrina_Solid'] text-3xl uppercase text-black leading-none">{s.name}</h3>
-                                <p className="text-[10px] font-black opacity-40 uppercase tracking-widest mt-2">Open Station →</p>
+                                <div className="text-3xl md:text-4xl mb-2 md:mb-3">{s.icon}</div>
+                                <h3 className="font-['Londrina_Solid'] text-2xl md:text-3xl uppercase text-black leading-none">{s.name}</h3>
+                                <p className="text-[9px] md:text-[10px] font-black opacity-40 uppercase tracking-widest mt-2">Open Station →</p>
                             </div>
                         ))}
                     </div>
 
                     {/* RECENT TRIALS SUMMARY */}
-                    <div className="bg-white border-[4px] border-black rounded-[35px] p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] text-black">
-                        <h4 className="font-['Londrina_Solid'] text-xl uppercase mb-3 opacity-40">Recent Trials</h4>
+                    <div className="bg-white border-[3.5px] md:border-[4px] border-black rounded-[28px] md:rounded-[35px] p-5 md:p-6 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] text-black">
+                        <h4 className="font-['Londrina_Solid'] text-lg md:text-xl uppercase mb-3 opacity-40">Recent Trials</h4>
                         {triathlonLogs.length > 0 ? (
                             triathlonLogs.slice(0, 3).map((log, i) => (
                                 <div key={i} className="flex justify-between border-b-2 border-black/5 pb-2 uppercase font-black text-xs">
@@ -188,37 +187,38 @@ export default function EnduranceLab({
             {/* STEP 2: ACTIVE STATION PROTOCOL & VERTICAL STREAK SPINE    */}
             {/* ========================================================= */}
             {selectedStation && (
-                <div className="flex gap-6 items-start relative min-h-[80vh]">
+                <div className="relative min-h-[80vh] w-full">
 
-                    {/* LEFT CONTENT AREA: BENTO BOXES & CHEAT SHEET */}
-                    <div className="flex-1 space-y-4 md:space-y-6 pr-20 md:pr-36">
+                    {/* LEFT BENTO CONTENT PANE (Hard right margin keeps it separated from bar) */}
+                    <div className="mr-16 md:mr-24 space-y-4 md:space-y-6">
+
                         {/* VIEW MODE SWITCHER TABS */}
-                        <div className="flex bg-white border-[4px] border-black p-1 rounded-[25px] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                        <div className="flex bg-white border-[3.5px] md:border-[4px] border-black p-1 rounded-[22px] md:rounded-[25px] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                             <button
                                 onClick={() => setViewMode('protocol')}
-                                className={`flex-1 py-2.5 rounded-[18px] font-['Londrina_Solid'] uppercase text-lg transition-all ${viewMode === 'protocol' ? 'bg-black text-white shadow-md' : 'text-black opacity-40 hover:opacity-100'
+                                className={`flex-1 py-2 md:py-2.5 rounded-[16px] md:rounded-[18px] font-['Londrina_Solid'] uppercase text-base md:text-lg transition-all ${viewMode === 'protocol' ? 'bg-black text-white shadow-md' : 'text-black opacity-40 hover:opacity-100'
                                     }`}
                             >
-                                📋 Goal & Plan
+                                Plan
                             </button>
                             <button
                                 onClick={() => setViewMode('poolside')}
-                                className={`flex-1 py-2.5 rounded-[18px] font-['Londrina_Solid'] uppercase text-lg transition-all ${viewMode === 'poolside' ? 'bg-blue-500 text-white shadow-md' : 'text-black opacity-40 hover:opacity-100'
+                                className={`flex-1 py-2 md:py-2.5 rounded-[16px] md:rounded-[18px] font-['Londrina_Solid'] uppercase text-base md:text-lg transition-all ${viewMode === 'poolside' ? 'bg-blue-500 text-white shadow-md' : 'text-black opacity-40 hover:opacity-100'
                                     }`}
                             >
-                                🏊 Poolside Mode
+                                Pool
                             </button>
                         </div>
 
                         {/* BENTO CARD: GOAL HEADER */}
-                        <div className="bg-blue-500 text-white border-[4px] border-black rounded-[35px] p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] relative">
-                            <span className="bg-black text-white text-[9px] font-black uppercase px-3 py-1 rounded-full border border-white/20 tracking-widest">
+                        <div className="bg-blue-500 text-white border-[3.5px] md:border-[4px] border-black rounded-[28px] md:rounded-[35px] p-5 md:p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] relative">
+                            <span className="bg-black text-white text-[8px] md:text-[9px] font-black uppercase px-2.5 py-1 rounded-full border border-white/20 tracking-widest">
                                 Active Target
                             </span>
-                            <h3 className="font-['Londrina_Solid'] text-4xl uppercase leading-none mt-3">
+                            <h3 className="font-['Londrina_Solid'] text-2xl md:text-4xl uppercase leading-none mt-2.5">
                                 {activeSwimGoal.title}
                             </h3>
-                            <div className="mt-4 pt-3 border-t border-white/20 flex justify-between items-center text-xs font-black uppercase">
+                            <div className="mt-3 pt-3 border-t border-white/20 flex flex-col sm:flex-row justify-between gap-1 sm:gap-0 text-xs font-black uppercase">
                                 <span>Target Metric: <span className="underline">{activeSwimGoal.targetMetric}</span></span>
                                 <span>Target Date: {activeSwimGoal.deadline}</span>
                             </div>
@@ -226,23 +226,23 @@ export default function EnduranceLab({
 
                         {/* MODE 1: PROTOCOL BUILDER */}
                         {viewMode === 'protocol' && (
-                            <div className="bg-white border-[4px] border-black rounded-[35px] p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] text-black animate-in fade-in duration-300">
-                                <div className="flex justify-between items-start mb-4">
+                            <div className="bg-white border-[3.5px] md:border-[4px] border-black rounded-[28px] md:rounded-[35px] p-5 md:p-6 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] text-black animate-in fade-in duration-300">
+                                <div className="flex justify-between items-start mb-4 gap-2">
                                     <div>
-                                        <span className="text-[10px] font-black opacity-40 uppercase tracking-widest block">Linked Protocol</span>
-                                        <h4 className="font-['Londrina_Solid'] text-3xl uppercase leading-tight mt-0.5">
+                                        <span className="text-[9px] md:text-[10px] font-black opacity-40 uppercase tracking-widest block">Linked Protocol</span>
+                                        <h4 className="font-['Londrina_Solid'] text-2xl md:text-3xl uppercase leading-tight mt-0.5">
                                             {activeSwimGoal.plan.name}
                                         </h4>
                                     </div>
                                     <button
                                         onClick={() => setIsAddingTool(true)}
-                                        className="bg-black text-white border-2 border-black px-3 py-1.5 rounded-xl font-['Londrina_Solid'] text-sm uppercase font-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-0.5 transition-all shrink-0"
+                                        className="bg-black text-white border-2 border-black px-2.5 py-1.5 rounded-xl font-['Londrina_Solid'] text-xs md:text-sm uppercase font-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-0.5 transition-all shrink-0"
                                     >
                                         + Tool Block
                                     </button>
                                 </div>
 
-                                <div className="space-y-6 mt-6">
+                                <div className="space-y-5 md:space-y-6 mt-4 md:mt-6">
                                     {['Warmup', 'Main Set', 'Cooldown'].map((phase) => {
                                         const phaseTools = activeSwimGoal.plan.tools.filter(t => t.phase === phase);
                                         if (phaseTools.length === 0) return null;
@@ -251,7 +251,7 @@ export default function EnduranceLab({
                                             <div key={phase} className="space-y-2">
                                                 <div className="flex items-center gap-2">
                                                     <div className="w-2.5 h-2.5 rounded-full bg-blue-500 border border-black" />
-                                                    <span className="font-['Londrina_Solid'] text-base uppercase opacity-50 tracking-wider">
+                                                    <span className="font-['Londrina_Solid'] text-sm md:text-base uppercase opacity-50 tracking-wider">
                                                         {phase} ({phaseTools.length} Tools)
                                                     </span>
                                                 </div>
@@ -260,26 +260,26 @@ export default function EnduranceLab({
                                                     {phaseTools.map((tool) => (
                                                         <div
                                                             key={tool.id}
-                                                            className="bg-[#FDFCF0] border-2 border-black p-3.5 rounded-2xl shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] flex items-center justify-between"
+                                                            className="bg-[#FDFCF0] border-2 border-black p-3 md:p-3.5 rounded-2xl shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] flex items-center justify-between gap-2"
                                                         >
-                                                            <div>
+                                                            <div className="overflow-hidden">
                                                                 <div className="flex items-center gap-2 mb-1">
-                                                                    <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-md border border-black ${tool.type === 'distance' ? 'bg-blue-100' :
+                                                                    <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-md border border-black shrink-0 ${tool.type === 'distance' ? 'bg-blue-100' :
                                                                             tool.type === 'gear' ? 'bg-amber-100' :
                                                                                 tool.type === 'volume' ? 'bg-green-100' : 'bg-rose-100'
                                                                         }`}>
                                                                         {tool.type}
                                                                     </span>
-                                                                    <span className="font-['Londrina_Solid'] text-xl uppercase font-black leading-none">
+                                                                    <span className="font-['Londrina_Solid'] text-lg md:text-xl uppercase font-black leading-none truncate">
                                                                         {tool.label}
                                                                     </span>
                                                                 </div>
                                                                 {tool.details && (
-                                                                    <p className="text-xs opacity-60 font-medium">{tool.details}</p>
+                                                                    <p className="text-xs opacity-60 font-medium truncate">{tool.details}</p>
                                                                 )}
                                                             </div>
 
-                                                            <div className="font-['Londrina_Solid'] text-xl font-black bg-white border-2 border-black px-3 py-1 rounded-xl shrink-0">
+                                                            <div className="font-['Londrina_Solid'] text-lg md:text-xl font-black bg-white border-2 border-black px-2.5 py-1 rounded-xl shrink-0">
                                                                 {tool.value}
                                                             </div>
                                                         </div>
@@ -294,20 +294,20 @@ export default function EnduranceLab({
 
                         {/* MODE 2: POOLSIDE CHEAT SHEET */}
                         {viewMode === 'poolside' && (
-                            <div className="space-y-6 animate-in zoom-in-95 duration-300">
-                                <div className="bg-black text-white border-[4px] border-black rounded-[35px] p-5 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.3)] text-center">
+                            <div className="space-y-5 md:space-y-6 animate-in zoom-in-95 duration-300">
+                                <div className="bg-black text-white border-[3.5px] md:border-[4px] border-black rounded-[28px] md:rounded-[35px] p-4 md:p-5 shadow-[6px_6px_0px_0px_rgba(0,0,0,0.3)] text-center">
                                     <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-50 block mb-1">
                                         Rest Interval Counter
                                     </span>
-                                    <div className="font-['Londrina_Solid'] text-6xl font-black text-amber-400 my-1">
+                                    <div className="font-['Londrina_Solid'] text-5xl md:text-6xl font-black text-amber-400 my-1">
                                         {isTimerRunning ? `${restTimer}s` : '00s'}
                                     </div>
-                                    <div className="flex justify-center gap-2 mt-3">
+                                    <div className="flex justify-center gap-1.5 md:gap-2 mt-3">
                                         {[15, 30, 45, 60].map((sec) => (
                                             <button
                                                 key={sec}
                                                 onClick={() => startRestTimer(sec)}
-                                                className="bg-white/10 hover:bg-white/20 border border-white/30 text-white text-xs font-black uppercase px-3.5 py-1.5 rounded-xl transition-all"
+                                                className="bg-white/10 hover:bg-white/20 border border-white/30 text-white text-xs font-black uppercase px-2.5 md:px-3.5 py-1.5 rounded-xl transition-all"
                                             >
                                                 +{sec}s
                                             </button>
@@ -315,39 +315,39 @@ export default function EnduranceLab({
                                     </div>
                                 </div>
 
-                                <div className="bg-white border-[4px] border-black rounded-[35px] p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] text-black">
-                                    <h4 className="font-['Londrina_Solid'] text-3xl uppercase mb-1">Pool Deck Checklist</h4>
-                                    <p className="text-xs font-bold opacity-40 uppercase mb-6">Tap blocks as you complete them</p>
+                                <div className="bg-white border-[3.5px] md:border-[4px] border-black rounded-[28px] md:rounded-[35px] p-5 md:p-6 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] text-black">
+                                    <h4 className="font-['Londrina_Solid'] text-2xl md:text-3xl uppercase mb-1">Pool Deck Checklist</h4>
+                                    <p className="text-xs font-bold opacity-40 uppercase mb-5 md:mb-6">Tap blocks as you complete them</p>
 
-                                    <div className="space-y-3">
+                                    <div className="space-y-2.5 md:space-y-3">
                                         {activeSwimGoal.plan.tools.map((tool) => {
                                             const isDone = completedTools[tool.id];
                                             return (
                                                 <div
                                                     key={tool.id}
                                                     onClick={() => toggleToolCompletion(tool.id)}
-                                                    className={`border-[3px] border-black p-4 rounded-[25px] cursor-pointer transition-all flex items-center justify-between active:scale-98 ${isDone
+                                                    className={`border-[2.5px] md:border-[3px] border-black p-3.5 md:p-4 rounded-[20px] md:rounded-[25px] cursor-pointer transition-all flex items-center justify-between active:scale-98 ${isDone
                                                             ? 'bg-slate-100 opacity-40 shadow-none translate-y-0.5'
-                                                            : 'bg-[#FDFCF0] shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] hover:bg-white'
+                                                            : 'bg-[#FDFCF0] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-white'
                                                         }`}
                                                 >
-                                                    <div className="flex items-center gap-3">
-                                                        <div className={`w-8 h-8 rounded-xl border-2 border-black flex items-center justify-center font-black text-xl transition-colors ${isDone ? 'bg-green-500 text-white' : 'bg-white'
+                                                    <div className="flex items-center gap-2.5 md:gap-3 overflow-hidden">
+                                                        <div className={`w-7 h-7 md:w-8 md:h-8 rounded-xl border-2 border-black flex items-center justify-center font-black text-base md:text-xl shrink-0 transition-colors ${isDone ? 'bg-green-500 text-white' : 'bg-white'
                                                             }`}>
                                                             {isDone ? '✓' : ''}
                                                         </div>
-                                                        <div>
-                                                            <span className={`font-['Londrina_Solid'] text-2xl uppercase font-black block leading-none ${isDone ? 'line-through' : ''
+                                                        <div className="overflow-hidden">
+                                                            <span className={`font-['Londrina_Solid'] text-xl md:text-2xl uppercase font-black block leading-none truncate ${isDone ? 'line-through' : ''
                                                                 }`}>
                                                                 {tool.label}
                                                             </span>
-                                                            <span className="text-xs font-bold opacity-60 uppercase mt-1 block">
+                                                            <span className="text-[10px] md:text-xs font-bold opacity-60 uppercase mt-0.5 block truncate">
                                                                 {tool.details || tool.phase}
                                                             </span>
                                                         </div>
                                                     </div>
 
-                                                    <div className="font-['Londrina_Solid'] text-xl font-black bg-white border-2 border-black px-3 py-1 rounded-xl shrink-0">
+                                                    <div className="font-['Londrina_Solid'] text-lg md:text-xl font-black bg-white border-2 border-black px-2.5 py-1 rounded-xl shrink-0 ml-2">
                                                         {tool.value}
                                                     </div>
                                                 </div>
@@ -360,7 +360,7 @@ export default function EnduranceLab({
                                             alert("Session finish recorded!");
                                             setCompletedTools({});
                                         }}
-                                        className="w-full bg-blue-500 text-white border-[3px] border-black py-4 rounded-2xl font-['Londrina_Solid'] text-3xl uppercase shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 transition-all mt-8 font-black"
+                                        className="w-full bg-blue-500 text-white border-[3px] border-black py-3.5 md:py-4 rounded-2xl font-['Londrina_Solid'] text-2xl md:text-3xl uppercase shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 transition-all mt-6 md:mt-8 font-black"
                                     >
                                         Finish & Log Session
                                     </button>
@@ -370,60 +370,75 @@ export default function EnduranceLab({
                     </div>
 
                     {/* ========================================================= */}
-                    {/* UNBOXED VERTICAL STREAK BAR (Right Edge)                   */}
+                    {/* UNBOXED VERTICAL STREAK BAR (Anchored on the Right Edge)   */}
                     {/* ========================================================= */}
-                    <div className="absolute right-0 top-0 bottom-0 flex flex-col items-center justify-between py-2 z-20">
+                    <div className="absolute right-0 top-0 bottom-0 w-12 md:w-16 flex flex-col items-center justify-between py-2 z-20">
 
-                        {/* Track line */}
-                        <div className="absolute top-6 bottom-6 w-[10px] md:w-[16px] bg-[#E5E5E5] rounded-full border-[2px] md:border-[3px] border-black z-0" />
+                        {/* Outer Track Base (Aligned to circle centers) */}
+<div className="absolute top-8 md:top-10 bottom-8 md:bottom-10 w-[10px] md:w-[16px] bg-[#E2E8F0] rounded-full border-[2.5px] md:border-[3.5px] border-black z-0" />
 
-                        {/* Progress line */}
-                        <div className="absolute bottom-6 w-[10px] md:w-[16px] bg-gradient-to-t from-[#FF4B4B] via-[#FF9600] to-[#FFC800] rounded-full z-0 border-[2px] md:border-[3px] border-black transition-all duration-500" />
+{/* Active Animated Candy-Stripe Progress Bar */}
+<div 
+    className="absolute bottom-8 md:bottom-10 w-[10px] md:w-[16px] rounded-full z-0 border-[2.5px] md:border-[3.5px] border-black transition-all duration-500 shadow-[inset_1px_1px_2px_rgba(255,255,255,0.6),inset_-1px_-1px_2px_rgba(0,0,0,0.3)] overflow-hidden"
+    style={{ 
+        height: '52%',
+        backgroundImage: `repeating-linear-gradient(
+            -45deg,
+            #3B82F6,
+            #3B82F6 8px,
+            #60A5FA 8px,
+            #60A5FA 16px
+        )`,
+        backgroundSize: '22.63px 22.63px',
+        animation: 'candyScroll 1s linear infinite'
+    }}
+>
+    {/* Embedded Keyframes for Infinite Smooth Scrolling */}
+    <style jsx>{`
+        @keyframes candyScroll {
+            0% {
+                background-position: 0 0;
+            }
+            100% {
+                background-position: 0 22.63px;
+            }
+        }
+    `}</style>
+</div>
 
-                        {/* STREAK MILESTONE SQUARE CALENDAR BADGES */}
-                        <div className="flex flex-col justify-between items-center h-full w-full relative z-10 py-4">
-                            {streakMilestones.map((val) => {
-                                const isReached = val <= currentStreakValue;
-                                const isCurrentTarget = val === currentStreakValue;
+                       {/* STREAK MILESTONE CIRCULAR BADGES */}
+<div className="flex flex-col justify-between items-center h-full w-full relative z-10 py-4">
+    {streakMilestones.map((val) => {
+        // 1. Calculate boolean states for each milestone
+        const isReached = val <= currentStreakValue;
+        const isCurrentTarget = val === currentStreakValue;
 
-                                return (
-                                    <div key={val} className="relative group flex items-center justify-center my-3">
+        return (
+            <div key={val} className="relative group flex items-center justify-center my-2 md:my-3">
+                
+                {/* ⚪ CLEAN CIRCULAR MILESTONE NODE */}
+                <div
+    className={`w-10 h-10 md:w-14 md:h-14 rounded-full border-[2.5px] md:border-[3.5px] border-black flex items-center justify-center font-['Londrina_Solid'] text-base md:text-2xl font-black transition-all cursor-pointer ${
+        isCurrentTarget
+            ? 'bg-[#3B82F6] text-white ring-4 ring-blue-300 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] z-20'
+            : isReached
+            ? 'bg-[#60A5FA] text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] z-10'
+            : 'bg-white text-black/30 border-dashed shadow-none z-10'
+    }`}
+>
+                    {val === 50 ? '🎁' : val}
+                </div>
 
-                                        {/* 🗓️ SQUARE CALENDAR PAGE BADGE */}
-                                        <div className="w-9 h-9 md:w-16 md:h-16 rounded-lg md:rounded-2xl border-[2px] md:border-[3.5px] border-black flex flex-col justify-between overflow-hidden relative shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] md:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-all cursor-pointer">
-                                            {/* TOP BINDER PEGS */}
-                                            <div className="absolute top-1 left-2.5 w-1.5 h-1.5 rounded-full bg-black z-30" />
-                                            <div className="absolute top-1 right-2.5 w-1.5 h-1.5 rounded-full bg-black z-30" />
-
-                                            {/* CALENDAR BANNER STRIPE */}
-                                            <div className={`h-4.5 w-full border-b-[2.5px] border-black flex items-center justify-center shrink-0 ${isCurrentTarget || isReached ? 'bg-[#FF4B4B]' : 'bg-slate-300'
-                                                }`}>
-                                                <span className="text-[7px] font-black uppercase text-white tracking-widest">
-                                                    {isReached ? '✓' : '•'}
-                                                </span>
-                                            </div>
-
-                                            {/* CALENDAR MAIN NUMBER */}
-                                            <div className={`flex-1 flex items-center justify-center font-['Londrina_Solid'] text-sm md:text-3xl font-black leading-none ${isCurrentTarget
-                                                    ? 'bg-[#FF9600] text-white'
-                                                    : isReached
-                                                        ? 'bg-[#FFC800] text-black'
-                                                        : 'bg-white text-black/40'
-                                                }`}>
-                                                {val}
-                                            </div>
-                                        </div>
-
-                                        {/* PR INDICATOR TAG */}
-                                        {isCurrentTarget && (
-                                            <div className="absolute -left-10 bg-black text-[#FF9600] text-[9px] font-black uppercase px-2 py-0.5 rounded-lg border border-black shadow-sm pointer-events-none">
-                                                PR
-                                            </div>
-                                        )}
-                                    </div>
-                                );
-                            })}
-                        </div>
+                {/* PR TAG INDICATOR */}
+                {isCurrentTarget && (
+                    <div className="absolute -left-7 md:-left-10 bg-black text-[#FF9600] text-[7px] md:text-[9px] font-black uppercase px-1.5 md:px-2 py-0.5 rounded border border-black shadow-sm pointer-events-none">
+                        PR
+                    </div>
+                )}
+            </div>
+        );
+    })}
+</div>
 
                     </div>
 
@@ -434,7 +449,7 @@ export default function EnduranceLab({
             {isAddingTool && (
                 <div className="fixed inset-0 bg-black/80 z-[500] p-4 flex items-center justify-center" onClick={() => setIsAddingTool(false)}>
                     <div
-                        className="bg-[#FDFCF0] border-[5px] border-black rounded-[40px] p-6 max-w-md w-full shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] relative text-black"
+                        className="bg-[#FDFCF0] border-[4px] md:border-[5px] border-black rounded-[32px] md:rounded-[40px] p-5 md:p-6 max-w-md w-full shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] relative text-black"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <button
@@ -444,15 +459,15 @@ export default function EnduranceLab({
                             ✕
                         </button>
 
-                        <h3 className="font-['Londrina_Solid'] text-4xl uppercase mb-4">Add Modular Tool</h3>
+                        <h3 className="font-['Londrina_Solid'] text-3xl md:text-4xl uppercase mb-4">Add Modular Tool</h3>
 
-                        <form onSubmit={handleAddToolBlock} className="space-y-4 text-left">
+                        <form onSubmit={handleAddToolBlock} className="space-y-3.5 md:space-y-4 text-left">
                             <div>
                                 <label className="text-[10px] font-black uppercase opacity-40 block mb-1">Target Phase</label>
                                 <select
                                     value={toolPhase}
                                     onChange={(e) => setToolPhase(e.target.value)}
-                                    className="w-full bg-white border-3 border-black p-3 rounded-xl font-['Londrina_Solid'] text-xl focus:outline-none uppercase"
+                                    className="w-full bg-white border-3 border-black p-2.5 md:p-3 rounded-xl font-['Londrina_Solid'] text-lg md:text-xl focus:outline-none uppercase"
                                 >
                                     <option value="Warmup">Warmup</option>
                                     <option value="Main Set">Main Set</option>
@@ -465,7 +480,7 @@ export default function EnduranceLab({
                                 <select
                                     value={toolType}
                                     onChange={(e) => setToolType(e.target.value)}
-                                    className="w-full bg-white border-3 border-black p-3 rounded-xl font-['Londrina_Solid'] text-xl focus:outline-none uppercase"
+                                    className="w-full bg-white border-3 border-black p-2.5 md:p-3 rounded-xl font-['Londrina_Solid'] text-lg md:text-xl focus:outline-none uppercase"
                                 >
                                     <option value="distance">🏊 Distance / Laps</option>
                                     <option value="gear">🏋️ Gear / Equipment</option>
@@ -482,7 +497,7 @@ export default function EnduranceLab({
                                     placeholder="e.g. Kickboard Kicks or Hand Paddles"
                                     value={toolLabel}
                                     onChange={(e) => setToolLabel(e.target.value)}
-                                    className="w-full bg-white border-3 border-black p-3 rounded-xl font-['Londrina_Solid'] text-xl focus:outline-none"
+                                    className="w-full bg-white border-3 border-black p-2.5 md:p-3 rounded-xl font-['Londrina_Solid'] text-lg md:text-xl focus:outline-none"
                                 />
                             </div>
 
@@ -494,7 +509,7 @@ export default function EnduranceLab({
                                     placeholder="e.g. 400m, 4x 100m, or 30s Rest"
                                     value={toolValue}
                                     onChange={(e) => setToolValue(e.target.value)}
-                                    className="w-full bg-white border-3 border-black p-3 rounded-xl font-['Londrina_Solid'] text-xl focus:outline-none"
+                                    className="w-full bg-white border-3 border-black p-2.5 md:p-3 rounded-xl font-['Londrina_Solid'] text-lg md:text-xl focus:outline-none"
                                 />
                             </div>
 
@@ -505,13 +520,13 @@ export default function EnduranceLab({
                                     placeholder="e.g. Target 1:40/100m pace"
                                     value={toolDetails}
                                     onChange={(e) => setToolDetails(e.target.value)}
-                                    className="w-full bg-white border-3 border-black p-3 rounded-xl text-sm font-bold focus:outline-none"
+                                    className="w-full bg-white border-3 border-black p-2.5 md:p-3 rounded-xl text-xs md:text-sm font-bold focus:outline-none"
                                 />
                             </div>
 
                             <button
                                 type="submit"
-                                className="w-full bg-black text-white p-4 rounded-2xl font-['Londrina_Solid'] text-2xl uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)] active:translate-y-1 transition-all mt-2"
+                                className="w-full bg-black text-white p-3.5 md:p-4 rounded-2xl font-['Londrina_Solid'] text-xl md:text-2xl uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)] active:translate-y-1 transition-all mt-2"
                             >
                                 Inject Tool Block
                             </button>
